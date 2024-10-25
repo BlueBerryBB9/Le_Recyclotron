@@ -14,3 +14,4 @@ dist/*
 .pnp.*
 node_modules
 yarn.lock
+.env.local

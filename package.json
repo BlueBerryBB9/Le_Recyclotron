@@ -1,0 +1,38 @@
+{
+    "name": "2024_node_lab_1",
+    "packageManager": "yarn@4.5.0",
+    "type": "module",
+    "dependencies": {
+        "fastify": "^5.0.0",
+        "fastify-type-provider-zod": "^1.2.0",
+        "lolcatjs": "^2.4.3",
+        "zod": "^3.23.8",
+        "zod-validation-error": "^3.3.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.0.0",
+        "@jest/globals": "^29.7.0",
+        "@tsconfig/node20": "^20.1.4",
+        "@types/node": "^22.7.6",
+        "eslint": "^9.0.0",
+        "jest": "^29.7.0",
+        "nodemon": "^3.1.0",
+        "prettier": "^3.3.3",
+        "ts-jest": "^29.1.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.5",
+        "typescript-eslint": "^7.6.0"
+    },
+    "scripts": {
+        "hey": "echo hello world",
+        "start": "node dist/",
+        "compile": "tsc",
+        "exe": "yarn compile;yarn start",
+        "static": "eslint src/",
+        "style": "prettier --check src",
+        "wstyle": "prettier --write src",
+        "supsrc": "rm dist/*",
+        "dev": "nodemon",
+        "tester": "jest src --watch"
+    }
+}

@@ -1,0 +1,16 @@
+évènement : class Slots
+- start
+- end
+- desc
+- title
+
+créneaux: class Slot
+- start
+- end
+- user
+
+paramètres gen créneaux:
+- nb_slots
+- duration
+- pause_rate
+- pause_time

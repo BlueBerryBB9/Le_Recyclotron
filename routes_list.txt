@@ -1,0 +1,49 @@
+Rôles : admin, repairer, cm, employee, client
+Les rôles fonctionnent de manière à être un liste de rôles
+
+User : 
+(admin) api/user/ + méthode POST : créer un utilisateur
+(admin) api/user/ + méthode GET : getAll recupérer utilisateurs
+(admin) api/user/ + méthode PUT : modifier un utilisateur
+(admin) api/user/ + méthode DELETE : supprimer un utilisateur
+
+Item
+(employee) api/item/ + méthode POST : add item
+(all) api/item/ + méthode GET : get all items
+(all) api/item/id + méthode GET : get one item by id
+(repairer) api/item/ + méthode GET : get items that need to be sort fixable or not and to get items that are waiting to be repaired
+(employee)api/item/ + méthode PUT : update items
+(employee)api/item/ + méthode PUT : update status
+(employee) api/item/ + méthode DELETE : delete items
+
+
+Event
+(cm) api/event/ + méthode POST : ajouter un évènement
+(cm) api/event/ + méthode GET : récupérer les évènements
+(cm) api/event/id + méthode GET : récupérer un évènement par id
+(cm) api/event/ + méthode PUT : mettre à jour un evènement
+(cm) api/event/ + méthode DELETE : supprimer un evènement
+
+
+Payment
+(client) api/payment/ + méthode POST : ajouter un payment
+(client) api/payment/ + méthode GET : récupérer les payment
+(client) api/payment/id + méthode GET : récupérer un payment par id
+(client) api/payment/ + méthode PUT : mettre à jour un payment
+(client) api/payment/ + méthode DELETE : supprimer un payment
+
+
+
+Category
+(employee) api/category/ + méthode POST : ajouter une catégorie
+(employee) api/category/ + méthode GET : récupérer les catégories
+(employee) api/category/id + méthode GET : récupérer une catégorie par id
+(employee) api/category/ + méthode PUT : mettre à jour une catégorie
+(employee) api/category/ + méthode DELETE : supprimer une catégorie
+
+Belonging
+(employee) api/belonging/ + méthode POST : ajouter une appartenance
+(employee) api/belonging/ + méthode GET : récupérer les appartenances
+(employee) api/belonging/id + méthode GET : récupérer une appartenance par id
+(employee) api/belonging/ + méthode PUT : mettre à jour une appartenance
+(employee) api/belonging/ + méthode DELETE : supprimer une appartenance

@@ -1,14 +1,34 @@
 // src/models/Event.ts
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/database.js';
+import { z } from 'zod';
 
-class Event extends Model {}
+class SEvent extends Model {}
 
-Event.init({
+SEvent.init({
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.STRING },
   date: { type: DataTypes.DATE, allowNull: false },
 }, { sequelize, modelName: 'Event' });
 
-export default Event;
+export default SEvent;
+
+ZEvent = z.object({
+  id: z.number(),
+  title: z.string(),
+  image: z.string(),
+  desc: z.string(),
+  date: z.coerce.date()
+})
+
+export const ZEvent = ZEvent.partial({
+    image: true
+})
+
+export const ZPartialEvent = ZEvent.partial(); // tous les champs sont devenus optionels
+export const ZInputEvent = ZEvent.omit({ id: true }); // le même objet sans l'id
+
+export type Event = z.infer<typeof ZEvent>; // Le type typescript qui correspond à l'objet
+export type PartialEvent = z.infer<typeof ZPartialEvent>; // Le type typescript avec toutes les props optionelles
+export type InputEvent = z.infer<typeof ZInputEvent>; // Le type typescript sans l'id

@@ -1,8 +1,8 @@
 // src/index.ts
 import Fastify from 'fastify';
 import sequelize from './config/database.js';
-import employeeRoutes from './routes/employeeRoutes.js';
-import stockRoutes from './routes/stockRoutes.js';
+import employeeRoutes from './routes/userRoutes.js';
+import stockRoutes from './routes/itemsRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 
 const fastify = Fastify({ logger: true });

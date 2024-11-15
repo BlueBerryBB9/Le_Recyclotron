@@ -1,6 +1,6 @@
 // src/controllers/eventController.ts
 import { FastifyReply, FastifyRequest } from 'fastify';
-import Event from '../models/Event';
+import Event from '../models/Event.js';
 
 export const createEvent = async (req: FastifyRequest, reply: FastifyReply) => {
   const { title, description, date } = req.body as { title: string; description: string; date: Date };

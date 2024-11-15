@@ -1,6 +1,6 @@
 // src/controllers/stockController.ts
 import { FastifyReply, FastifyRequest } from 'fastify';
-import Stock from '../models/Stock';
+import Stock from '../models/Stock.js';
 
 export const createStockItem = async (req: FastifyRequest, reply: FastifyReply) => {
   const { itemName, quantity } = req.body as { itemName: string; quantity: number };

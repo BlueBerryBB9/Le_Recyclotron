@@ -1,6 +1,6 @@
 // src/routes/employeeRoutes.ts
 import { FastifyInstance } from 'fastify';
-import { createEmployee } from '../controllers/employeeController.ts';
+import { createEmployee } from '../controllers/employeeController.js';
 
 export default async (fastify: FastifyInstance) => {
   fastify.post('/employees', createEmployee);

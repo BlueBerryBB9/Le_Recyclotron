@@ -1,6 +1,6 @@
 // src/models/Employee.ts
 import { DataTypes, Model } from 'sequelize';
-import sequelize from '../config/database';
+import sequelize from '../config/database.js';
 
 class Employee extends Model {}
 

@@ -1,6 +1,6 @@
 // src/controllers/employeeController.ts
 import { FastifyReply, FastifyRequest } from 'fastify';
-import Employee from '../models/Employee';
+import Employee from '../models/Employee.js';
 
 export const createEmployee = async (req: FastifyRequest, reply: FastifyReply) => {
   const { name, role } = req.body as { name: string; role: string };

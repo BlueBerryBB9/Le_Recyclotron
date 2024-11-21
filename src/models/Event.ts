@@ -14,7 +14,7 @@ SEvent.init({
 
 export default SEvent;
 
-ZEvent = z.object({
+const ZEventFull = z.object({
   id: z.number(),
   title: z.string(),
   image: z.string(),
@@ -22,7 +22,7 @@ ZEvent = z.object({
   date: z.coerce.date()
 })
 
-export const ZEvent = ZEvent.partial({
+export const ZEvent = ZEventFull.partial({
     image: true
 })
 

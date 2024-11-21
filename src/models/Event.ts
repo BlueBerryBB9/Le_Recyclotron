@@ -12,7 +12,6 @@ SEvent.init({
   date: { type: DataTypes.DATE, allowNull: false },
 }, { sequelize, modelName: 'Event' });
 
-export default SEvent;
 
 const ZEventFull = z.object({
   id: z.number(),
@@ -23,7 +22,7 @@ const ZEventFull = z.object({
 })
 
 export const ZEvent = ZEventFull.partial({
-    image: true
+  image: true
 })
 
 export const ZPartialEvent = ZEvent.partial(); // tous les champs sont devenus optionels
@@ -32,3 +31,5 @@ export const ZInputEvent = ZEvent.omit({ id: true }); // le même objet sans l'i
 export type Event = z.infer<typeof ZEvent>; // Le type typescript qui correspond à l'objet
 export type PartialEvent = z.infer<typeof ZPartialEvent>; // Le type typescript avec toutes les props optionelles
 export type InputEvent = z.infer<typeof ZInputEvent>; // Le type typescript sans l'id
+
+export default SEvent;

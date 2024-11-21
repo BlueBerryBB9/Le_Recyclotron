@@ -19,39 +19,35 @@ Item
 
 Event
 (cm) event/ + méthode POST : ajouter un évènement
-(cm) event/ + méthode GET : récupérer les évènements
-(cm) event/id + méthode GET : récupérer un évènement par id
-(cm) event/ + méthode PUT : mettre à jour un evènement
-(cm) event/ + méthode DELETE : supprimer un evènement
+(client, cm) event/ + méthode GET : récupérer les évènements
+(client, cm) event/id + méthode GET : récupérer un évènement par id
+(cm) event/:id + méthode PUT : mettre à jour un évènement
+(cm) event/:id + méthode DELETE : supprimer un évènement
+(cm) event/registration + méthode GET : récupérer les inscriptions pour un évènement
 
+Registration
+(client) registration/ + POST : créer une inscription
+(client) registration/ + GET : récupérer toutes les inscriptions
+(client) registration/:id + GET : récupérer une inscription
+(client) registration/:id + PUT : mettre à jour une inscription
+(client) registration/:id + DELETE : supprimer une inscription
 
 Payment
-(client) payment/ + méthode POST : ajouter un payment
+(admin) payment/ + méthode POST : ajouter un payment
 (client) payment/ + méthode GET : récupérer les payment
 (client) payment/id + méthode GET : récupérer un payment par id
-(client) payment/ + méthode PUT : mettre à jour un payment
-(client) payment/ + méthode DELETE : supprimer un payment
+(admin) payment/:id + méthode PUT : mettre à jour un payment
+(admin) payment/:id + méthode DELETE : supprimer un payment
 
 
 Category
 (employee) category/ + méthode POST : ajouter une catégorie
 (employee) category/ + méthode GET : récupérer les catégories
 (employee) category/id + méthode GET : récupérer une catégorie par id
-(employee) category/ + méthode PUT : mettre à jour une catégorie
-(employee) category/ + méthode DELETE : supprimer une catégorie
-
-Belonging
-(employee) belonging/ + méthode POST : ajouter une appartenance
-(employee) belonging/ + méthode GET : récupérer les appartenances
-(employee) belonging/id + méthode GET : récupérer une appartenance par id
-(employee) belonging/ + méthode PUT : mettre à jour une appartenance
-(employee) belonging/ + méthode DELETE : supprimer une appartenance
+(employee) category/:id + méthode PUT : mettre à jour une catégorie
+(employee) category/:id + méthode DELETE : supprimer une catégorie
 
 
-DTO + rajouter les id
-
-Les rôles : par string list
-            
 inject close : contourne la règle du SQL
 
 Appel de l' API à elle même

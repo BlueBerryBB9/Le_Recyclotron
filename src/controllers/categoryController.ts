@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import * as i from "../models/Category.js";
-import CategoryCategory from "../models/CategoryCategories.js";
 
 export const createCategory = async (
     request: FastifyRequest<{ Body: i.InputCategory }>,
@@ -10,6 +9,26 @@ export const createCategory = async (
         const { name } = request.body;
         const newCategory = await i.default.create({
             name,
+        });
+        reply.code(201).send({
+            data: newCategory,
+            message: "new Category created successfully",
+        });
+    } catch (error) {
+        reply.code(500).send({ error: "Failed to create Category." });
+    }
+};
+
+export const createChildCategory = async (
+    request: FastifyRequest<{ Params: { id: string }; Body: i.InputCategory }>,
+    reply: FastifyReply,
+) => {
+    try {
+        const parent_category_id: number = parseInt(request.params.id);
+        const { name } = request.body;
+        const newCategory = await i.default.create({
+            name,
+            parent_category_id,
         });
         reply.code(201).send({
             data: newCategory,
@@ -43,39 +62,21 @@ export const getCategoryById = async (
 ) => {
     try {
         const id: number = parseInt(request.params.id);
-        const Category = await i.default.findByPk(id);
-        if (Category) {
+        const category = await i.default.findByPk(id);
+        if (category) {
             reply.code(200).send({
-                data: Category,
-                message: "Category fetched by id successfully",
+                data: category,
+                message: "category fetched by id successfully",
             });
         } else {
-            reply.code(404).send({ error: "Category not found." });
+            reply.code(404).send({ error: "category not found." });
         }
     } catch (error) {
-        reply.code(500).send({ error: "Failed to retrieve Category." });
+        reply.code(500).send({ error: "Failed to retrieve category." });
     }
 };
 
-// Get Categorys by status
-export const getCategoryByStatus = async (
-    request: FastifyRequest<{ Params: { status: string } }>,
-    reply: FastifyReply,
-) => {
-    try {
-        const status = request.params.status;
-        const categories = await i.default.findAll({ where: { status } });
-        reply.code(200).send({
-            data: categories,
-            message: "categories fetched by status successfully",
-        });
-    } catch (error) {
-        reply
-            .code(500)
-            .send({ error: "Failed to retrieve Categorys by status." });
-    }
-};
-
+// Updtade Category by ID
 export const updateCategoryById = async (
     request: FastifyRequest<{
         Params: { id: string };
@@ -107,83 +108,34 @@ export const deleteCategoryById = async (
 ) => {
     try {
         const id: number = parseInt(request.params.id);
-        const Category = await i.default.findByPk(id);
-        if (Category) {
-            await Category.destroy();
-            reply.code(200).send({ message: "Category deleted successfully." });
+        const category = await i.default.findByPk(id);
+        if (category) {
+            await category.destroy();
+            reply.code(200).send({ message: "category deleted successfully." });
         } else {
-            reply.code(404).send({ error: "Category not found." });
+            reply.code(404).send({ error: "category not found." });
         }
     } catch (error) {
-        reply.code(500).send({ error: "Failed to delete Category." });
+        reply.code(500).send({ error: "Failed to delete category." });
     }
 };
 
-// Add category to Category
-export const addCategoryToCategory = async (
-    request: FastifyRequest<{
-        Params: { CategoryId: string; categoryId: string };
-    }>,
-    reply: FastifyReply,
-) => {
-    try {
-        const CategoryId: number = parseInt(request.params.CategoryId);
-        const categoryId: number = parseInt(request.params.categoryId);
-
-        await CategoryCategory.create({
-            CategoryId,
-            categoryId,
-        });
-
-        reply.code(200).send({
-            message: "All categories of Category fetch successfully",
-        });
-    } catch (error) {
-        reply.code(500).send({
-            error: "An error occurred while adding the category to the Category.",
-        });
-    }
-};
-
-// Get all categories of an Category
+// Get all childCategories of category
 export const getAllCategoriesOfCategory = async (
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
 ) => {
     try {
-        const CategoryId: number = parseInt(request.params.id);
-        await CategoryCategory.findAll({
-            where: { CategoryId: CategoryId },
+        const parent_category_id: number = parseInt(request.params.id);
+        await i.default.findAll({
+            where: { parent_category_id: parent_category_id },
         });
         reply.code(200).send({
-            message: "All category of Category fetch successfully",
+            message: "All childCategory of category fetch successfully",
         });
     } catch (error) {
         reply.code(500).send({
-            error: "An error occurred while retrieving the categories of the Category.",
-        });
-    }
-};
-
-// Delete category of an Category
-export const deleteCategoryOfCategory = async (
-    request: FastifyRequest<{
-        Params: { CategoryId: string; categoryId: string };
-    }>,
-    reply: FastifyReply,
-) => {
-    try {
-        const CategoryId = parseInt(request.params.CategoryId);
-        const categoryId = parseInt(request.params.categoryId);
-        await CategoryCategory.destroy({
-            where: { CategoryId: CategoryId, categoryId: categoryId },
-        });
-        reply.code(200).send({
-            message: "category removed from Category successfully",
-        });
-    } catch (error) {
-        reply.code(500).send({
-            error: "An error occurred while deleting the category from the Category.",
+            error: "An error occurred while retrieving the childCategories of the category.",
         });
     }
 };

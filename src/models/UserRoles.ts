@@ -13,7 +13,15 @@ UserRole.init(
     },
 );
 
-User.belongsToMany(Role, { through: UserRole });
-Role.belongsToMany(User, { through: UserRole });
+User.belongsToMany(Role, {
+    as: "role",
+    foreignKey: "roleId",
+    through: UserRole,
+});
+Role.belongsToMany(User, {
+    as: "user",
+    foreignKey: "userId",
+    through: UserRole,
+});
 
 export default UserRole;

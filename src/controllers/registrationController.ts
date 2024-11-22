@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import * as r from "../models/Registration.js";
 
 export const createRegistration = async (
-    req: FastifyRequest,
+    req: FastifyRequest<{ Body: r.InputRegistration }>,
     rep: FastifyReply,
 ) => {
     const registration = req.body as r.InputRegistration;

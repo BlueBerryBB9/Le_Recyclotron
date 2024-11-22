@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import * as i from "../models/Item.js";
 import ItemCategory from "../models/ItemCategories.js";
 
+// Create new item
 export const createItem = async (
     request: FastifyRequest<{ Body: i.InputItem }>,
     reply: FastifyReply,

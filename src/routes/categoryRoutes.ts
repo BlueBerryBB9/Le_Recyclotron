@@ -11,6 +11,18 @@ export default async (fastify: FastifyInstance) => {
         ctrl.createCategory,
     );
 
+    // Create a new child Category
+    fastify.post<{ Params: { id: string }; Body: m.InputCategory }>(
+        "/categories/:id",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                body: m.ZInputCategory,
+            },
+        },
+        ctrl.createCategory,
+    );
+
     // All categories
     fastify.get(
         "/categories",
@@ -44,38 +56,10 @@ export default async (fastify: FastifyInstance) => {
         ctrl.deleteCategoryById,
     );
 
-    // Add category to Category
-    fastify.post<{ Params: { CategoryId: string; categoryId: string } }>(
-        "/categories/:id/categories",
-        {
-            schema: {
-                params: z.object({
-                    CategoryId: z.string(),
-                    categoryId: z.string(),
-                }),
-            },
-        },
-        ctrl.addCategoryToCategory,
-    );
-
     // All categories of an Category
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id/categories",
         { schema: { params: z.object({ CategoryId: z.string() }) } },
         ctrl.getAllCategoriesOfCategory,
-    );
-
-    // Delete category of an Category
-    fastify.delete<{ Params: { CategoryId: string; categoryId: string } }>(
-        "/categories/:id/categories/:id",
-        {
-            schema: {
-                params: z.object({
-                    CategoryId: z.string(),
-                    categoryId: z.string(),
-                }),
-            },
-        },
-        ctrl.deleteCategoryOfCategory,
     );
 };

@@ -25,9 +25,19 @@ SCategory.init(
     },
 );
 
+SCategory.hasMany(SCategory, {
+    as: "children",
+    onDelete: "CASCADE",
+});
+SCategory.belongsTo(SCategory, {
+    as: "parent",
+    foreignKey: "parent_category_id",
+});
+
 export const ZCategory = z.object({
     id: z.number(),
     name: z.string(),
+    parent_category_id: z.number(),
 });
 
 export const ZPartialCategory = ZCategory.partial(); // tous les champs sont devenus optionels

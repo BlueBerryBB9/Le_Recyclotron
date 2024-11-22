@@ -13,7 +13,15 @@ ItemCategory.init(
     },
 );
 
-Item.belongsToMany(Category, { through: ItemCategory });
-Category.belongsToMany(Item, { through: ItemCategory });
+Item.belongsToMany(Category, {
+    as: "category",
+    foreignKey: "categoryId",
+    through: ItemCategory,
+});
+Category.belongsToMany(Item, {
+    as: "item",
+    foreignKey: "itemId",
+    through: ItemCategory,
+});
 
 export default ItemCategory;

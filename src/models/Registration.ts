@@ -15,8 +15,16 @@ SRegistration.init(
     { sequelize, modelName: "Registration" },
 );
 
-User.belongsToMany(Event, { through: SRegistration });
-Event.belongsToMany(User, { through: SRegistration });
+User.belongsToMany(Event, {
+    as: "event",
+    foreignKey: "eventId",
+    through: SRegistration,
+});
+Event.belongsToMany(User, {
+    as: "user",
+    foreignKey: "userId",
+    through: SRegistration,
+});
 
 export default SRegistration;
 

@@ -1,16 +1,26 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { z } from "zod";
 import stripe from "../config/stripe.js";
 import SPayment from "../models/Payment.js";
+import { request } from "http";
+import {
+    donationSchema,
+    paymentMethodSchema,
+    subscriptionSchema,
+    DonationBody,
+    PaymentMethodBody,
+    SubscriptionBody,
+} from "../models/Payment.js";
 
 export class PaymentController {
     // Créer un abonnement mensuel
-    static async createSubscription(req: FastifyRequest, res: FastifyReply) {
+    static async createSubscription(
+        request: FastifyRequest<{ Body: SubscriptionBody }>,
+        reply: FastifyReply,
+    ) {
         try {
-            const { customerId, priceId } = req.body as {
-                customerId: string;
-                priceId: string;
-                userId: string;
-            };
+            const validateData = subscriptionSchema.parse(request.body);
+            const { customerId, priceId, userId } = validateData;
 
             // Créer l'abonnement dans Stripe
             const subscription = await stripe.subscriptions.create({
@@ -25,26 +35,31 @@ export class PaymentController {
                 amount: subscription.items.data[0].price.unit_amount! / 100,
                 type: 1, // 1 pour abonnement
                 date: new Date(),
-                id_user: (req.body as { userId: string }).userId,
-                stripeSubscriptionId: subscription.id,
+                id_user: userId,
+                id_stripe_payment: subscription.id,
             });
 
-            res.send({ subscriptionId: subscription.id });
+            return { subscriptionId: subscription.id };
         } catch (error) {
-            res.status(400).send({
-                error: "Erreur lors de la création de l'abonnement",
-            });
+            if (error instanceof z.ZodError) {
+                return reply
+                    .status(400)
+                    .send({ error: "Validation Error", details: error.errors });
+            }
+            return reply
+                .status(400)
+                .send({ error: "Erreur lors de la création de l'abonnement" });
         }
     }
 
     // Gérer un don unique
-    static async createDonation(req: FastifyRequest, res: FastifyReply) {
+    static async createDonation(
+        request: FastifyRequest<{ Body: DonationBody }>,
+        reply: FastifyReply,
+    ) {
         try {
-            const { amount, paymentMethodId, userId } = req.body as {
-                amount: number;
-                paymentMethodId: string;
-                userId: string;
-            };
+            const validateData = donationSchema.parse(request.body);
+            const { amount, paymentMethodId, userId } = validateData;
 
             // Créer l'intention de paiement
             const paymentIntent = await stripe.paymentIntents.create({
@@ -61,22 +76,29 @@ export class PaymentController {
                 type: 2, // 2 pour don
                 date: new Date(),
                 id_user: userId,
-                stripePaymentIntentId: paymentIntent.id,
+                id_stripe_payment: paymentIntent.id,
             });
-
-            res.send({ clientSecret: paymentIntent.client_secret });
+            return reply.send({ clientSecret: paymentIntent.client_secret });
         } catch (error) {
-            res.status(400).send({ error: "Erreur lors du traitement du don" });
+            if (error instanceof z.ZodError) {
+                return reply
+                    .status(400)
+                    .send({ error: "Validation Error", details: error.errors });
+            }
+            return reply
+                .status(400)
+                .send({ error: "Erreur lors du traitement du don" });
         }
     }
 
     // Mettre à jour les coordonnées bancaires
-    static async updatePaymentMethod(req: FastifyRequest, res: FastifyReply) {
+    static async updatePaymentMethod(
+        request: FastifyRequest<{ Body: PaymentMethodBody }>,
+        reply: FastifyReply,
+    ) {
         try {
-            const { customerId, paymentMethodId } = req.body as {
-                customerId: string;
-                paymentMethodId: string;
-            };
+            const validateData = paymentMethodSchema.parse(request.body);
+            const { customerId, paymentMethodId } = validateData;
 
             // Attacher la nouvelle méthode de paiement au client
             await stripe.paymentMethods.attach(paymentMethodId, {
@@ -89,45 +111,53 @@ export class PaymentController {
                     default_payment_method: paymentMethodId,
                 },
             });
-
-            res.send({ success: true });
+            return reply.send({ success: true });
         } catch (error) {
-            res.status(400).send({
+            if (error instanceof z.ZodError) {
+                return reply
+                    .status(400)
+                    .send({ error: "Validation Error", details: error.errors });
+            }
+            return reply.status(400).send({
                 error: "Erreur lors de la mise à jour du moyen de paiement",
             });
         }
     }
 
     // Résilier un abonnement
-    static async cancelSubscription(req: FastifyRequest, res: FastifyReply) {
+    static async cancelSubscription(
+        request: FastifyRequest<{ Params: { subscriptionId: string } }>,
+        reply: FastifyReply,
+    ) {
         try {
-            const { subscriptionId } = req.params as { subscriptionId: string };
+            const { subscriptionId } = request.params;
 
-            // Annuler l'abonnement dans Stripe
             const subscription =
                 await stripe.subscriptions.cancel(subscriptionId);
 
-            // Mettre à jour notre base de données
             await SPayment.update(
                 { status: "cancelled" },
                 { where: { stripeSubscriptionId: subscriptionId } },
             );
 
-            res.send({ success: true });
+            return reply.send({ success: true });
         } catch (error) {
-            res.status(400).send({
-                error: "Erreur lors de la résiliation de l'abonnement",
-            });
+            return reply
+                .status(400)
+                .send({
+                    error: "Erreur lors de la résiliation de l'abonnement",
+                });
         }
     }
 
     // Webhook pour gérer les événements Stripe
-    static async handleWebhook(req: FastifyRequest, res: FastifyReply) {
+    static async handleWebhook(req: FastifyRequest, reply: FastifyReply) {
         const sig = req.headers["stripe-signature"];
+        const rawBody = (request as any).rawBody;
 
         try {
             const event = stripe.webhooks.constructEvent(
-                req.body as string,
+                rawBody,
                 sig as string,
                 process.env.STRIPE_WEBHOOK_SECRET as string,
             );
@@ -147,9 +177,9 @@ export class PaymentController {
                     break;
             }
 
-            res.send({ received: true });
+            return reply.send({ received: true });
         } catch (error) {
-            res.status(400).send({ error: "Erreur webhook" });
+            return reply.status(400).send({ error: "Erreur webhook" });
         }
     }
 

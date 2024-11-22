@@ -128,7 +128,8 @@ export const updateUser = async (
 ) => {
     try {
         const userData = ZUpdateUser.parse(request.body);
-        const user = await SUser.findByPk(request.params.id);
+        const id: number = parseInt(request.params.id);
+        const user = await SUser.findByPk(id);
 
         if (!user) {
             return reply.status(404).send({
@@ -172,7 +173,7 @@ export const deleteUser = async (
     reply: FastifyReply,
 ) => {
     try {
-        const user = await SUser.findByPk(request.params.id);
+        const user = await SUser.findByPk(parseInt(request.params.id));
 
         if (!user) {
             return reply.status(404).send({
@@ -197,7 +198,8 @@ export const addUserRoles = async (
     reply: FastifyReply,
 ) => {
     try {
-        const user = await SUser.findByPk(request.params.id);
+        const id: number = parseInt(request.params.id);
+        const user = await SUser.findByPk(id);
         if (!user) {
             return reply.status(404).send({
                 error: "Not Found",
@@ -234,7 +236,8 @@ export const removeUserRoles = async (
     reply: FastifyReply,
 ) => {
     try {
-        const user = await SUser.findByPk(request.params.id);
+        const id: number = parseInt(request.params.id);
+        const user = await SUser.findByPk(id);
         if (!user) {
             return reply.status(404).send({
                 error: "Not Found",

@@ -1,37 +1,47 @@
 // src/models/Payment.ts
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import { z } from "zod";
 import User from "../models/User.js";
+import { z } from "zod";
 
 class SPayment extends Model {}
 
 SPayment.init(
     {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        id_stripe_payment: { type: DataTypes.STRING, allowNull: true },
         amount: { type: DataTypes.FLOAT, allowNull: false },
         type: { type: DataTypes.INTEGER },
         date: { type: DataTypes.DATE, allowNull: false },
+        status: { type: DataTypes.STRING, allowNull: true },
     },
     { sequelize, modelName: "Payment" },
 );
 
-SPayment.belongsTo(User);
+SPayment.belongsTo(User, { foreignKey: "user_id" });
+
+// A DÉPLACER
 User.hasMany(SPayment);
 
 export default SPayment;
 
-export const ZPayment = z.object({
-    id: z.number(),
-    amount: z.number(),
-    type: z.number(),
-    id_user: z.number(),
-    date: z.coerce.date(),
+export const subscriptionSchema = z.object({
+    customerId: z.string(),
+    priceId: z.string(),
+    userId: z.number(),
 });
 
-export const ZPartialPayment = ZPayment.partial(); // tous les champs sont devenus optionels
-export const ZInputPayment = ZPayment.omit({ id: true }); // le même objet sans l'id
+export const donationSchema = z.object({
+    amount: z.number().positive(),
+    paymentMethodId: z.string(),
+    userId: z.number(),
+});
 
-export type Payment = z.infer<typeof ZPayment>; // Le type typescript qui correspond à l'objet
-export type PartialPayment = z.infer<typeof ZPartialPayment>; // Le type typescript avec toutes les props optionelles
-export type InputPayment = z.infer<typeof ZInputPayment>; // Le type typescript sans l'id
+export const paymentMethodSchema = z.object({
+    customerId: z.string(),
+    paymentMethodId: z.string(),
+});
+
+export type SubscriptionBody = z.infer<typeof subscriptionSchema>;
+export type DonationBody = z.infer<typeof donationSchema>;
+export type PaymentMethodBody = z.infer<typeof paymentMethodSchema>;

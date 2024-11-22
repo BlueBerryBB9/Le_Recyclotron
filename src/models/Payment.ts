@@ -20,9 +20,6 @@ SPayment.init(
 
 SPayment.belongsTo(User, { foreignKey: "user_id" });
 
-// A DÉPLACER
-User.hasMany(SPayment);
-
 export default SPayment;
 
 export const subscriptionSchema = z.object({

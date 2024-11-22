@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
+import SPayment from "./Payment.js";
 import z from "zod";
 
 class SUser extends Model {
@@ -72,6 +73,9 @@ SUser.init(
         modelName: "User",
     },
 );
+
+SUser.hasMany(SPayment);
+
 // Base schema with common validations
 export const ZUserBase = z.object({
     first_name: z

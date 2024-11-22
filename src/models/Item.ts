@@ -58,7 +58,7 @@ export const ZItem = z.object({
     status: z.nativeEnum(ItemStatus),
     material: z.string(),
     image: z.string(),
-    date: z.coerce.date()
+    date: z.coerce.date(),
 });
 
 export const ZPartialItem = ZItem.partial(); // tous les champs sont devenus optionels
@@ -67,6 +67,5 @@ export const ZInputItem = ZItem.omit({ id: true }); // le même objet sans l'id
 export type Item = z.infer<typeof ZItem>; // Le type typescript qui correspond à l'objet
 export type PartialItem = z.infer<typeof ZPartialItem>; // Le type typescript avec toutes les props optionelles
 export type InputItem = z.infer<typeof ZInputItem>; // Le type typescript sans l'id
-
 
 export default SItem;

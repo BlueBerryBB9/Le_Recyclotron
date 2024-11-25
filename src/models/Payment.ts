@@ -1,7 +1,7 @@
 // src/models/Payment.ts
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import User from "../models/User.js";
+import SUser from "../models/User.js";
 import { z } from "zod";
 
 class SPayment extends Model {}
@@ -18,7 +18,8 @@ SPayment.init(
     { sequelize, modelName: "Payment" },
 );
 
-SPayment.belongsTo(User, { foreignKey: "user_id" });
+//SPayment association's done in models/User.js because otherwise SUser is not initialized when used in SPayment done before
+// SPayment.belongsTo(SUser, { foreignKey: "user_id" });
 
 export default SPayment;
 

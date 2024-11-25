@@ -74,7 +74,11 @@ SUser.init(
     },
 );
 
+//SPayment association's done here because otherwise SUser is not initialized when used in SPayment done before
+SPayment.belongsTo(SUser, { foreignKey: "user_id" });
 SUser.hasMany(SPayment);
+
+export default SUser;
 
 // Base schema with common validations
 export const ZUserBase = z.object({
@@ -143,5 +147,3 @@ export type User = z.infer<typeof ZUser>;
 export type CreateUser = z.infer<typeof ZCreateUser>;
 export type UpdateUser = z.infer<typeof ZUpdateUser>;
 export type PublicUser = z.infer<typeof ZPublicUser>;
-
-export default SUser;

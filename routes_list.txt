@@ -1,0 +1,54 @@
+Rôles : admin, repairer, cm, employee, client
+Les rôles fonctionnent de manière à être un liste de rôles
+
+User : 
+(admin) user/ + méthode POST : créer un utilisateur
+(admin) user/ + méthode GET : getAll recupérer utilisateurs
+(admin) user/ + méthode PUT : modifier un utilisateur
+(admin) user/ + méthode DELETE : supprimer un utilisateur
+
+Item
+(employee) item/ + méthode POST : add item
+(all) item/ + méthode GET : get all items
+(all) item/id + méthode GET : get one item by id
+(repairer) item/status + méthode GET : get items that need to be sort fixable or not and to get items that are waiting to be repaired
+(employee)item/ + méthode PUT : update items
+(employee)item/ + méthode PUT : update status
+(employee) item/ + méthode DELETE : delete items
+
+
+Event
+(cm) event/ + méthode POST : ajouter un évènement
+(client, cm) event/ + méthode GET : récupérer les évènements
+(client, cm) event/id + méthode GET : récupérer un évènement par id
+(cm) event/:id + méthode PUT : mettre à jour un évènement
+(cm) event/:id + méthode DELETE : supprimer un évènement
+(cm) event/registration + méthode GET : récupérer les inscriptions pour un évènement
+
+Registration
+(client) registration/ + POST : créer une inscription
+(client) registration/ + GET : récupérer toutes les inscriptions
+(client) registration/:id + GET : récupérer une inscription
+(client) registration/:id + PUT : mettre à jour une inscription
+(client) registration/:id + DELETE : supprimer une inscription
+
+Payment
+(admin) payment/ + méthode POST : ajouter un payment
+(client) payment/ + méthode GET : récupérer les payment
+(client) payment/id + méthode GET : récupérer un payment par id
+(admin) payment/:id + méthode PUT : mettre à jour un payment
+(admin) payment/:id + méthode DELETE : supprimer un payment
+
+
+Category
+(employee) category/ + méthode POST : ajouter une catégorie
+(employee) category/ + méthode GET : récupérer les catégories
+(employee) category/id + méthode GET : récupérer une catégorie par id
+(employee) category/:id + méthode PUT : mettre à jour une catégorie
+(employee) category/:id + méthode DELETE : supprimer une catégorie
+
+
+inject close : contourne la règle du SQL
+
+Appel de l' API à elle même
+1 seule couche : l'api ne fait pas appel à elle même

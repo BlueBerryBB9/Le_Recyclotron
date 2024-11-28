@@ -1,11 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import * as e from "../models/Event.js";
 import SRegistration from "../models/Registration.js";
-
-const handleError = (rep: FastifyReply, error: any) => {
-    console.error(error);
-    return rep.status(500).send({ error: "Internal Server Error" });
-};
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import { BaseError } from "sequelize";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
@@ -18,19 +15,37 @@ export const createEvent = async (
             message: "Event Created",
         });
     } catch (error) {
-        return handleError(rep, error);
+        if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        } else throw new RecyclotronApiErr("Event", "CreationFailed");
     }
 };
 
 export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
     try {
         const events = await e.default.findAll();
+        if (!events) throw new RecyclotronApiErr("Event", "NotFound", 404);
+
         return rep.status(200).send({
             data: events,
             message: "Fetched all events",
         });
     } catch (error) {
-        return handleError(rep, error);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        } else throw new RecyclotronApiErr("Event", "FetchAllFailed");
     }
 };
 
@@ -41,15 +56,23 @@ export const getEvent = async (
     try {
         const id: number = parseInt(req.params.id);
         const event = await e.default.findByPk(id);
-        if (!event) {
-            return rep.status(404).send({ error: "Event not found" });
-        }
+        if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
+
         return rep.status(200).send({
             data: event,
             message: "Event fetched successfully",
         });
     } catch (error) {
-        return handleError(rep, error);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        } else throw new RecyclotronApiErr("Event", "FetchFailed");
     }
 };
 
@@ -61,16 +84,24 @@ export const updateEvent = async (
         const id: number = parseInt(req.params.id);
         const data = req.body;
         const event = await e.default.findByPk(id);
-        if (!event) {
-            return rep.status(404).send({ error: "Event not found" });
-        }
+        if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
+
         await event.update(data);
         return rep.status(200).send({
             data: event,
             message: "Event updated successfully",
         });
     } catch (error) {
-        return handleError(rep, error);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        } else throw new RecyclotronApiErr("Event", "UpdateFailed");
     }
 };
 
@@ -87,7 +118,14 @@ export const deleteEvent = async (
             message: "Event deleted successfully",
         });
     } catch (error) {
-        return handleError(rep, error);
+        if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        } else throw new RecyclotronApiErr("Event", "DeletionFailed");
     }
 };
 
@@ -100,11 +138,27 @@ export const getAllEventRegistrations = async (
         const registrations = await SRegistration.findAll({
             where: { EventId: id },
         });
+        if (!registrations) {
+            throw new RecyclotronApiErr("RegistrationInEvent", "NotFound", 404);
+        }
         return rep.status(200).send({
             data: registrations,
             message: "Fetched all event registrations",
         });
     } catch (error) {
-        return handleError(rep, error);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "RegistrationInEvent",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        } else
+            throw new RecyclotronApiErr(
+                "RegistrationInEvent",
+                "FetchAllFailed",
+            );
     }
 };

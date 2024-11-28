@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import * as i from "../models/Category.js";
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
 export const createCategory = async (
     request: FastifyRequest<{ Body: i.InputCategory }>,
@@ -15,7 +16,7 @@ export const createCategory = async (
             message: "new Category created successfully",
         });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to create Category." });
+        throw new RecyclotronApiErr("Category", "CreationFailed");
     }
 };
 
@@ -35,7 +36,7 @@ export const createChildCategory = async (
             message: "newCategory created successfully",
         });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to create Category." });
+        throw new RecyclotronApiErr("Category", "CreationFailed");
     }
 };
 
@@ -46,12 +47,15 @@ export const getAllCategories = async (
 ) => {
     try {
         const categories = await i.default.findAll();
+        if (!categories) {
+            return new RecyclotronApiErr("Category", "NotFound", 404);
+        }
         reply.code(200).send({
             data: categories,
             message: "All categories fetched successfully",
         });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to retrieve Categorys." });
+        throw new RecyclotronApiErr("Category", "FetchAllFailed");
     }
 };
 
@@ -63,16 +67,16 @@ export const getCategoryById = async (
     try {
         const id: number = parseInt(request.params.id);
         const category = await i.default.findByPk(id);
-        if (category) {
-            reply.code(200).send({
-                data: category,
-                message: "category fetched by id successfully",
-            });
-        } else {
-            reply.code(404).send({ error: "category not found." });
+        if (!category) {
+            return new RecyclotronApiErr("Category", "NotFound", 404);
         }
+        reply.code(200).send({
+            data: category,
+            message: "category fetched by id successfully",
+        });
+    
     } catch (error) {
-        reply.code(500).send({ error: "Failed to retrieve category." });
+        throw new RecyclotronApiErr("Category", "FetchFailed");
     }
 };
 
@@ -88,16 +92,15 @@ export const updateCategoryById = async (
         const id: number = parseInt(request.params.id);
         const { name } = request.body;
         const Category = await i.default.findByPk(id);
-        if (Category) {
-            await Category.update({ name });
-            reply.code(200).send({
-                message: "Category updated successfully",
-            });
-        } else {
-            reply.code(404).send({ error: "Category not found." });
-        }
+        if (!Category) {
+            return new RecyclotronApiErr("Category", "NotFound", 404);
+        } 
+        await Category.update({ name });
+        reply.code(200).send({
+            message: "Category updated successfully",
+        });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to update Category." });
+        throw new RecyclotronApiErr("Category", "UpdateFailed");
     }
 };
 
@@ -109,14 +112,13 @@ export const deleteCategoryById = async (
     try {
         const id: number = parseInt(request.params.id);
         const category = await i.default.findByPk(id);
-        if (category) {
-            await category.destroy();
-            reply.code(200).send({ message: "category deleted successfully." });
-        } else {
-            reply.code(404).send({ error: "category not found." });
+        if (!category) {
+            return new RecyclotronApiErr("Category", "NotFound", 404);
         }
+        await category.destroy();
+        reply.code(200).send({ message: "category deleted successfully." });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to delete category." });
+        throw new RecyclotronApiErr("Category", "DeletionFailed");
     }
 };
 
@@ -134,8 +136,6 @@ export const getAllCategoriesOfCategory = async (
             message: "All childCategory of category fetch successfully",
         });
     } catch (error) {
-        reply.code(500).send({
-            error: "An error occurred while retrieving the childCategories of the category.",
-        });
+        throw new RecyclotronApiErr("Category", "FetchAllFailed");
     }
 };

@@ -1,5 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcrypt";
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+
 import SUser, {
     ZCreateUser,
     ZUpdateUser,
@@ -7,7 +9,7 @@ import SUser, {
     UpdateUser,
 } from "../models/User.js";
 import SRole from "../models/Role.js";
-import { Error, ValidationError } from "sequelize";
+import { BaseError, Error, ValidationError } from "sequelize";
 
 // Custom type for requests with params
 interface RequestWithParams extends FastifyRequest {
@@ -16,32 +18,6 @@ interface RequestWithParams extends FastifyRequest {
     };
 }
 
-// Gestionnaire d'erreurs centralisé
-const handleError = (error: any, reply: FastifyReply) => {
-    console.error("Error:", error);
-
-    if (error instanceof ValidationError) {
-        return reply.status(400).send({
-            error: "Validation Error",
-            details: error.errors.map((err) => ({
-                field: err.path,
-                message: err.message,
-            })),
-        });
-    }
-
-    if (error.code === "P2002") {
-        return reply.status(409).send({
-            error: "Conflict",
-            message: "Resource already exists",
-        });
-    }
-
-    return reply.status(500).send({
-        error: "Internal Server Error",
-        message: "An unexpected error occurred",
-    });
-};
 
 // Créer un nouvel utilisateur
 export const createUser = async (
@@ -50,10 +26,8 @@ export const createUser = async (
 ) => {
     try {
         const userData = ZCreateUser.parse(request.body);
-
         // Hash the password
         const hashedPassword = await bcrypt.hash(userData.password, 10);
-
         const user = await SUser.create({
             ...userData,
             password: hashedPassword,
@@ -77,7 +51,10 @@ export const createUser = async (
 
         return reply.status(201).send(userWithRoles);
     } catch (error) {
-        return handleError(error, reply);
+        if (error) {
+            throw new RecyclotronApiErr("User","InvalidInput",400)
+        }
+        throw new RecyclotronApiErr("User", "CreationFailed",500);
     }
 };
 
@@ -93,10 +70,9 @@ export const getAllUsers = async (
         });
         return reply.send(users);
     } catch (error) {
-        return handleError(error, reply);
+        throw new RecyclotronApiErr("User","FetchAllFailed",500);
     }
 };
-
 // Récupérer un utilisateur par ID
 export const getUserById = async (
     request: RequestWithParams,
@@ -108,16 +84,22 @@ export const getUserById = async (
             attributes: { exclude: ["password"] },
         });
 
-        if (!user) {
-            return reply.status(404).send({
-                error: "Not Found",
-                message: "User not found",
-            });
-        }
+        if (!user)
+                throw new RecyclotronApiErr("User","NotFound",404)
 
         return reply.send(user);
     } catch (error) {
-        return handleError(error, reply);
+        if(error instanceof RecyclotronApiErr)
+            throw error;
+        else if (error instanceof BaseError) {
+            throw new RecyclotronApiErr(
+                "User",
+                "DatabaseFailed",
+                500,
+                error.message,
+            );
+        throw new RecyclotronApiErr("User", "FetchFailed",500);
+        }
     }
 };
 
@@ -132,10 +114,7 @@ export const updateUser = async (
         const user = await SUser.findByPk(id);
 
         if (!user) {
-            return reply.status(404).send({
-                error: "Not Found",
-                message: "User not found",
-            });
+            throw new RecyclotronApiErr("User","NotFound",404);
         }
 
         // If password is being updated, hash it
@@ -163,7 +142,13 @@ export const updateUser = async (
 
         return reply.send(updatedUser);
     } catch (error) {
-        return handleError(error, reply);
+        if (error instanceof ValidationError){
+            throw new RecyclotronApiErr("User","InvalidInput",400, error.message);
+        }
+        if (error instanceof BaseError){
+            throw new RecyclotronApiErr("User","DatabaseFailed",500, error.message);
+        }
+        throw new RecyclotronApiErr("User", "UpdateFailed",500);
     }
 };
 
@@ -176,16 +161,16 @@ export const deleteUser = async (
         const user = await SUser.findByPk(parseInt(request.params.id));
 
         if (!user) {
-            return reply.status(404).send({
-                error: "Not Found",
-                message: "User not found",
-            });
+            throw new RecyclotronApiErr("User","NotFound",400);
         }
 
         await user.destroy();
         return reply.status(204).send();
     } catch (error) {
-        return handleError(error, reply);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        }
+        throw new RecyclotronApiErr("User", "DeletionFailed",500);
     }
 };
 
@@ -200,13 +185,10 @@ export const addUserRoles = async (
     try {
         const id: number = parseInt(request.params.id);
         const user = await SUser.findByPk(id);
-        if (!user) {
-            return reply.status(404).send({
-                error: "Not Found",
-                message: "User not found",
-            });
+        if (!user) { 
+            throw new RecyclotronApiErr("User","NotFound",404);
         }
-
+;
         const roles = await SRole.findAll({
             where: {
                 id: (request.body as { roles: number[] }).roles,
@@ -223,10 +205,12 @@ export const addUserRoles = async (
 
         return reply.send(updatedUser);
     } catch (error) {
-        return handleError(error, reply);
-    }
-};
-
+        if (error instanceof RecyclotronApiErr)
+            throw error;
+        
+            throw new RecyclotronApiErr("User","OperationFailed",500)
+        }
+    };
 // Supprimer des rôles d'un utilisateur
 export const removeUserRoles = async (
     request: FastifyRequest<{
@@ -239,28 +223,26 @@ export const removeUserRoles = async (
         const id: number = parseInt(request.params.id);
         const user = await SUser.findByPk(id);
         if (!user) {
-            return reply.status(404).send({
-                error: "Not Found",
-                message: "User not found",
-            });
+            throw new RecyclotronApiErr("User", "NotFound", 404);
         }
-
         const roles = await SRole.findAll({
             where: {
                 id: (request.body as { roles: number[] }).roles,
             },
         });
-
+        if (roles.length === 0) {
+            throw new RecyclotronApiErr("User", "InvalidInput", 400);
+        }
         await user.$remove("roles", roles);
-
-        // Fetch updated user with roles
         const updatedUser = await SUser.findByPk(user.id, {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
-
         return reply.send(updatedUser);
     } catch (error) {
-        return handleError(error, reply);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        }
+        throw new RecyclotronApiErr("User", "OperationFailed", 500);
     }
 };

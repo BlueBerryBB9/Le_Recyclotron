@@ -18,7 +18,7 @@ SPayment.init(
     { sequelize, modelName: "Payment" },
 );
 
-//SPayment association's done in models/User.js because otherwise SUser is not initialized when used in SPayment done before
+// SPayment association's done in models/User.js because otherwise SUser is not initialized when used in SPayment done before
 // SPayment.belongsTo(SUser, { foreignKey: "user_id" });
 
 export default SPayment;

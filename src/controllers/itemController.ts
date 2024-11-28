@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import * as i from "../models/Item.js";
 import ItemCategory from "../models/ItemCategories.js";
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
 // Create new item
 export const createItem = async (
@@ -21,7 +22,7 @@ export const createItem = async (
             message: "newItem created successfully",
         });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to create item." });
+        throw new RecyclotronApiErr("Item", "CreationFailed");
     }
 };
 
@@ -32,12 +33,15 @@ export const getAllItems = async (
 ) => {
     try {
         const items = await i.default.findAll();
+        if (!items) {
+            return new RecyclotronApiErr("Item", "NotFound", 404);
+        }
         reply.code(200).send({
             data: items,
             message: "All items fetched successfully",
         });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to retrieve items." });
+        throw new RecyclotronApiErr("Item", "FetchAllFailed");
     }
 };
 
@@ -49,16 +53,15 @@ export const getItemById = async (
     try {
         const id: number = parseInt(request.params.id);
         const item = await i.default.findByPk(id);
-        if (item) {
-            reply.code(200).send({
-                data: item,
-                message: "Item fetched by id successfully",
-            });
-        } else {
-            reply.code(404).send({ error: "Item not found." });
+        if (!item) {
+            return new RecyclotronApiErr("Item", "NotFound", 404);
         }
+        reply.code(200).send({
+            data: item,
+            message: "Item fetched by id successfully",
+        });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to retrieve item." });
+        throw new RecyclotronApiErr("Item", "FetchFailed");
     }
 };
 
@@ -75,7 +78,7 @@ export const getItemByStatus = async (
             message: "Items fetched by status successfully",
         });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to retrieve items by status." });
+        throw new RecyclotronApiErr("Item", "FetchFailed");
     }
 };
 
@@ -90,16 +93,15 @@ export const updateItemById = async (
         const id: number = parseInt(request.params.id);
         const { name, status, material, image, date } = request.body;
         const item = await i.default.findByPk(id);
-        if (item) {
-            await item.update({ name, status, material, image, date });
-            reply.code(200).send({
-                message: "Item updated successfully",
-            });
-        } else {
-            reply.code(404).send({ error: "Item not found." });
+        if (!item) {
+            return new RecyclotronApiErr("Item", "NotFound", 404)
         }
+        await item.update({ name, status, material, image, date });
+        reply.code(200).send({
+            message: "Item updated successfully",
+        });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to update item." });
+        throw new RecyclotronApiErr("Item", "UpdateFailed");
     }
 };
 
@@ -111,14 +113,13 @@ export const deleteItemById = async (
     try {
         const id: number = parseInt(request.params.id);
         const item = await i.default.findByPk(id);
-        if (item) {
-            await item.destroy();
-            reply.code(200).send({ message: "Item deleted successfully." });
-        } else {
-            reply.code(404).send({ error: "Item not found." });
+        if (!item) {
+            return new RecyclotronApiErr("Item", "NotFound", 404)
         }
+        await item.destroy();
+        reply.code(200).send({ message: "Item deleted successfully." });
     } catch (error) {
-        reply.code(500).send({ error: "Failed to delete item." });
+        throw new RecyclotronApiErr("Item", "DeletionFailed");
     }
 };
 
@@ -130,7 +131,9 @@ export const addCategoryToItem = async (
     try {
         const itemId: number = parseInt(request.params.itemId);
         const categoryId: number = parseInt(request.params.categoryId);
-
+        if (!itemId || !categoryId) {
+            return new RecyclotronApiErr("Item", "NotFound", 404)
+        }
         await ItemCategory.create({
             itemId,
             categoryId,
@@ -140,9 +143,7 @@ export const addCategoryToItem = async (
             message: "All category of item fetch successfully",
         });
     } catch (error) {
-        reply.code(500).send({
-            error: "An error occurred while adding the category to the item.",
-        });
+        throw new RecyclotronApiErr("Item", "CreationFailed");
     }
 };
 
@@ -153,16 +154,18 @@ export const getAllCategoriesOfItem = async (
 ) => {
     try {
         const itemId: number = parseInt(request.params.id);
-        await ItemCategory.findAll({
+        const categories = await ItemCategory.findAll({
             where: { itemId: itemId },
         });
+        if (!categories) {
+            return new RecyclotronApiErr("Item", "NotFound", 404)
+        }
         reply.code(200).send({
+            data: categories,
             message: "All category of item fetch successfully",
         });
     } catch (error) {
-        reply.code(500).send({
-            error: "An error occurred while retrieving the categories of the item.",
-        });
+        throw new RecyclotronApiErr("Item", "FetchAllFailed");
     }
 };
 
@@ -174,6 +177,9 @@ export const deleteCategoryOfItem = async (
     try {
         const itemId = parseInt(request.params.itemId);
         const categoryId = parseInt(request.params.categoryId);
+        if (!itemId || !categoryId) {
+            return new RecyclotronApiErr("Item", "NotFound", 404)
+        }
         await ItemCategory.destroy({
             where: { itemId: itemId, categoryId: categoryId },
         });
@@ -181,8 +187,6 @@ export const deleteCategoryOfItem = async (
             message: "Category removed from item successfully",
         });
     } catch (error) {
-        reply.code(500).send({
-            error: "An error occurred while deleting the category from the item.",
-        });
+        throw new RecyclotronApiErr("Item", "DeletionFailed");
     }
 };

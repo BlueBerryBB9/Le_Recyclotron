@@ -1,3 +1,7 @@
+function getFunctionLine(error: Error): string {
+    const stackLines = error.stack?.split("\n") || [];
+    return stackLines[1];
+}
 export class RecyclotronApiErr extends Error {
     statusCode: number;
     message: string;
@@ -7,19 +11,42 @@ export class RecyclotronApiErr extends Error {
             | "Item"
             | "Category"
             | "User"
-            | "event"
-            | "payment"
-            | "registration",
+            | "Event"
+            | "Payment"
+            | "Registration"
+            | "RegistrationInEvent",
         msg:
             | "NotFound"
             | "InvalidInput"
             | "PermissionDenied"
+            | "AlreadyExists"
             | "OperationFailed"
-            | "AlreadyExists",
+            | "CreationFailed"
+            | "DeletionFailed"
+            | "UpdateFailed"
+            | "FetchFailed"
+            | "FetchAllFailed"
+            | "DatabaseFailed",
         statusCode?: number,
+        sequelizeMessage?: string,
     ) {
-        super(subject + " : " + msg);
-        this.message = subject + " : " + msg;
+        let functionLine = getFunctionLine(Error());
+        if (sequelizeMessage) {
+            super(
+                subject +
+                    " : " +
+                    msg +
+                    ":" +
+                    sequelizeMessage +
+                    "in" +
+                    functionLine,
+            );
+            this.message =
+                subject + " : " + msg + sequelizeMessage + "in" + functionLine;
+        } else {
+            super(subject + " : " + msg + "in" + functionLine);
+            this.message = subject + " : " + msg + "in" + functionLine;
+        }
         this.statusCode = statusCode ? statusCode : 500;
     }
 

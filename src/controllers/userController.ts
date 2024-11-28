@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcrypt";
-import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import { RecyclotronApiErr, SequelizeApiErr } from "../error/recyclotronApiErr.js";
 
 import SUser, {
     ZCreateUser,
@@ -92,12 +92,7 @@ export const getUserById = async (
         if(error instanceof RecyclotronApiErr)
             throw error;
         else if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "User",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("User", error);
         throw new RecyclotronApiErr("User", "FetchFailed",500);
         }
     }
@@ -143,10 +138,10 @@ export const updateUser = async (
         return reply.send(updatedUser);
     } catch (error) {
         if (error instanceof ValidationError){
-            throw new RecyclotronApiErr("User","InvalidInput",400, error.message);
+            throw new SequelizeApiErr("User", error);
         }
         if (error instanceof BaseError){
-            throw new RecyclotronApiErr("User","DatabaseFailed",500, error.message);
+            throw new SequelizeApiErr("User", error);
         }
         throw new RecyclotronApiErr("User", "UpdateFailed",500);
     }
@@ -231,7 +226,7 @@ export const removeUserRoles = async (
             },
         });
         if (roles.length === 0) {
-            throw new RecyclotronApiErr("User", "InvalidInput", 400);
+            throw new RecyclotronApiErr("User", "InvalidInput", 401);
         }
         await user.$remove("roles", roles);
         const updatedUser = await SUser.findByPk(user.id, {

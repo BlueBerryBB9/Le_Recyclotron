@@ -1,7 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import * as e from "../models/Event.js";
 import SRegistration from "../models/Registration.js";
-import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import {
+    RecyclotronApiErr,
+    SequelizeApiErr,
+} from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
 
 export const createEvent = async (
@@ -16,12 +19,7 @@ export const createEvent = async (
         });
     } catch (error) {
         if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "Event",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("Event", error);
         } else throw new RecyclotronApiErr("Event", "CreationFailed");
     }
 };
@@ -39,12 +37,7 @@ export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "Event",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("Event", error);
         } else throw new RecyclotronApiErr("Event", "FetchAllFailed");
     }
 };
@@ -66,12 +59,7 @@ export const getEvent = async (
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "Event",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("Event", error);
         } else throw new RecyclotronApiErr("Event", "FetchFailed");
     }
 };
@@ -95,12 +83,7 @@ export const updateEvent = async (
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "Event",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("Event", error);
         } else throw new RecyclotronApiErr("Event", "UpdateFailed");
     }
 };
@@ -119,12 +102,7 @@ export const deleteEvent = async (
         });
     } catch (error) {
         if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "Event",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("Event", error);
         } else throw new RecyclotronApiErr("Event", "DeletionFailed");
     }
 };
@@ -149,12 +127,7 @@ export const getAllEventRegistrations = async (
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else if (error instanceof BaseError) {
-            throw new RecyclotronApiErr(
-                "RegistrationInEvent",
-                "DatabaseFailed",
-                500,
-                error.message,
-            );
+            throw new SequelizeApiErr("Event", error);
         } else
             throw new RecyclotronApiErr(
                 "RegistrationInEvent",

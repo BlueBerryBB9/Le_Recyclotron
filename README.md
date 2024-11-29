@@ -1,5 +1,5 @@
 <h1 align="center">🌿Le Recyclotron🌿</h1>
-<h3 align="center">Ready to go inventory management, showcase website and employee role management web application !<h3>
+<h3 align="center">Easy to use inventory management, showcase website and employee role management web application !<h3>
 <br>
 
 ### Authors :

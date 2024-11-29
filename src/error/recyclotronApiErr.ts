@@ -1,6 +1,8 @@
 import {
     BaseError,
+    Sequelize,
     ValidationError as SequelizeValidationError,
+    UniqueConstraintError as SequelizeUniqueConstraintError,
 } from "sequelize";
 
 function getFunctionLine(error: Error): string {
@@ -24,7 +26,21 @@ export class SequelizeApiErr {
             throw new RecyclotronApiErr(
                 subject,
                 "InvalidInput",
-                404,
+                400,
+                error.message,
+            );
+        else if (error instanceof SequelizeUniqueConstraintError)
+            throw new RecyclotronApiErr(
+                subject,
+                "AlreadyExists",
+                405,
+                error.message,
+            );
+        else
+            throw new RecyclotronApiErr(
+                subject,
+                "DatabaseFailed",
+                500,
                 error.message,
             );
     }

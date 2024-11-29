@@ -161,9 +161,9 @@ export const getAllCategoriesOfItem = async (
             return new RecyclotronApiErr("Item", "NotFound", 404)
         }
         const categories: any[] = [];
-        // for (let element in categoriesId) {
-        //     categories.push(element.categoryId);
-        // }
+        for (let element in categoriesId) {
+            categories.push(element[1]);
+        }
         reply.code(200).send({
             data: categories,
             message: "All category of item fetch successfully",

@@ -154,18 +154,18 @@ export const getAllCategoriesOfItem = async (
 ) => {
     try {
         const itemId: number = parseInt(request.params.id);
-        const categoriesId = await ItemCategory.findAll({
+        const categories = await ItemCategory.findAll({
             where: { itemId: itemId },
         });
-        if (!categoriesId) {
+        if (!categories) {
             return new RecyclotronApiErr("Item", "NotFound", 404)
         }
-        const categories: number[] = [];
-        for (let element in categoriesId) {
-            categories.push(parseInt(element[1]));
+        const categoriesId: number[] = [];
+        for (let element in categories) {
+            categoriesId.push(parseInt(element[1]));
         }
         reply.code(200).send({
-            data: categories,
+            data: categoriesId,
             message: "All category of item fetch successfully",
         });
     } catch (error) {

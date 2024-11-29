@@ -13,6 +13,7 @@
         "fastify-raw-body": "^5.0.0",
         "fastify-type-provider-zod": "^1.2.0",
         "hash-wasm": "^4.12.0",
+        "jose": "^5.9.6",
         "lolcatjs": "^2.4.3",
         "mysql2": "^3.11.3",
         "raw-body": "^3.0.0",

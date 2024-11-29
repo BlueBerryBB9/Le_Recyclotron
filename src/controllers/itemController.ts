@@ -160,9 +160,9 @@ export const getAllCategoriesOfItem = async (
         if (!categoriesId) {
             return new RecyclotronApiErr("Item", "NotFound", 404)
         }
-        const categories: any[] = [];
+        const categories: number[] = [];
         for (let element in categoriesId) {
-            categories.push(element[1]);
+            categories.push(parseInt(element[1]));
         }
         reply.code(200).send({
             data: categories,

@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { authenticate, authorize, isSelfOrAdmin } from '../middleware/auth.js';
 import bcrypt from 'bcrypt';
 import SUser, { 
   ZCreateUser, 
@@ -8,6 +9,8 @@ import SUser, {
 } from '../models/User.js';
 import SRole from '../models/Role.js';
 import { Error, ValidationError } from 'sequelize';
+
+
 
 // Custom type for requests with params
 interface RequestWithParams extends FastifyRequest {
@@ -43,15 +46,13 @@ const handleError = (error: any, reply: FastifyReply) => {
   });
 };
 
-// Créer un nouvel utilisateur
+// Create User
 export const createUser = async (
   request: FastifyRequest<{ Body: CreateUser }>,
   reply: FastifyReply
 ) => {
   try {
     const userData = ZCreateUser.parse(request.body);
-    
-    // Hash the password
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     
     const user = await SUser.create({
@@ -59,17 +60,6 @@ export const createUser = async (
       password: hashedPassword
     });
 
-    // If roles are provided, associate them
-    if (userData.roles && userData.roles.length > 0) {
-      const roles = await SRole.findAll({
-        where: {
-          id: userData.roles
-        }
-      });
-      await user.set('roles', roles);
-    }
-
-    // Fetch the user with roles
     const userWithRoles = await SUser.findByPk(user.id, {
       include: [{ model: SRole, attributes: ['id', 'name'] }],
       attributes: { exclude: ['password'] }
@@ -81,7 +71,7 @@ export const createUser = async (
   }
 };
 
-// Récupérer tous les utilisateurs
+// Get All Users
 export const getAllUsers = async (
   request: FastifyRequest,
   reply: FastifyReply
@@ -97,7 +87,7 @@ export const getAllUsers = async (
   }
 };
 
-// Récupérer un utilisateur par ID
+// Get User by ID
 export const getUserById = async (
   request: RequestWithParams,
   reply: FastifyReply
@@ -121,9 +111,9 @@ export const getUserById = async (
   }
 };
 
-// Mettre à jour un utilisateur
+// Update User
 export const updateUser = async (
-  request: FastifyRequest<{ Params: { id: string }; Body:UpdateUser }>,
+  request: FastifyRequest<{ Params: { id: string }; Body: UpdateUser }>,
   reply: FastifyReply
 ) => {
   try {
@@ -137,24 +127,12 @@ export const updateUser = async (
       });
     }
 
-    // If password is being updated, hash it
     if (userData.password) {
       userData.password = await bcrypt.hash(userData.password, 10);
     }
 
     await user.update(userData);
 
-    // Update roles if provided
-    if (userData.roles) {
-      const roles = await SRole.findAll({
-        where: {
-          id: userData.roles
-        }
-      });
-      await user.set('roles', roles);
-    }
-
-    // Fetch updated user with roles
     const updatedUser = await SUser.findByPk(user.id, {
       include: [{ model: SRole, attributes: ['id', 'name'] }],
       attributes: { exclude: ['password'] }
@@ -166,7 +144,7 @@ export const updateUser = async (
   }
 };
 
-// Supprimer un utilisateur
+// Delete User
 export const deleteUser = async (
   request: RequestWithParams,
   reply: FastifyReply
@@ -188,7 +166,7 @@ export const deleteUser = async (
   }
 };
 
-// Ajouter des rôles à un utilisateur
+// Add User Roles
 export const addUserRoles = async (
   request: FastifyRequest<{ Params: { id: string }; Body: { roles: number[] } }>,
   reply: FastifyReply
@@ -204,13 +182,12 @@ export const addUserRoles = async (
 
     const roles = await SRole.findAll({
       where: {
-        id: (request.body as { roles: number[] }).roles
+        id: request.body.roles
       }
     });
 
     await user.$add('roles', roles);
 
-    // Fetch updated user with roles
     const updatedUser = await SUser.findByPk(user.id, {
       include: [{ model: SRole, attributes: ['id', 'name'] }],
       attributes: { exclude: ['password'] }
@@ -222,7 +199,7 @@ export const addUserRoles = async (
   }
 };
 
-// Supprimer des rôles d'un utilisateur
+// Remove User Roles
 export const removeUserRoles = async (
   request: FastifyRequest<{ Params: { id: string }; Body: { roles: number[] } }>,
   reply: FastifyReply
@@ -238,13 +215,12 @@ export const removeUserRoles = async (
 
     const roles = await SRole.findAll({
       where: {
-        id: (request.body as { roles: number[] }).roles
+        id: request.body.roles
       }
     });
 
     await user.$remove('roles', roles);
 
-    // Fetch updated user with roles
     const updatedUser = await SUser.findByPk(user.id, {
       include: [{ model: SRole, attributes: ['id', 'name'] }],
       attributes: { exclude: ['password'] }
@@ -255,11 +231,3 @@ export const removeUserRoles = async (
     return handleError(error, reply);
   }
 };
-
-
-
-
-
-
-
-

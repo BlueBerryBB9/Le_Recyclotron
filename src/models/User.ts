@@ -4,10 +4,10 @@ import z from "zod";
 
 class SUser extends Model {
   $remove(arg0: string, roles: import("./Role.js").default[]) {
-      throw new Error('Method not implemented.');
+    throw new Error('Method not implemented.');
   }
   $add(arg0: string, roles: import("./Role.js").default[]) {
-      throw new Error('Method not implemented.');
+    throw new Error('Method not implemented.');
   }
   public id!: number;
   public first_name!: string;
@@ -69,6 +69,7 @@ SUser.init({
   sequelize,
   modelName: 'User'
 });
+
 // Base schema with common validations
 export const ZUserBase = z.object({
   first_name: z.string()
@@ -107,8 +108,7 @@ export const ZUser = ZUserBase.extend({
 export const ZCreateUser = ZUserBase.extend({
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must be less than 100 characters'),
-  roles: z.array(z.number().positive()).default([])
+    .max(100, 'Password must be less than 100 characters')
 });
 
 // Schema for updating a user (all fields optional)
@@ -116,8 +116,7 @@ export const ZUpdateUser = ZUserBase
   .extend({
     password: z.string()
       .min(8, 'Password must be at least 8 characters')
-      .max(100, 'Password must be less than 100 characters'),
-    roles: z.array(z.number().positive())
+      .max(100, 'Password must be less than 100 characters')
   })
   .partial();
 

@@ -26,6 +26,7 @@ fastify.setErrorHandler(async function (error, _, reply) {
         return { status: error.statusCode, message: valerror.toString() };
     } else if (error instanceof RecyclotronApiErr) {
         // Customizes our error class response
+        reply.code(error.statusCode || 400);
         return error.Error();
     }
 });

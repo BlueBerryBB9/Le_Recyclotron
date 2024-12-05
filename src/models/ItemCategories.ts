@@ -3,9 +3,9 @@ import sequelize from "../config/database.js";
 import Item from "./Item.js";
 import Category from "./Category.js";
 
-class ItemCategory extends Model {}
+class SItemCategory extends Model {}
 
-ItemCategory.init(
+SItemCategory.init(
     {},
     {
         sequelize,
@@ -16,12 +16,12 @@ ItemCategory.init(
 Item.belongsToMany(Category, {
     as: "category",
     foreignKey: "categoryId",
-    through: ItemCategory,
+    through: SItemCategory,
 });
 Category.belongsToMany(Item, {
     as: "item",
     foreignKey: "itemId",
-    through: ItemCategory,
+    through: SItemCategory,
 });
 
-export default ItemCategory;
+export default SItemCategory;

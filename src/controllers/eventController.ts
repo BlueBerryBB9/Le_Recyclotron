@@ -6,6 +6,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
+import { intToString } from "../utils/intToString.js";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
@@ -27,7 +28,8 @@ export const createEvent = async (
 export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
     try {
         const events = await e.default.findAll();
-        if (!events) throw new RecyclotronApiErr("Event", "NotFound", 404);
+        if (events.length === 0)
+            throw new RecyclotronApiErr("Event", "NotFound", 404);
 
         return rep.status(200).send({
             data: events,
@@ -47,7 +49,7 @@ export const getEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(req.params.id);
+        const id: number = intToString(req.params.id, "Event");
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
@@ -69,7 +71,7 @@ export const updateEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(req.params.id);
+        const id: number = intToString(req.params.id, "Event");
         const data = req.body;
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
@@ -93,7 +95,10 @@ export const deleteEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(req.params.id);
+        const id: number = intToString(req.params.id, "Event");
+        const event = await e.default.findByPk(id);
+        if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
+
         await e.default.destroy({
             where: { id },
         });
@@ -101,7 +106,9 @@ export const deleteEvent = async (
             message: "Event deleted successfully",
         });
     } catch (error) {
-        if (error instanceof BaseError) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
             throw new SequelizeApiErr("Event", error);
         } else throw new RecyclotronApiErr("Event", "DeletionFailed");
     }
@@ -112,13 +119,13 @@ export const getAllEventRegistrations = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(req.params.id);
+        const id: number = intToString(req.params.id, "Event");
         const registrations = await SRegistration.findAll({
             where: { EventId: id },
         });
-        if (!registrations) {
+        if (registrations.length === 0)
             throw new RecyclotronApiErr("RegistrationInEvent", "NotFound", 404);
-        }
+
         return rep.status(200).send({
             data: registrations,
             message: "Fetched all event registrations",

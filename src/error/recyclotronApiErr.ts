@@ -5,9 +5,10 @@ import {
     UniqueConstraintError as SequelizeUniqueConstraintError,
 } from "sequelize";
 
+// get the function when first error was launched
 function getFunctionLine(error: Error): string {
     const stackLines = error.stack?.split("\n") || [];
-    return stackLines[1];
+    return stackLines[2];
 }
 
 export class SequelizeApiErr {
@@ -79,16 +80,22 @@ export class RecyclotronApiErr extends Error {
                 subject +
                     " : " +
                     msg +
-                    ":" +
+                    " : " +
                     sequelizeMessage +
-                    "in" +
+                    " in " +
                     functionLine,
             );
             this.message =
-                subject + " : " + msg + sequelizeMessage + "in" + functionLine;
+                subject +
+                " : " +
+                msg +
+                " " +
+                sequelizeMessage +
+                " in " +
+                functionLine;
         } else {
-            super(subject + " : " + msg + "in" + functionLine);
-            this.message = subject + " : " + msg + "in" + functionLine;
+            super(subject + " : " + msg + " in " + functionLine);
+            this.message = subject + " : " + msg + " in " + functionLine;
         }
         this.statusCode = statusCode ? statusCode : 500;
     }

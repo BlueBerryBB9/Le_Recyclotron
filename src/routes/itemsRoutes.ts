@@ -12,7 +12,7 @@ export default async (fastify: FastifyInstance) => {
     );
 
     // All items
-    fastify.get("/items", { schema: { body: m.ZInputItem } }, ctrl.getAllItems);
+    fastify.get("/items", ctrl.getAllItems);
 
     // Item details
     fastify.get<{ Params: { id: string } }>(

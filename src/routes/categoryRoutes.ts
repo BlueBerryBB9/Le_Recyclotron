@@ -24,11 +24,7 @@ export default async (fastify: FastifyInstance) => {
     );
 
     // All categories
-    fastify.get(
-        "/categories",
-        { schema: { body: m.ZInputCategory } },
-        ctrl.getAllCategories,
-    );
+    fastify.get("/categories", ctrl.getAllCategories);
 
     // Category details
     fastify.get<{ Params: { id: string } }>(

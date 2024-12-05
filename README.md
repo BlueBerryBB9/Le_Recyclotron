@@ -2,6 +2,10 @@
 <h3 align="center">Easy to use inventory management, showcase website and employee role management web application !<h3>
 <br>
 
+## TODO
+
+- CHECK THAT DATA IS CORRECTLY RETURNED ON RESPONSE !!!!! (bcs it's not smth rn)
+
 ### Authors :
 
 - [BlueBerryBB9](https://github.com/BlueBerryBB9)

@@ -1,61 +1,89 @@
-import { FastifyInstance } from "fastify";
-import * as userController from "../controllers/userController.js";
-import * as um from "../models/User.js";
-import z from "zod";
+import { FastifyInstance } from 'fastify';
+import * as userController from '../controllers/userController.js';
+import { UpdateUser } from '../models/User.js';
+import { authenticate, authorize, isSelfOrAdmin } from '../middleware/auth.js';
 
 export default async function userRoutes(fastify: FastifyInstance) {
-    // Routes CRUD de base
-    fastify.post<{ Body: um.CreateUser }>(
-        "/users",
-        { schema: { body: um.ZCreateUser } },
-        userController.createUser,
-    );
+  // Routes CRUD de base
+  fastify.post('/users', userController.createUser);
+  fastify.get('/users', userController.getAllUsers);
+  fastify.get<{ Params: { id: string } }>('/users/:id', userController.getUserById);
+  fastify.put<{ Params: { id: string }, Body: { first_name?: string; last_name?: string; email?: string; phone?: string; is_adherent?: boolean; sub_type?: string | null; password?: string; roles?: number[] } }>('/users/:id', userController.updateUser);
+  fastify.delete<{ Params: { id: string } }>('/users/:id', userController.deleteUser);
 
-    fastify.get("/users", userController.getAllUsers);
+  // Routes pour la gestion des rôles
+  fastify.post<{ Params: { id: string }, Body: { roles: number[] } }>('/users/:id/roles', userController.addUserRoles);
+  fastify.delete<{ Params: { id: string }, Body: { roles: number[] } }>('/users/:id/roles', userController.removeUserRoles);
 
-    fastify.get<{ Params: { id: string } }>(
-        "/users/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
-        userController.getUserById,
-    );
+  // Public routes
+  fastify.post('/users', userController.createUser);
 
-    fastify.put<{ Params: { id: string }; Body: um.UpdateUser }>(
-        "/users/:id",
-        {
-            schema: {
-                body: um.ZUpdateUser,
-                params: z.object({ id: z.string() }),
-            },
-        },
-        userController.updateUser,
-    );
+  // Protected routes
+  fastify.get(
+    '/users',
+    { 
+      onRequest: [
+        authenticate,
+        authorize(['Admin', 'Employee'])
+      ]
+    },
+    userController.getAllUsers
+  );
 
-    fastify.delete<{ Params: { id: string } }>(
-        "/users/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
-        userController.deleteUser,
-    );
+  fastify.get(
+    '/users/:id',
+    { 
+      onRequest: [
+        authenticate,
+        isSelfOrAdmin
+      ]
+    },
+    userController.getUserById
+  );
 
-    // Routes pour la gestion des rôles
-    fastify.post<{ Params: { id: string }; Body: { roles: number[] } }>(
-        "/users/:id/roles",
-        {
-            schema: {
-                body: z.object({ roles: z.array(z.number()) }),
-                params: z.object({ id: z.string() }),
-            },
-        },
-        userController.addUserRoles,
-    );
+  fastify.put(
+    '/users/:id',
+    { 
+      onRequest: [
+        authenticate,
+        isSelfOrAdmin
+      ]
+    },
+    userController.updateUser
+  );
 
-    fastify.delete<{ Params: { id: string }; Body: { roles: number[] } }>(
-        "/users/:id/roles",
-        {
-            schema: {
-                body: z.object({ roles: z.array(z.number()) }),
-                params: z.object({ id: z.string() }),
-            },
-        },
-        userController.removeUserRoles,
-    );
+  fastify.delete(
+    '/users/:id',
+    { 
+      onRequest: [
+        authenticate,
+        authorize(['Admin'])
+      ]
+    },
+    userController.deleteUser
+  );
+
+  // Role management routes (Admin only)
+  fastify.post(
+    '/users/:id/roles',
+    { 
+      onRequest: [
+        authenticate,
+        authorize(['Admin'])
+      ]
+    },
+    userController.addUserRoles
+  );
+
+  fastify.delete(
+    '/users/:id/roles',
+    { 
+      onRequest: [
+        authenticate,
+        authorize(['Admin'])
+      ]
+    },
+    userController.removeUserRoles
+  );
 }
+ 

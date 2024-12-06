@@ -6,11 +6,13 @@
         "@types/dotenv": "^8.2.3",
         "@types/sequelize": "^4.28.20",
         "@types/validator": "^13.12.2",
+        "axios": "^1.7.9",
         "bcrypt": "^5.1.1",
         "dotenv": "^16.4.5",
         "fastify": "^5.0.0",
         "fastify-raw-body": "^5.0.0",
         "fastify-type-provider-zod": "^1.2.0",
+        "http": "^0.0.1-security",
         "jsonwebtoken": "^9.0.2",
         "lolcatjs": "^2.4.3",
         "mysql2": "^3.11.3",
@@ -48,6 +50,7 @@
         "wstyle": "prettier --write src",
         "supsrc": "rm dist/*",
         "dev": "nodemon",
-        "tester": "jest src --watch"
+        "tester": "jest src --watch",
+        "databases": "database.sh"
     }
 }

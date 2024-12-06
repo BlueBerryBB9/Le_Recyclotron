@@ -12,13 +12,17 @@ import { RecyclotronApiErr } from "./error/recyclotronApiErr.js";
 import * as z from "zod";
 import { fromError } from "zod-validation-error";
 import { validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
+import SUser from "./models/User.js";
+import SRole from "./models/Role.js";
 
 // Creating fastify instance with Zodtype to allow schemas and Zodvalidator on routes
-const fastify = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
+export const app = Fastify({
+    logger: true,
+}).withTypeProvider<ZodTypeProvider>();
 // Set Zod validator
-fastify.setValidatorCompiler(validatorCompiler);
+app.setValidatorCompiler(validatorCompiler);
 // Set custom fastify error handler function
-fastify.setErrorHandler(async function (error, _, reply) {
+app.setErrorHandler(async function (error, _, reply) {
     if (error instanceof z.ZodError) {
         // Customizes Zoderror fastify response
         const valerror = fromError(error);
@@ -35,20 +39,19 @@ const startServer = async () => {
     try {
         await sequelize.authenticate();
         console.log("Connected to the database.");
-
         await sequelize.sync(); // Synchronisez les modèles avec la DB.
 
-        fastify.register(categoryRoutes, { prefix: "/api" });
-        fastify.register(eventRoutes, { prefix: "/api" });
-        fastify.register(itemsRoutes, { prefix: "/api" });
-        fastify.register(paymentRoutes, { prefix: "/api" });
-        fastify.register(registrationRoutes, { prefix: "/api" });
-        fastify.register(userRoutes, { prefix: "/api" });
+        app.register(categoryRoutes, { prefix: "/api" });
+        app.register(eventRoutes, { prefix: "/api" });
+        app.register(itemsRoutes, { prefix: "/api" });
+        app.register(paymentRoutes, { prefix: "/api" });
+        app.register(registrationRoutes, { prefix: "/api" });
+        app.register(userRoutes, { prefix: "/api" });
 
-        await fastify.listen({ port: 3000 });
+        await app.listen({ port: 3000 });
         console.log("Server is running on port 3000");
     } catch (error) {
-        fastify.log.error(error);
+        app.log.error(error);
         process.exit(1);
     }
 };

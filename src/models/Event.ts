@@ -11,6 +11,7 @@ SEvent.init(
         title: { type: DataTypes.STRING, allowNull: false },
         description: { type: DataTypes.STRING },
         date: { type: DataTypes.DATE, allowNull: false },
+        image: { type: DataTypes.STRING, allowNull: true },
     },
     { sequelize, modelName: "Event" },
 );

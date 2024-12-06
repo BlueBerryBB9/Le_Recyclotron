@@ -102,7 +102,9 @@ export const getAllUsers = async (
 
 // Get User by ID
 export const getUserById = async (
-    request: RequestWithParams,
+    request: FastifyRequest<{
+        Params: { id: string };
+    }>,
     reply: FastifyReply,
 ) => {
     try {
@@ -156,7 +158,9 @@ export const updateUser = async (
 
 // Delete User
 export const deleteUser = async (
-    request: RequestWithParams,
+    request: FastifyRequest<{
+        Params: { id: string };
+    }>,
     reply: FastifyReply,
 ) => {
     try {

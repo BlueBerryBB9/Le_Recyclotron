@@ -157,7 +157,7 @@ export const addCategoryToItem = async (
         if (!SItem.findByPk(itemId))
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
-        const categoryId = intToString(request.params.categoryId, "Item");
+        const categoryId = intToString(request.params.categoryId, "Category");
         if (!SCategory.findByPk(categoryId))
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
@@ -218,7 +218,7 @@ export const deleteCategoryOfItem = async (
 ) => {
     try {
         const itemId = intToString(request.params.itemId, "Item");
-        const categoryId = intToString(request.params.categoryId, "Item");
+        const categoryId = intToString(request.params.categoryId, "Category");
         const itemCategory = await SItemCategory.findOne({
             where: { itemId: itemId, categoryId: categoryId },
         });

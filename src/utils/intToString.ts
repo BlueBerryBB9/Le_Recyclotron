@@ -9,6 +9,9 @@ export function intToString(
         | "Event"
         | "Payment"
         | "Registration"
+        | "Role"
+        | "RoleInUser"
+        | "UserRole"
         | "RegistrationInEvent",
 ): number {
     let j = parseInt(i);

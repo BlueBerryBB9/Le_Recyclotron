@@ -17,10 +17,13 @@ export class SequelizeApiErr {
             | "Item"
             | "Category"
             | "User"
+            | "RoleInUser"
             | "Event"
             | "Payment"
             | "Registration"
-            | "RegistrationInEvent",
+            | "RegistrationInEvent"
+            | "UserRole"
+            | "Role",
         error: BaseError,
     ) {
         if (error instanceof SequelizeValidationError)
@@ -55,10 +58,13 @@ export class RecyclotronApiErr extends Error {
             | "Item"
             | "Category"
             | "User"
+            | "RoleInUser"
             | "Event"
             | "Payment"
             | "Registration"
-            | "RegistrationInEvent",
+            | "RegistrationInEvent"
+            | "UserRole"
+            | "Role",
         msg:
             | "NotFound"
             | "InvalidInput"

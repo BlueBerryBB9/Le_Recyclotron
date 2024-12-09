@@ -5,5 +5,7 @@
         "outDir": "dist/"
     },
     "include": ["src/**/*"],
-    "exclude": ["test/*"]
+    "exclude": ["test/*"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
 }

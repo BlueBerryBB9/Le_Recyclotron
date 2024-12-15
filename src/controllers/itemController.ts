@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import SItem, * as i from "../models/Item.js";
+import * as i from "../models/Item.js";
 import SItemCategory from "../models/ItemCategories.js";
 import {
     RecyclotronApiErr,
@@ -7,7 +7,7 @@ import {
 } from "../error/recyclotronApiErr.js";
 import SCategory from "../models/Category.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../utils/intToString.js";
+import { intToString } from "../service/intToString.js";
 
 // Create new item
 export const createItem = async (
@@ -137,7 +137,7 @@ export const deleteItemById = async (
 
         await item.destroy();
 
-        reply.code(200).send({ message: "Item deleted successfully." });
+        reply.code(204).send({ message: "Item deleted successfully." });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;
@@ -154,7 +154,7 @@ export const addCategoryToItem = async (
 ) => {
     try {
         const itemId: number = intToString(request.params.itemId, "Item");
-        if (!SItem.findByPk(itemId))
+        if (!i.default.findByPk(itemId))
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
         const categoryId = intToString(request.params.categoryId, "Category");
@@ -228,7 +228,7 @@ export const deleteCategoryOfItem = async (
         await SItemCategory.destroy({
             where: { itemId: itemId, categoryId: categoryId },
         });
-        reply.code(200).send({
+        reply.code(204).send({
             message: "Category removed from item successfully",
         });
     } catch (error) {

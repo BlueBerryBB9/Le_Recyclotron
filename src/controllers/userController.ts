@@ -14,7 +14,7 @@ import {
     RecyclotronApiErr,
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
-import { intToString } from "../utils/intToString.js";
+import { intToString } from "../service/intToString.js";
 import { userInfo } from "os";
 
 // Custom type for requests with params
@@ -23,33 +23,6 @@ interface RequestWithParams extends FastifyRequest {
         id: string;
     };
 }
-
-// Gestionnaire d'erreurs centralisé
-// const handleError = (error: any, reply: FastifyReply) => {
-//     console.error("Error:", error);
-
-//     if (error instanceof ValidationError) {
-//         return reply.status(400).send({
-//             error: "Validation Error",
-//             details: error.errors.map((err) => ({
-//                 field: err.path,
-//                 message: err.message,
-//             })),
-//         });
-//     }
-
-//     if (error.code === "P2002") {
-//         return reply.status(409).send({
-//             error: "Conflict",
-//             message: "Resource already exists",
-//         });
-//     }
-
-//     return reply.status(500).send({
-//         error: "Internal Server Error",
-//         message: "An unexpected error occurred",
-//     });
-// };
 
 // Create User
 export const createUser = async (

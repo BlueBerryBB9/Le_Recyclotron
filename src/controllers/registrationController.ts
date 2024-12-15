@@ -5,7 +5,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../utils/intToString.js";
+import { intToString } from "../service/intToString.js";
 
 // Error handling middleware
 const errorHandler = (rep: FastifyReply, error: any) => {
@@ -120,7 +120,7 @@ export const deleteRegistration = async (
         await r.default.destroy({
             where: { id },
         });
-        return rep.status(200).send({
+        return rep.status(204).send({
             message: "Registration deleted successfully",
         });
     } catch (error) {

@@ -23,6 +23,7 @@ export class SequelizeApiErr {
             | "Registration"
             | "RegistrationInEvent"
             | "UserRole"
+            | "Auth"
             | "Role",
         error: BaseError,
     ) {
@@ -64,6 +65,7 @@ export class RecyclotronApiErr extends Error {
             | "Registration"
             | "RegistrationInEvent"
             | "UserRole"
+            | "Auth"
             | "Role",
         msg:
             | "NotFound"

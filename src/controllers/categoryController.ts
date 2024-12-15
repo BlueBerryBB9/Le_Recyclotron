@@ -5,7 +5,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../utils/intToString.js";
+import { intToString } from "../service/intToString.js";
 
 export const createCategory = async (
     request: FastifyRequest<{ Body: i.InputCategory }>,
@@ -141,7 +141,7 @@ export const deleteCategoryById = async (
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
         await category.destroy();
-        reply.code(200).send({ message: "category deleted successfully." });
+        reply.code(204).send({ message: "category deleted successfully." });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;

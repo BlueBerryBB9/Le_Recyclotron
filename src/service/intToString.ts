@@ -12,6 +12,7 @@ export function intToString(
         | "Role"
         | "RoleInUser"
         | "UserRole"
+        | "Auth"
         | "RegistrationInEvent",
 ): number {
     let j = parseInt(i);

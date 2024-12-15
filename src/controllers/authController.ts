@@ -2,38 +2,21 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../config/auth.js";
 import SUser from "../models/User.js";
 import SRole from "../models/Role.js";
-import { loginSchema, validateRequest } from "../error/validation.js";
 import { handleError } from "../error/error.js";
 import { Identifier } from "sequelize";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { intToString } from "../service/intToString.js";
 
 export const login = async (
-    request: any,
-    reply: {
-        status: (arg0: number) => {
-            (): any;
-            new (): any;
-            send: {
-                (arg0: { error: string; message: string }): any;
-                new (): any;
-            };
-        };
-        send: (arg0: {
-            token: any;
-            user: {
-                id: number;
-                email: string;
-                first_name: string;
-                last_name: string;
-                // roles: any;
-            };
-        }) => any;
-    },
+    request: FastifyRequest<{ Body: { email: string; password: string } }>,
+    reply: FastifyReply,
 ) => {
     try {
-        const { email, password } = await validateRequest(loginSchema)(request);
+        const { email, password } = request.body;
 
         const user = await SUser.findOne({
             where: { email },
+            attributes: { exclude: ["password"] },
             include: [
                 {
                     model: SRole,
@@ -62,13 +45,7 @@ export const login = async (
 
         return reply.send({
             token,
-            user: {
-                id: user.id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                // roles: user.Roles.map((role: { name: any }) => role.name),
-            },
+            user: user,
         });
     } catch (error) {
         return handleError(error, reply);
@@ -76,21 +53,16 @@ export const login = async (
 };
 
 export const getCurrentUser = async (
-    request: { user: { id: Identifier | undefined } },
-    reply: {
-        status: (arg0: number) => {
-            (): any;
-            new (): any;
-            send: {
-                (arg0: { error: string; message: string }): any;
-                new (): any;
-            };
+    request: {
+        body: {
+            id: string;
         };
-        send: (arg0: SUser) => any;
     },
+    reply: FastifyReply,
 ) => {
     try {
-        const user = await SUser.findByPk(request.user.id, {
+        const id = intToString(request.body.id, "Authentication");
+        const user = await SUser.findByPk(id, {
             include: [
                 {
                     model: SRole,

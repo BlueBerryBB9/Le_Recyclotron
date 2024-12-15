@@ -1,62 +1,91 @@
-import * as e from "../src/models/Event.js";
-import { DataTypes, Model } from "sequelize";
+import request from "supertest";
+import { describe, expect, it, beforeAll, afterAll } from "@jest/globals";
+import { startServerTest } from "../src/index.js";
 import sequelize from "../src/config/database.js";
-import { createEvent } from "../src/controllers/eventController.js";
-import { describe, expect, test } from "@jest/globals";
-import * as h from "http2";
-import axios from "axios";
+import { InputEvent } from "../src/models/Event.js";
 
-// title: "Article1",
-// image: "/image",
-// desc: "article1",
-// date: "2024-01-01",
-// export async function test_event() {
-//     await e.default.create({
-//         title: "Article1",
-//         image: "/image",
-//         description: "article1",
-//         date: new Date("2024-01-01"),
-//     });
-//     const events = await e.default.findAll();
-//     console.log("Événements créés:", JSON.stringify(events, null, 2));
-// }
+import { FastifyBaseLogger, FastifyInstance } from "fastify";
+import { ZodTypeProvider } from "fastify-type-provider-zod";
+import { Server, IncomingMessage, ServerResponse } from "http";
 
-// describe("Event tests", () => {
-//     test("createEvent ", () => {
-//         await axios.get("http:/localhost/");
-//     });
+let app: FastifyInstance<
+    Server,
+    IncomingMessage,
+    ServerResponse,
+    FastifyBaseLogger,
+    ZodTypeProvider
+>;
 
-//     test("addSpan", () => {
-//         let r = new ReservationService();
-//         let sp: sp.InputSpan = {
-//             start: new Date(2024, 3, 18, 12, 0),
-//             end: new Date(2024, 3, 18, 12, 15),
-//             desc: "prog c",
-//             title: "c",
-//         };
-//         let sp2: sp.InputSpan = {
-//             start: new Date(2024, 3, 18, 12, 0),
-//             end: new Date(2024, 3, 18, 12, 15),
-//             desc: "prog c++",
-//             title: "c++",
-//         };
-//         r.addSpan(sp);
-//         r.addSpan(sp2);
-//         expect(r.spans).toStrictEqual([
-//             {
-//                 id: 1,
-//                 start: new Date(2024, 3, 18, 12, 0),
-//                 end: new Date(2024, 3, 18, 12, 15),
-//                 desc: "prog c",
-//                 title: "c",
-//             },
-//             {
-//                 id: 2,
-//                 start: new Date(2024, 3, 18, 12, 0),
-//                 end: new Date(2024, 3, 18, 12, 15),
-//                 desc: "prog c++",
-//                 title: "c++",
-//             },
-//         ]);
-//     });
-// });
+beforeAll(async () => {
+    // Démarrez le serveur
+    app = await startServerTest();
+
+    // Synchronisez la base de données
+    await sequelize.sync({ force: true });
+});
+
+afterAll(async () => {
+    // Fermez le serveur
+    await app.close();
+
+    // Fermez la base de données
+    await sequelize.close();
+});
+
+describe("event Routes", async () => {
+    let eventId: number;
+
+    it("should create a new event", async () => {
+        const response = await request(app.server)
+            .post("/event")
+            .send({
+                title: "Perils of Pauline",
+                desc: "perils",
+                date: new Date("2024-12-12T10:00:00Z"),
+            } as InputEvent);
+
+        expect(response.status).toBe(201);
+        expect(response.body).toStrictEqual({
+            title: "Perils of Pauline",
+            desc: "perils",
+            date: "2024-12-12T10:00:00Z",
+        });
+        eventId = response.body.id;
+    });
+
+    // it("should get all categories", async () => {
+    //     const response = await request(app).get("/event");
+
+    //     expect(response.status).toBe(200);
+    //     expect(response.body.length).toBeGreaterThan(0);
+    // });
+
+    // it("should get a event by ID", async () => {
+    //     const response = await request(app).get(`/event/${eventId}`);
+
+    //     expect(response.status).toBe(200);
+    //     expect(response.body.id).toBe(eventId);
+    // });
+
+    // it("should update a event", async () => {
+    //     const response = await request(app)
+    //         .put(`/event/${eventId}`)
+    //         .send({ name: "Updated Electronics" });
+
+    //     expect(response.status).toBe(200);
+    //     expect(response.body.name).toBe("Updated Electronics");
+    // });
+
+    // it("should delete a event", async () => {
+    //     const response = await request(app).delete(`/event/${eventId}`);
+
+    //     expect(response.status).toBe(204);
+    // });
+
+    // it("should return 404 for a non-existing event", async () => {
+    //     const response = await request(app).get(`/event/9999`);
+
+    //     expect(response.status).toBe(404);
+    // });
+    app.close();
+});

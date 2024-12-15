@@ -69,4 +69,14 @@ export default async function userRoutes(fastify: FastifyInstance) {
         },
         userController.removeUserRoles,
     );
+    fastify.get(
+        "/users/:id/payment", 
+        {
+            schema: {
+                params: z.object({ userId: z.string(), roleId: z.string() }),
+            },
+        },
+        userController.removeUserRoles,
+    );
+
 }

@@ -6,7 +6,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../utils/intToString.js";
+import { intToString } from "../service/intToString.js";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
@@ -102,7 +102,7 @@ export const deleteEvent = async (
         await e.default.destroy({
             where: { id },
         });
-        return rep.status(200).send({
+        return rep.status(204).send({
             message: "Event deleted successfully",
         });
     } catch (error) {

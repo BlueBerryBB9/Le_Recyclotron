@@ -66,7 +66,8 @@ export class RecyclotronApiErr extends Error {
             | "RegistrationInEvent"
             | "UserRole"
             | "Auth"
-            | "Role",
+            | "Role"
+            | "Authentication",
         msg:
             | "NotFound"
             | "InvalidInput"

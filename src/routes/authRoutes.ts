@@ -20,15 +20,15 @@ export default async function authRoutes(fastify: FastifyInstance) {
         authController.login,
     );
 
-    // Routes protégées
-    fastify.get(
-        "/auth/me",
-        { schema:
-            { body :
-                {
-                    id: z.string(),
-                }
-            }
-        }
-        authController.getCurrentUser);
+    // // Routes protégées
+    // fastify.get(
+    //     "/auth/me",
+    //     { schema:
+    //         { body :
+    //             {
+    //                 id: z.string(),
+    //             }
+    //         }
+    //     }
+    //     authController.getCurrentUser);
 }

@@ -13,6 +13,8 @@ import { RecyclotronApiErr } from "./error/recyclotronApiErr.js";
 import * as z from "zod";
 import { fromError } from "zod-validation-error";
 import { validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
+import SUser from "./models/User.js";
+import SRole from "./models/Role.js";
 
 const startServer = async () => {
     const app = Fastify({
@@ -52,9 +54,17 @@ const startServer = async () => {
         app.addHook(
             "onRequest",
             async (request: FastifyRequest, reply: FastifyReply) => {
-                request.url == "/api/event" //get
+                console.log(request.url);
+                if (request.url == "/api/event") {
+                    console.log("OUUUU");
+                }
                 console.log(request.url);
                 console.log(request.headers.jwt);
+                const user = await SUser.findByPk(1, {
+                    include: [{ model: SRole, attributes: ["id", "name"] }],
+                    attributes: ["id", "username", "email"], // Include any other relevant user attributes
+                });
+                console.log(user);
                 throw new RecyclotronApiErr("Category", "OperationFailed", 500);
             },
         );

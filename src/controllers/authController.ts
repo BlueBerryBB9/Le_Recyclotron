@@ -40,8 +40,8 @@ export const login = async (
             });
         }
 
-        // const token = generateToken(user);
-        let token = 2;
+        // const token = generateToken({id: user.id, email: user.email, roles: });
+        let token = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
         return reply.send({
             token,

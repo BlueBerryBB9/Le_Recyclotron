@@ -4,7 +4,23 @@
 
 ## TODO - DONT HESITATE TO MODIFY THE FILE TO UPDATE FEATURE DEVELOPMENT
 
-- CHECK THAT DATA IS CORRECTLY RETURNED ON RESPONSE !!!!! (bcs it's not smth happening rn)
+- CHECK THAT DATA IS CORRECTLY RETURNED ON RESPONSE !!!!! (bcs it's not smth happening rn... i think...)
+- Check That ONnequest webhook works
+
+- Things to do except classic security features :
+
+  - Fix the user :
+    - implement a way to get user's role from inside the api to generate a token without doing a request from the api to the api itself
+    - set all the models on the same rule (for example put the fields in the first line of the models | i.e. : class SCategory extends Model { public id!: number; public name!: string; } instead of : class SEvent extends Model {} )
+  - Switch from bcrypt to argon2id from password hashing
+  - Add a login authentication with OTP (one-time-password)
+  - Add another layer of verification on sign up --> send a mail with a link to authenticate for example
+  - Test CORS
+  - Test all routes in the order of the user workflow (register --> login --> get events, articles...)
+  - Give proper test data to test database
+  - Find a web host
+  - Do the class diagram for the api (modification are to expect)
+
 - Liste des fonctionnalités des autorisations :
 
   - [ ] Les passes sont hachés en argon2id en suivant reco OWASP.

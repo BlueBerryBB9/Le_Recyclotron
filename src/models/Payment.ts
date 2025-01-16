@@ -4,7 +4,14 @@ import sequelize from "../config/database.js";
 import User from "../models/User.js";
 import { z } from "zod";
 
-class SPayment extends Model {}
+class SPayment extends Model {
+    public id!: number;
+    public id_stripe_payment!: string;
+    public amount!: number;
+    public type!: number;
+    public date!: Date;
+    public status!: string;
+}
 
 SPayment.init(
     {

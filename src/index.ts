@@ -51,6 +51,9 @@ const startServer = async () => {
         app.register(registrationRoutes, { prefix: "/api" });
         app.register(userRoutes, { prefix: "/api" });
 
+        // Sould be:
+        // - jwt verification
+        // - role verification
         app.addHook(
             "onRequest",
             async (request: FastifyRequest, reply: FastifyReply) => {
@@ -58,14 +61,22 @@ const startServer = async () => {
                 if (request.url == "/api/event") {
                     console.log("OUUUU");
                 }
+                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 console.log(request.url);
+                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 console.log(request.headers.jwt);
-                const user = await SUser.findByPk(1, {
-                    include: [{ model: SRole, attributes: ["id", "name"] }],
-                    attributes: ["id", "username", "email"], // Include any other relevant user attributes
-                });
-                console.log(user);
-                throw new RecyclotronApiErr("Category", "OperationFailed", 500);
+                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                console.log(
+                    await SUser.findByPk(1, {
+                        include: [{ model: SRole, attributes: ["id", "name"] }],
+                        attributes: ["id", "username", "email"], // Include any other relevant user attributes
+                    }),
+                );
+                console.log("AAAAAAAAAAAAAAAAAAAAAAAA22222222222AAAAAAAAAAA");
+                console.log(
+                    "AAAAAAAAAAAAAAAAAAAAAAAA22222222222222AAAAAAAAAAA",
+                );
+                // throw new RecyclotronApiErr("Category", "OperationFailed", 500);
             },
         );
 

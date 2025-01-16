@@ -3,7 +3,10 @@ import sequelize from "../config/database.js";
 import User from "./User.js";
 import Role from "./Role.js";
 
-class UserRole extends Model {}
+class UserRole extends Model {
+    public userId!: number;
+    public roleId!: number;
+}
 
 UserRole.init(
     {},

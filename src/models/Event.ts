@@ -3,7 +3,13 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import { z } from "zod";
 
-class SEvent extends Model {}
+class SEvent extends Model {
+    public id!: number;
+    public title!: string;
+    public image!: string;
+    public desc!: string;
+    public date!: Date;
+}
 
 SEvent.init(
     {

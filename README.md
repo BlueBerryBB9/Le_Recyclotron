@@ -2,7 +2,7 @@
 <h3 align="center">Easy to use inventory management, showcase website and employee role management web application !<h3>
 <br>
 
-## TODO
+## TODO - DONT HESITATE TO MODIFY THE FILE TO UPDATE FEATURE DEVELOPMENT
 
 - CHECK THAT DATA IS CORRECTLY RETURNED ON RESPONSE !!!!! (bcs it's not smth happening rn)
 - Liste des fonctionnalités des autorisations :

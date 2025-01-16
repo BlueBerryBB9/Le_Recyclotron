@@ -50,11 +50,11 @@
     Méthode d'évaluation
     Sur rendu : PDF sur teams.
 
-    Critère PA OK PA POK PA NOK
-
-    - Format (page de garde, numéros de page, sommaire) et ton du document: 5 : ton et format professionel 2.5 : le format est partiellement professionel 0 : le format n'est pas du tout professionel
-    - Stratégie frontend: 7.5 : les étapes d'auth et de sécurisation du frontend sont claires et complèters 3.75 : une partie des étapes n'est pas claire, il manque plusieurs éléments 0 : il manque trop d'éléments pour que le document soit utile.
-    - Stratégie backend: 7.5 : on comprend très bien les mesures de sécurité mises en place sur le backend 3.75 : on comprend moyennement bien 0 : les informations sont insuffisantes pour comprendre les mesures prises
+  | Critère                                                              | PA OK                                                                             | PA POK                                                                      | PA NOK                                                                     |     |
+  | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------- | --- |
+  | Format (page de garde, numéros de page, sommaire) et ton du document | 5 : ton et format professionel                                                    | 2.5 : le format est partiellement professionel                              | 0 : le format n'est pas du tout professionel                               |     |
+  | Stratégie frontend                                                   | 7.5 : les étapes d'auth et de sécurisation du frontend sont claires et complètes  | 3.75 : une partie des étapes n'est pas claire, il manque plusieurs éléments | 0 : il manque trop d'éléments pour que le document soit utile.             |     |
+  | Stratégie backend                                                    | 7.5 : on comprend très bien les mesures de sécurité mises en place sur le backend | 3.75 : on comprend moyennement bien                                         | 0 : les informations sont insuffisantes pour comprendre les mesures prises |     |
 
 ### Authors :
 

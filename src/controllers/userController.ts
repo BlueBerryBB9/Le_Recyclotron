@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { authenticate, authorize, isSelfOrAdmin } from "../middleware/auth.js";
-import bcrypt from "bcrypt";
+import argon2 from "argon2id";
 import SUser, {
     ZCreateUser,
     ZUpdateUser,
@@ -31,7 +31,9 @@ export const createUser = async (
 ) => {
     try {
         const userData = ZCreateUser.parse(request.body);
-        userData.password = await bcrypt.hash(userData.password, 10);
+        userData.password = await argon2.hash(userData.password, {
+            type: argon2.argon2id,
+        });
 
         const user = await SUser.create({
             userData,
@@ -110,7 +112,9 @@ export const updateUser = async (
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         if (userData.password)
-            userData.password = await bcrypt.hash(userData.password, 10);
+            userData.password = await argon2.hash(userData.password, {
+                type: argon2.argon2id,
+            });
 
         await user.update(userData);
 

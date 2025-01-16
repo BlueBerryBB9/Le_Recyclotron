@@ -1,40 +1,61 @@
 import nodemailer from 'nodemailer';
 
-class EmailSender {
-    private transporter: nodemailer.Transporter;
+export class MailService {
+  private transporter: nodemailer.Transporter;
 
-    constructor(gmailUser: string, gmailPassword: string) {
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: gmailUser,
-                pass: gmailPassword
-            }
-        });
+  constructor(private email: string, private password: string) {
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: email,
+        pass: password,
+      },
+    });
+  }
+
+  /**
+   * Envoie un email
+   * @param to - Adresse email du destinataire
+   * @param subject - Sujet de l'email
+   * @param text - Contenu texte de l'email
+   */
+  public async sendEmail(
+    to: string,
+    subject: string,
+    text: string
+  ): Promise<void> {
+    try {
+      const info = await this.transporter.sendMail({
+        from: this.email,
+        to,
+        subject,
+        text,
+      });
+
+      console.log(`Email envoyé : ${info.response}`);
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email :', error);
+      throw error;
     }
-
-    async sendEmail(toEmail: string, subject: string, body: string): Promise<void> {
-        const mailOptions = {
-            from: this.transporter.options.auth.user,
-            to: toEmail,
-            subject: subject,
-            text: body
-        };
-
-        try {
-            await this.transporter.sendMail(mailOptions);
-            console.log('Email sent successfully');
-        } catch (error) {
-            console.error('Error sending email:', error);
-        }
-    }
+  }
 }
 
-// Utilisation de la classe
-(async () => {
-    const gmailUser = 'votre_email@gmail.com';
-    const gmailPassword = 'votre_mot_de_passe';
 
-    const emailSender = new EmailSender(gmailUser, gmailPassword);
-    await emailSender.sendEmail('destinataire@example.com', 'Sujet de l\'email', 'Contenu de l\'email');
-})();
+// Exemple d'utilisation
+async function sendMail() {
+    const email = 'votre-email@gmail.com';
+    const password = 'votre-mot-de-passe'; // Utilisez un mot de passe applicatif si nécessaire
+  
+    const mailService = new MailService(email, password);
+  
+    try {
+      await mailService.sendEmail(
+        'destinataire@example.com',
+        'Sujet de test',
+        'Bonjour, ceci est un test !'
+      );
+      console.log('Email envoyé avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email :', error);
+    }
+  }

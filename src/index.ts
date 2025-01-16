@@ -42,7 +42,7 @@ const startServer = async () => {
         });
         await sequelize.authenticate();
         console.log("Connected to the database.");
-        await sequelize.sync(); // Synchronisez les modèles avec la DB.
+        await sequelize.sync({ alter: true }); // Synchronization with the db, to use carefully though.
 
         app.register(categoryRoutes, { prefix: "/api" });
         app.register(eventRoutes, { prefix: "/api" });
@@ -57,26 +57,40 @@ const startServer = async () => {
         app.addHook(
             "onRequest",
             async (request: FastifyRequest, reply: FastifyReply) => {
-                console.log(request.url);
-                if (request.url == "/api/event") {
-                    console.log("OUUUU");
+                try {
+                    console.log(request.url);
+                    if (request.url == "/api/event") {
+                        console.log("OUUUU");
+                    }
+                    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    console.log(request.url);
+                    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    console.log(request.headers.jwt);
+                    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    // const user = await SUser.findByPk(1, {
+                    //     include: [
+                    //         {
+                    //             model: SRole,
+                    //             as: "roles", // Alias defined in the association
+                    //             attributes: ["id", "name"], // Specify which fields to include from Role
+                    //         },
+                    //     ],
+                    //     attributes: ["id", "first_name", "email"], // Specify which fields to include from User
+                    // });
+                    console.log(SUser.associations);
+                    console.log(SRole.associations);
+
+                    // console.log(user);
+                    console.log(
+                        "AAAAAAAAAAAAAAAAAAAAAAAA22222222222AAAAAAAAAAA",
+                    );
+                    console.log(
+                        "AAAAAAAAAAAAAAAAAAAAAAAA22222222222222AAAAAAAAAAA",
+                    );
+                } catch (error) {
+                    console.error("Error in onRequest hook:", error);
+                    throw error; // Re-throw to let Fastify handle it
                 }
-                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-                console.log(request.url);
-                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-                console.log(request.headers.jwt);
-                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-                console.log(
-                    await SUser.findByPk(1, {
-                        include: [{ model: SRole, attributes: ["id", "name"] }],
-                        attributes: ["id", "username", "email"], // Include any other relevant user attributes
-                    }),
-                );
-                console.log("AAAAAAAAAAAAAAAAAAAAAAAA22222222222AAAAAAAAAAA");
-                console.log(
-                    "AAAAAAAAAAAAAAAAAAAAAAAA22222222222222AAAAAAAAAAA",
-                );
-                // throw new RecyclotronApiErr("Category", "OperationFailed", 500);
             },
         );
 

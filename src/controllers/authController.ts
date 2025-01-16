@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import argon2 from "argon2id";
 import { generateToken } from "../config/auth.js";
 import SUser from "../models/User.js";
 import SRole from "../models/Role.js";
@@ -32,7 +32,7 @@ export const login = async (
             });
         }
 
-        const isValidPassword = await bcrypt.compare(password, user.password);
+        const isValidPassword = await argon2.verify(user.password, password);
         if (!isValidPassword) {
             return reply.status(401).send({
                 error: "Authentication failed",

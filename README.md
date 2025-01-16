@@ -24,6 +24,7 @@
   - Find a web host + db host ( we could use freesqldatabase for the moment )
   - Do the class diagram for the api (modification are to expect)
   - Create and enter sound data (donneés saines, oui sound = saines) for test database / main database to allow testing / demos
+  - |-> Create a script that enters sound data in the database, in particular fake users.
 
 - En Français :
 
@@ -47,6 +48,7 @@
   - Trouver un hébergeur + un hébergeur de base de données (nous pourrions utiliser freesqldatabase pour le moment)
   - Faire le diagramme de classes pour l'api (des modifications sont à prévoir)
   - Créer et saisir des données sonores (donneés saines, oui sound = saines) pour la base de données de test/base de données principale pour permettre les tests/démos
+  - Créer un script qui créé des données saines à mettre dans les base de données main / test
   - Security tasks ! - (non-checked tasks in the lower list)
     - switch to argon2id
     - add a revocation mecanism + endpoint to revoke any older tokens

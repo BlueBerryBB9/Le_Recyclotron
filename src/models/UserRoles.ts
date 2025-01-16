@@ -17,13 +17,14 @@ UserRole.init(
 );
 
 User.belongsToMany(Role, {
-    as: "role",
-    foreignKey: "roleId",
+    as: "roles", // Plural alias for clarity
+    foreignKey: "userId", // Correct foreign key for User
     through: UserRole,
 });
+
 Role.belongsToMany(User, {
-    as: "user",
-    foreignKey: "userId",
+    as: "users", // Plural alias for clarity
+    foreignKey: "roleId", // Correct foreign key for Role
     through: UserRole,
 });
 

@@ -26,6 +26,7 @@
   - Create and enter sound data (donneés saines, oui sound = saines) for test database / main database to allow testing / demos
   - |-> Create a script that enters sound data in the database, in particular fake users.
   - scripts that deletes objects in jwt revoked table after a week (common validity date to set in the .env)
+  - put dates for token Revocation in the User model instead of containing it in TokenRevocat
 
 - En Français :
 
@@ -48,6 +49,7 @@
   - Créer et saisir des données saines pour la base de données de test/base de données principale pour permettre les tests/démos
   - Créer un script qui créé des données saines à mettre dans les base de données main / test
   - scripts qui supprime les objets dans la table jwt revoked après une semaine (date de validité générale à mettre dans l'env)
+  - mettre les dates pour la révocation de token dans le model User plutôt que dans l'objet TokenRevocation
 
 - Security tasks ! - (non-checked tasks in the lower list)
 

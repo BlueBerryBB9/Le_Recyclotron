@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import User from "./User.js";
 import Role from "./Role.js";
@@ -9,7 +9,22 @@ class UserRole extends Model {
 }
 
 UserRole.init(
-    {},
+    {
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: User,
+                key: "id",
+            },
+        },
+        roleId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: Role,
+                key: "id",
+            },
+        },
+    },
     {
         sequelize,
         modelName: "UserRole",
@@ -17,14 +32,14 @@ UserRole.init(
 );
 
 User.belongsToMany(Role, {
-    as: "roles", // Plural alias for clarity
-    foreignKey: "userId", // Correct foreign key for User
+    as: "roles",
+    foreignKey: "userId",
     through: UserRole,
 });
 
 Role.belongsToMany(User, {
-    as: "users", // Plural alias for clarity
-    foreignKey: "roleId", // Correct foreign key for Role
+    as: "users",
+    foreignKey: "roleId",
     through: UserRole,
 });
 

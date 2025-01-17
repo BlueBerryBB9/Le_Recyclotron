@@ -1,11 +1,14 @@
-import argon2 from "argon2id";
-import { generateToken } from "../config/auth.js";
+import { generateToken } from "../service/auth_service.js";
 import SUser from "../models/User.js";
 import SRole from "../models/Role.js";
 import { handleError } from "../error/error.js";
-import { Identifier } from "sequelize";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { intToString } from "../service/intToString.js";
+import * as argon from "argon2";
+import * as hashConfig from "../config/hash.js";
+import { getRole } from "../service/getRole.js";
+import { createOTP } from "../service/otpService.js";
+import { MailService } from "../service/emailSender.js";
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -16,7 +19,6 @@ export const login = async (
 
         const user = await SUser.findOne({
             where: { email },
-            attributes: { exclude: ["password"] },
             include: [
                 {
                     model: SRole,
@@ -25,27 +27,35 @@ export const login = async (
             ],
         });
 
-        if (!user) {
+        if (!user || !(await argon.verify(user.password, password))) {
             return reply.status(401).send({
                 error: "Authentication failed",
                 message: "Invalid email or password",
             });
         }
 
-        const isValidPassword = await argon2.verify(user.password, password);
-        if (!isValidPassword) {
-            return reply.status(401).send({
-                error: "Authentication failed",
-                message: "Invalid email or password",
-            });
-        }
+        const otpPassword = Math.floor(
+            100000 + Math.random() * 900000,
+        ).toString(); // Generate a 6-digit OTP
+        await createOTP(user.id, otpPassword);
 
-        // const token = generateToken({id: user.id, email: user.email, roles: });
-        let token = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        if (!process.env.EMAIL_SENDER || !process.env.EMAIL_PASSWORD) return;
+
+        const mailService = new MailService(
+            process.env.EMAIL_SENDER,
+            process.env.EMAIL_PASSWORD,
+        );
+        await mailService.sendEmail(
+            user.email,
+            "Your OTP Code",
+            `Your OTP code is: ${otpPassword}`,
+        );
+
+        const { password: _, ...userWithoutPassword } = user.toJSON();
 
         return reply.send({
-            token,
-            user: user,
+            statusCode: 200,
+            message: "Check your email for the OTP code",
         });
     } catch (error) {
         return handleError(error, reply);
@@ -53,11 +63,7 @@ export const login = async (
 };
 
 export const getCurrentUser = async (
-    request: {
-        body: {
-            id: string;
-        };
-    },
+    request: FastifyRequest<{ Body: { id: string } }>,
     reply: FastifyReply,
 ) => {
     try {
@@ -83,4 +89,65 @@ export const getCurrentUser = async (
     } catch (error) {
         return handleError(error, reply);
     }
+};
+const tokenRevocations = {
+    global: null as number | null,
+    users: new Map<string, number>(),
+};
+
+export const revokeAllTokens = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+) => {
+    try {
+        tokenRevocations.global = Date.now();
+        return reply.send({
+            message: "All Tokens was revoke",
+        });
+    } catch (error) {
+        return reply.status(500).send({
+            error: "Internal Server Error",
+            message: "Error during revocation tokens",
+        });
+    }
+};
+
+export const revokeUserTokens = async (
+    request: FastifyRequest<{
+        Params: {
+            userid: string;
+        };
+    }>,
+    reply: FastifyReply,
+) => {
+    try {
+        const userId = request.params.userid;
+        tokenRevocations.users.set(userId, Date.now()); //la date à mettre sur une semaine
+        return reply.send({
+            message: "User token was revoke with succès",
+        });
+    } catch (error) {
+        return reply.status(500).send({
+            error: "Server Error",
+            message: "Error since tokens revocation",
+        });
+    }
+};
+
+export const isTokenRevoked = (userId: string, tokenIat: number): boolean => {
+    const tokenCreationDate = tokenIat * 1000;
+    if (
+        tokenRevocations.global &&
+        tokenCreationDate < tokenRevocations.global
+    ) {
+        return true;
+    }
+    if (userId) {
+        const userRevocationTime = tokenRevocations.users.get(userId);
+        if (userRevocationTime && tokenCreationDate < userRevocationTime) {
+            return true;
+        }
+        return false;
+    }
+    return false;
 };

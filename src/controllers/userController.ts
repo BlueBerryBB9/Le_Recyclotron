@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { authenticate, authorize, isSelfOrAdmin } from "../middleware/auth.js";
-import argon2 from "argon2id";
 import SUser, {
     ZCreateUser,
     ZUpdateUser,
@@ -16,6 +15,8 @@ import {
 } from "../error/recyclotronApiErr.js";
 import { intToString } from "../service/intToString.js";
 import { userInfo } from "os";
+import * as argon from 'argon2';
+import * as hashConfig from '../config/hash.js';
 
 // Custom type for requests with params
 interface RequestWithParams extends FastifyRequest {
@@ -31,9 +32,8 @@ export const createUser = async (
 ) => {
     try {
         const userData = ZCreateUser.parse(request.body);
-        userData.password = await argon2.hash(userData.password, {
-            type: argon2.argon2id,
-        });
+        
+        userData.password = await argon.hash(userData.password, hashConfig.argon2Options)
 
         const user = await SUser.create({
             userData,
@@ -111,10 +111,11 @@ export const updateUser = async (
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        if (userData.password)
-            userData.password = await argon2.hash(userData.password, {
-                type: argon2.argon2id,
-            });
+        user.password = await argon.hash(
+            user.password,
+            hashConfig.argon2Options,
+        );
+
 
         await user.update(userData);
 

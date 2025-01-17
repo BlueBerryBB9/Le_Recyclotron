@@ -3,12 +3,6 @@ import sequelize from '../config/database.js';
 import z from "zod";
 
 class SUser extends Model {
-  $remove(arg0: string, roles: import("./Role.js").default[]) {
-    throw new Error('Method not implemented.');
-  }
-  $add(arg0: string, roles: import("./Role.js").default[]) {
-    throw new Error('Method not implemented.');
-  }
   public id!: number;
   public first_name!: string;
   public last_name!: string;

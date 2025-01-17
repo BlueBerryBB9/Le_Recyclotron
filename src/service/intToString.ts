@@ -13,6 +13,7 @@ export function intToString(
         | "RoleInUser"
         | "UserRole"
         | "Auth"
+        | "OTP"
         | "Authentication"
         | "RegistrationInEvent",
 ): number {

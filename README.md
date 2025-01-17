@@ -25,6 +25,7 @@
   - Do the class diagram for the api (modification are to expect)
   - Create and enter sound data (donneés saines, oui sound = saines) for test database / main database to allow testing / demos
   - |-> Create a script that enters sound data in the database, in particular fake users.
+  - scripts that deletes objects in jwt revoked table after a week (common validity date to set in the .env)
 
 - En Français :
 
@@ -35,10 +36,7 @@
 
   - Terminer le webHook Onrequest qui gère les autorisations en fonction des rôles de l'utilisateur (en gros le but est de dire : si le rôle inclut réparateur --> accès accordé pour réparation, tri... )
   - Corriger l'utilisateur :
-    - implémenter un moyen d'obtenir le rôle de l'utilisateur depuis l'intérieur de l'API pour générer un jeton sans faire de requête de l'API vers l'API elle-même
-    - définir tous les modèles sur la même règle (par exemple mettre les champs dans la première ligne des modèles | i.e. : class SCategory extends Model { public id!: number; public name!: string; } au lieu de : class SEvent extends Model {} )
     - implémenter les méthodes add et remove dans le model SUser, qui sont (peut-être) à utiliser plus tard :shrugged:
-  - Passer de bcrypt à argon2id à partir du hachage de mot de passe
   - Ajouter une authentification de connexion avec OTP (mot de passe à usage unique) --> + Implémentation de classe Mail pour envoyer l'OTP
   - Ajoutez une fonctionnalité de mot de passe oublié qui envoie un e-mail aux personnes souhaitant réinitialiser leur mot de passe.
   - Ajouter une autre couche de vérification lors de l'inscription --> envoyer un mail avec un lien pour s'authentifier par exemple
@@ -47,23 +45,25 @@
   - Donner les données de test appropriées à la base de données de test
   - Trouver un hébergeur + un hébergeur de base de données (nous pourrions utiliser freesqldatabase pour le moment)
   - Faire le diagramme de classes pour l'api (des modifications sont à prévoir)
-  - Créer et saisir des données sonores (donneés saines, oui sound = saines) pour la base de données de test/base de données principale pour permettre les tests/démos
+  - Créer et saisir des données saines pour la base de données de test/base de données principale pour permettre les tests/démos
   - Créer un script qui créé des données saines à mettre dans les base de données main / test
-  - Security tasks ! - (non-checked tasks in the lower list)
-    - switch to argon2id
-    - add a revocation mecanism + endpoint to revoke any older tokens
-    - write the security documentation
-    - test
+  - scripts qui supprime les objets dans la table jwt revoked après une semaine (date de validité générale à mettre dans l'env)
+
+- Security tasks ! - (non-checked tasks in the lower list)
+
+  - add a revocation mecanism + endpoint to revoke any older tokens
+  - write the security documentation
+  - test
 
 - Liste des fonctionnalités des autorisations :
 
-  - [ ] Les passes sont hachés en argon2id en suivant reco OWASP.
-  - [x] La comparaison entre un passe contre un hash, lors du login, fonctionne.
+  - [x] Les passes sont hachés en argon2id en suivant reco OWASP.
+  - [ ] La comparaison entre un passe contre un hash, lors du login, fonctionne.
   - [x] Les passes ou leur hashes ne sont JAMAIS renvoyés en réponse de route.
-  - [x] Les passes sont échangés contre un jeton de session ou un JWT.
-    - [x] JWT : votre clé secrète doit être reçue via une variable d'environnement de votre choix. (risque de malus)
+  - [ ] Les passes sont échangés contre un jeton de session ou un JWT.
+    - [ ] JWT : votre clé secrète doit être reçue via une variable d'environnement de votre choix. (risque de malus)
   - [x] Les routes sont protégées par une vérification du jeton de connexion sauf pour la consultation de quelques données publiques ou la connexion.
-  - [x] Des rôles contraignent certaines actions à certains groupes d'utilisateurs.
+  - [ ] Des rôles contraignent certaines actions à certains groupes d'utilisateurs.
   - [x] Des routes permettent des actions seulement lorsqu'elles portent sur des ressources appartenant à l'utilisateur connecté.
   - [x] Un mécanisme permet la déconnexion.
   - [ ] Un mécanisme permet la révocation de TOUT les tokens ou de TOUTES les sessions encore valable pour un utilisateur.

@@ -24,7 +24,8 @@ export class SequelizeApiErr {
             | "RegistrationInEvent"
             | "UserRole"
             | "Auth"
-            | "Role",
+            | "Role"
+            | "OTP",
         error: BaseError,
     ) {
         if (error instanceof SequelizeValidationError)
@@ -67,6 +68,7 @@ export class RecyclotronApiErr extends Error {
             | "UserRole"
             | "Auth"
             | "Role"
+            | "OTP"
             | "Authentication",
         msg:
             | "NotFound"

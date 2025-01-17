@@ -15,8 +15,10 @@ import {
 } from "../error/recyclotronApiErr.js";
 import { intToString } from "../service/intToString.js";
 import { userInfo } from "os";
-import * as argon from 'argon2';
-import * as hashConfig from '../config/hash.js';
+import * as argon from "argon2";
+import * as hashConfig from "../config/hash.js";
+import { MailService } from "../service/emailSender.js";
+import PasswordReset from "../models/PasswordReset.js";
 
 // Custom type for requests with params
 interface RequestWithParams extends FastifyRequest {
@@ -25,6 +27,9 @@ interface RequestWithParams extends FastifyRequest {
     };
 }
 
+const mailService = new MailService("your-email@gmail.com", "your-password");
+const tempCodes = new Map<string, { code: string, expiry: Date }>();
+
 // Create User
 export const createUser = async (
     request: FastifyRequest<{ Body: CreateUser }>,
@@ -32,8 +37,11 @@ export const createUser = async (
 ) => {
     try {
         const userData = ZCreateUser.parse(request.body);
-        
-        userData.password = await argon.hash(userData.password, hashConfig.argon2Options)
+
+        userData.password = await argon.hash(
+            userData.password,
+            hashConfig.argon2Options,
+        );
 
         const user = await SUser.create({
             userData,
@@ -115,7 +123,6 @@ export const updateUser = async (
             user.password,
             hashConfig.argon2Options,
         );
-
 
         await user.update(userData);
 
@@ -241,5 +248,84 @@ export const removeUserRoles = async (
         } else if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
         } else throw new RecyclotronApiErr("User", "DeletionFailed");
+    }
+};
+
+export const forgotPassword = async (
+    request: FastifyRequest<{ Body: ResetPasswordRequest }>,
+    reply: FastifyReply,
+) => {
+    try {
+        const { email } = request.body;
+        const user = await SUser.findOne({ where: { email } });
+        
+        if (!user) {
+            throw new RecyclotronApiErr("User", "NotFound", 404);
+        }
+
+        // Générer un code temporaire
+        const tempCode = Math.random().toString(36).substring(2, 8);
+        
+        // Créer l'entrée de réinitialisation
+        await PasswordReset.create({
+            userId: user.id,
+            resetCode: tempCode,
+            expiryDate: new Date(Date.now() + 3600000), // 1 heure
+            used: false
+        });
+
+        // Envoyer l'email avec le code
+        const resetLink = `http://127.0.0.1/api/reset-password?code=${tempCode}&email=${email}`;
+        await mailService.sendPasswordResetEmail(email, resetLink);
+
+        return reply.status(200).send({ message: "Email de réinitialisation envoyé" });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        }
+        throw new RecyclotronApiErr("User", "ResetRequestFailed");
+    }
+};
+
+export const resetPassword = async (
+    request: FastifyRequest<{ Body: ResetPassword }>,
+    reply: FastifyReply,
+) => {
+    try {
+        const { email, tempCode, newPassword } = request.body;
+        
+        const user = await SUser.findOne({ where: { email } });
+        if (!user) {
+            throw new RecyclotronApiErr("User", "NotFound", 404);
+        }
+
+        const resetRequest = await PasswordReset.findOne({
+            where: {
+                userId: user.id,
+                resetCode: tempCode,
+                used: false,
+                expiryDate: {
+                    [Op.gt]: new Date()
+                }
+            }
+        });
+
+        if (!resetRequest) {
+            throw new RecyclotronApiErr("User", "InvalidResetCode", 400);
+        }
+
+        // Mettre à jour le mot de passe
+        const hashedPassword = await argon.hash(newPassword, hashConfig.argon2Options);
+        await user.update({ password: hashedPassword });
+
+        // Marquer le code comme utilisé
+        await resetRequest.update({ used: true });
+
+        return reply.status(200).send({ message: "Mot de passe réinitialisé avec succès" });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        }
+        throw new RecyclotronApiErr("User", "ResetFailed");
     }
 };

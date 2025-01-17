@@ -81,7 +81,10 @@ export class RecyclotronApiErr extends Error {
             | "UpdateFailed"
             | "FetchFailed"
             | "FetchAllFailed"
-            | "DatabaseFailed",
+            | "DatabaseFailed"
+            | "ResetFailed"
+            |"InvalidResetCode"
+            |"ResetRequestFailed",
         statusCode?: number,
         sequelizeMessage?: string,
     ) {

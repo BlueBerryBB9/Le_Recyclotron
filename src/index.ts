@@ -59,9 +59,8 @@ const startServer = async () => {
             async (request: FastifyRequest, reply: FastifyReply) => {
                 try {
                     console.log(request.url);
-                    if (request.url == "/api/event")
-                        console.log("OUUUU");
-                    
+                    if (request.url == "/api/event") console.log("OUUUU");
+
                     console.log(request.url);
                     console.log(request.headers.jwt);
                     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");

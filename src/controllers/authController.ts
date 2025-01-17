@@ -9,6 +9,7 @@ import * as hashConfig from "../config/hash.js";
 import { getRole } from "../service/getRole.js";
 import { createOTP } from "../service/otpService.js";
 import { MailService } from "../service/emailSender.js";
+import * as env from "../config/env.js"
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -39,11 +40,11 @@ export const login = async (
         ).toString(); // Generate a 6-digit OTP
         await createOTP(user.id, otpPassword);
 
-        if (!process.env.EMAIL_SENDER || !process.env.EMAIL_PASSWORD) return;
+        if (!env.EMAIL_SENDER || !env.EMAIL_PASSWORD) return;
 
         const mailService = new MailService(
-            process.env.EMAIL_SENDER,
-            process.env.EMAIL_PASSWORD,
+            env.EMAIL_SENDER,
+            env.EMAIL_PASSWORD,
         );
         await mailService.sendEmail(
             user.email,

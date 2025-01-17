@@ -79,4 +79,28 @@ export default async function userRoutes(fastify: FastifyInstance) {
         userController.removeUserRoles,
     );
 
+    // Password reset routes
+    fastify.post(
+        "/users/forgot-password",
+        {
+            schema: {
+                body: z.object({ email: z.string().email() })
+            }
+        },
+        userController.forgotPassword
+    );
+
+    fastify.post(
+        "/users/reset-password",
+        {
+            schema: {
+                body: z.object({
+                    email: z.string().email(),
+                    tempCode: z.string(),
+                    newPassword: z.string()
+                })
+            }
+        },
+        userController.resetPassword
+    );
 }

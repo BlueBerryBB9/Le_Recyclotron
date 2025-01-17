@@ -1,10 +1,11 @@
 import Stripe from "stripe";
+import * as env from "../config/env.js";
 
-if (!process.env.STRIPE_SECRET_KEY) {
+if (!env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY must be defined");
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-12-18.acacia",
 });
 

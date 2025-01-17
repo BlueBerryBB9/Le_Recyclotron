@@ -11,6 +11,7 @@ class SUser extends Model {
   public password!: string;
   public is_adherent!: boolean;
   public sub_type!: string;
+  public token_revocation_timestamp!: Date | null;
 }
 
 SUser.init({
@@ -58,6 +59,11 @@ SUser.init({
   sub_type: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  token_revocation_timestamp: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null
   }
 }, {
   sequelize,
@@ -88,6 +94,8 @@ export const ZUserBase = z.object({
   is_adherent: z.boolean().default(false),
   
   sub_type: z.string().nullable().optional(),
+
+  token_revocation_timestamp: z.date().nullable().optional(),
 });
 
 // Complete user schema with ID
@@ -118,6 +126,20 @@ export const ZUpdateUser = ZUserBase
 export const ZPublicUser = ZUser.omit({ 
   password: true 
 });
+
+// Ajouter aux types existants
+export const ZResetPasswordRequest = z.object({
+    email: z.string().email()
+});
+
+export const ZResetPassword = z.object({
+    email: z.string().email(),
+    tempCode: z.string().min(6).max(6),
+    newPassword: z.string().min(6)
+});
+
+export type ResetPasswordRequest = z.infer<typeof ZResetPasswordRequest>;
+export type ResetPassword = z.infer<typeof ZResetPassword>;
 
 // TypeScript types
 export type User = z.infer<typeof ZUser>;

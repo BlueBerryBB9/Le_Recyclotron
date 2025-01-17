@@ -11,6 +11,7 @@ import {
     PaymentMethodBody,
     SubscriptionBody,
 } from "../models/Payment.js";
+import * as env from "../config/env.js";
 
 export class PaymentController {
     // Créer un abonnement mensuel
@@ -67,7 +68,7 @@ export class PaymentController {
                 currency: "eur",
                 payment_method: paymentMethodId,
                 confirm: true,
-                return_url: `${process.env.FRONTEND_URL}/donation/success`,
+                return_url: `${env.FRONTEND_URL}/donation/success`,
             });
 
             // Enregistrer dans notre base de données
@@ -156,7 +157,7 @@ export class PaymentController {
             const event = stripe.webhooks.constructEvent(
                 rawBody,
                 sig as string,
-                process.env.STRIPE_WEBHOOK_SECRET as string,
+                env.STRIPE_WEBHOOK_SECRET as string,
             );
 
             switch (event.type) {

@@ -1,11 +1,17 @@
-import { FastifyRequest, FastifyReply } from "fastify";
+import {
+    FastifyRequest,
+    FastifyReply,
+    RawServerDefault,
+    FastifySchema,
+    RouteHandler,
+} from "fastify";
 import SUser, {
     ZCreateUser,
     ZUpdateUser,
-    CreateUser,
     ResetPasswordRequest,
     ResetPassword,
     UpdateUser,
+    CreateUser,
 } from "../models/User.js";
 import SUserRole from "../models/UserRoles.js";
 import SRole from "../models/Role.js";
@@ -21,15 +27,18 @@ import * as hashConfig from "../config/hash.js";
 import { MailService } from "../service/emailSender.js";
 import SResetPassword from "../models/ResetPassword.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
-
-const mailService = new MailService("your-email@gmail.com", "your-password");
-const tempCodes = new Map<string, { code: string; expiry: Date }>();
+import * as z from "zod";
+import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import { Type } from "@sinclair/typebox";
+import { IncomingMessage } from "http";
 
 // Create User
-export const createUser = async (
-    request: FastifyRequest<{ Body: {createUser: CreateUser; roles: number[]} }>,
-    reply: FastifyReply,
-) => {
+export const createUser: RouteHandler<{
+    Body: {
+        createUser: CreateUser;
+        roles: number[];
+    };
+}> = async (request, reply) => {
     try {
         const userData = ZCreateUser.parse(request.body.createUser);
 
@@ -285,7 +294,7 @@ export const forgotPassword = async (
         // Envoyer l'email avec le code
         const resetLink = `${FRONTEND_URL}/reset-password?code=${tempCode}&email=${email}`;
         if (!EMAIL_SENDER || !EMAIL_PASSWORD) {
-            throw new RecyclotronApiErr("User", "EnvKeyMissing", 500)
+            throw new RecyclotronApiErr("User", "EnvKeyMissing", 500);
         }
         let mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
         await mailService.sendPasswordResetEmail(email, resetLink);

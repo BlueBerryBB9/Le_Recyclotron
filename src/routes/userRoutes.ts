@@ -1,29 +1,42 @@
-import { FastifyInstance } from "fastify";
+import {
+    FastifyInstance,
+    FastifyRequest,
+    RawServerDefault,
+    RouteHandlerMethod,
+} from "fastify";
 import * as userController from "../controllers/userController.js";
 import * as u from "../models/User.js";
 import { authorize, isSelfOrAdminOrRh } from "../middleware/auth.js";
 import * as z from "zod";
+import { IncomingMessage, ServerResponse } from "http";
 
 export default async (fastify: FastifyInstance) => {
     // Protected routes
-    fastify.post(
-        "/users",
-        {
-            schema: {
-                body: z.object({
-                    createUser: u.ZCreateUser,
-                    roles: z.array(z.number()),
-                }),
-            },
-            onRequest: [authorize(["admin", "rh"])],
+    fastify.post("/users", {
+        schema: {
+            body: z.object({
+                createUser: u.ZCreateUser,
+                roles: z.array(z.number()),
+            }),
         },
-        userController.createUser,
-    );
+        preHandler: [authorize(["admin", "rh"])],
+        handler: userController.createUser as RouteHandlerMethod<
+            RawServerDefault,
+            IncomingMessage,
+            ServerResponse,
+            {
+                Body: {
+                    createUser: u.CreateUser;
+                    roles: number[];
+                };
+            }
+        >,
+    });
 
     fastify.get(
         "/users",
         {
-            onRequest: [authorize(["Admin", "Employee"])],
+            // onRequest: [authorize(["Admin", "Employee"])],
         },
         userController.getAllUsers,
     );
@@ -31,7 +44,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.get(
         "/users/:id",
         {
-            onRequest: [isSelfOrAdminOrRh],
+            // onRequest: [isSelfOrAdminOrRh],
             schema: { params: z.object({ id: z.string() }) },
         },
         userController.getUserById,
@@ -40,7 +53,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.put(
         "/users/:id",
         {
-            onRequest: [isSelfOrAdminOrRh],
+            // onRequest: [isSelfOrAdminOrRh],
             schema: {
                 params: z.object({ id: z.string() }),
                 body: u.ZUpdateUser,
@@ -52,7 +65,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.delete(
         "/users/:id",
         {
-            onRequest: [authorize(["admin", "rh"])],
+            // onRequest: [authorize(["admin", "rh"])],
             schema: { params: z.object({ id: z.string() }) },
         },
         userController.deleteUser,
@@ -62,7 +75,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.post(
         "/users/:id/roles",
         {
-            onRequest: [authorize(["admin"])],
+            // onRequest: [authorize(["admin"])],
             schema: {
                 params: z.object({ userId: z.string() }),
             },
@@ -73,7 +86,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.delete(
         "/users/:userId/roles/:roleId",
         {
-            onRequest: [authorize(["admin"])],
+            // onRequest: [authorize(["admin"])],
             schema: {
                 params: z.object({ userId: z.string(), roleId: z.string() }),
             },
@@ -84,7 +97,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.get(
         "/users/:id/payment",
         {
-            onRequest: [authorize(["admin"])],
+            // onRequest: [authorize(["admin"])],
             schema: {
                 params: z.object({ userId: z.string(), roleId: z.string() }),
             },
@@ -99,7 +112,7 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: z.object({ email: z.string().email() }),
             },
-            onRequest: [authorize(["admin"])],
+            // onRequest: [authorize(["admin"])],
         },
         userController.forgotPassword,
     );
@@ -114,7 +127,7 @@ export default async (fastify: FastifyInstance) => {
                     newPassword: z.string(),
                 }),
             },
-            onRequest: [authorize(["admin"])],
+            // onRequest: [authorize(["admin"])],
         },
         userController.resetPassword,
     );

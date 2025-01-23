@@ -6,6 +6,8 @@
         "@babel/core": "^7.26.0",
         "@babel/preset-env": "^7.26.0",
         "@fastify/jwt": "^9.0.3",
+        "@fastify/type-provider-typebox": "^5.1.0",
+        "@sinclair/typebox": "^0.34.14",
         "@types/dotenv": "^8.2.3",
         "@types/sequelize": "^4.28.20",
         "@types/validator": "^13.12.2",

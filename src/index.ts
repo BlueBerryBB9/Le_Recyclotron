@@ -18,6 +18,8 @@ import SRole from "./models/Role.js";
 import SEvent from "./models/Event.js";
 import cors from "@fastify/cors";
 import { CORS_IN_DEVELOPMENT, FRONTEND_URL } from "./config/env.js";
+import { argon2Options } from "./config/hash.js";
+import argon from "argon2";
 
 const startServer = async () => {
     const app = Fastify({
@@ -43,6 +45,76 @@ const startServer = async () => {
                 return error.Error();
             }
         });
+
+        /*
+        NEW ?
+        */
+        async function seedDatabase() {
+            const userCount = await SUser.count(); // Check if the Users table is empty
+
+            if (userCount === 0) {
+                console.log("Inserting default users...");
+                await SUser.bulkCreate([
+                    {
+                        first_name: "Martin",
+                        last_name: "Leroy",
+                        email: "martin.leroy@edu.ecole-89.com",
+                        password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+                    },
+                    {
+                        first_name: "Noah",
+                        last_name: "Chantin",
+                        email: "noah.chantin@edu.ecole-89.com",
+                        password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+                    },
+                    {
+                        first_name: "Wissal",
+                        last_name: "Kerkour",
+                        email: "wissal.kerkour@edu.ecole-89.com",
+                        password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+                    },
+                ]);
+                await SRole.bulkCreate([
+                    {
+                        id: 1,
+                        name: "admin",
+                    },
+                    {
+                        id: 2,
+                        name: "rh",
+                    },
+                    {
+                        id: 3,
+                        name: "repairer",
+                    },
+                    {
+                        id: 4,
+                        name: "cm",
+                    },
+                    {
+                        id: 5,
+                        name: "employee",
+                    },
+                    {
+                        id: 6,
+                        name: "client",
+                    },
+                ]);
+                console.log("Default users inserted successfully!");
+            } else {
+                console.log("Default data already exists. No changes made.");
+            }
+        }
+
+        sequelize.afterSync(async () => {
+            console.log("Database synced! Running seeder...");
+            await seedDatabase();
+        });
+
+        /*
+        NEW END?
+        */
+
         await sequelize.authenticate();
         console.log("Connected to the database.");
         await sequelize.sync({ alter: true }); // Synchronization with the db, to use carefully though.

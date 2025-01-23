@@ -42,7 +42,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     id: z.string(),
                 },
             },
-            onRequest: [authorize],
+            // onRequest: [authorize],
         },
         authController.getCurrentUser,
     );
@@ -51,7 +51,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     fastify.post(
         "/auth/revoke-all",
         {
-            onRequest: [authorize],
+            // onRequest: [authorize],
             schema: {
                 response: {
                     200: {
@@ -70,7 +70,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     fastify.post(
         "/auth/revoke-user/:userId",
         {
-            onRequest: [authorize],
+            // onRequest: [authorize],
             schema: {
                 params: z.object({
                     userId: z.string(),

@@ -9,14 +9,14 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration",
         {
             schema: { body: rm.ZInputRegistration },
-            onRequest: [{ authorize }],
+            // onRequest: [{ authorize }],
         },
         rc.createRegistration,
     );
 
     fastify.get(
         "/registration",
-        { onRequest: [{ authorize }] },
+        // { onRequest: [{ authorize }] },
         rc.getAllRegistrations,
     );
 
@@ -24,7 +24,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [{ authorize }],
+            // onRequest: [{ authorize }],
         },
         rc.getRegistration,
     );
@@ -36,7 +36,7 @@ export default async (fastify: f.FastifyInstance) => {
                 body: rm.ZPartialRegistration,
                 params: z.object({ id: z.string() }),
             },
-            onRequest: [{ authorize }],
+            // onRequest: [{ authorize }],
         },
         rc.updateRegistration,
     );
@@ -45,7 +45,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [{ authorize }],
+            // onRequest: [{ authorize }],
         },
         rc.deleteRegistration,
     );

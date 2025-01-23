@@ -25,6 +25,8 @@ export class SequelizeApiErr {
             | "UserRole"
             | "Auth"
             | "Role"
+            | "JWT"
+            | "Mail"
             | "OTP",
         error: BaseError,
     ) {
@@ -66,10 +68,11 @@ export class RecyclotronApiErr extends Error {
             | "Registration"
             | "RegistrationInEvent"
             | "UserRole"
-            | "Auth"
             | "Role"
             | "OTP"
-            | "Authentication",
+            | "JWT"
+            | "Mail"
+            | "Auth",
         msg:
             | "NotFound"
             | "InvalidInput"
@@ -83,8 +86,8 @@ export class RecyclotronApiErr extends Error {
             | "FetchAllFailed"
             | "DatabaseFailed"
             | "ResetFailed"
-            |"InvalidResetCode"
-            |"ResetRequestFailed",
+            | "InvalidResetCode"
+            | "ResetRequestFailed",
         statusCode?: number,
         sequelizeMessage?: string,
     ) {

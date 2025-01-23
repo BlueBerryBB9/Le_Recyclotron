@@ -40,7 +40,7 @@ export const verifyOTP = async (
             return false;
         }
 
-        const isValid = await argon.verify(otp.password, plainPassword);
+        const isValid = await argon.verify(otp.getDataValue("password"), plainPassword);
         return isValid;
     } catch (error) {
         if (error instanceof BaseError) {

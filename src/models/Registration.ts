@@ -4,13 +4,7 @@ import User from "./User.js";
 import Event from "./Event.js";
 import { z } from "zod";
 
-class SRegistration extends Model {
-    public id!: number;
-    public date!: Date;
-    public seats!: number;
-    public eventId!: number;
-    public userId!: number;
-}
+class SRegistration extends Model {}
 
 SRegistration.init(
     {

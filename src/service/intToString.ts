@@ -14,7 +14,8 @@ export function intToString(
         | "UserRole"
         | "Auth"
         | "OTP"
-        | "Authentication"
+        | "JWT"
+        | "Mail"
         | "RegistrationInEvent",
 ): number {
     let j = parseInt(i);

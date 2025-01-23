@@ -17,3 +17,5 @@ export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 export const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY;
 export const EMAIL_SENDER = process.env.EMAIL_SENDER;
 export const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
+export const FRONTEND_URL = process.env.FRONTEND_URL;
+export const CORS_IN_DEVELOPMENT = process.env.CORS_IN_DEVELOPMENT;

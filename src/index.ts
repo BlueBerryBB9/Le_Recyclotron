@@ -15,6 +15,9 @@ import { fromError } from "zod-validation-error";
 import { validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
 import SUser from "./models/User.js";
 import SRole from "./models/Role.js";
+import SEvent from "./models/Event.js";
+import cors from "@fastify/cors";
+import { CORS_IN_DEVELOPMENT, FRONTEND_URL } from "./config/env.js";
 
 const startServer = async () => {
     const app = Fastify({
@@ -44,6 +47,19 @@ const startServer = async () => {
         console.log("Connected to the database.");
         await sequelize.sync({ alter: true }); // Synchronization with the db, to use carefully though.
 
+        // Register CORS
+        if (CORS_IN_DEVELOPMENT === "true") {
+            app.register(cors, {
+                origin: "*", // Adjust the origin as needed
+                methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+            });
+        } else {
+            app.register(cors, {
+                origin: `${FRONTEND_URL}`, // Adjust the origin as needed
+                methods: ["GET", "POST", "PUT", "DELETE"],
+            });
+        }
+
         app.register(categoryRoutes, { prefix: "/api" });
         app.register(eventRoutes, { prefix: "/api" });
         app.register(itemsRoutes, { prefix: "/api" });
@@ -58,9 +74,17 @@ const startServer = async () => {
             "onRequest",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 try {
-                    console.log(request.url);
-                    if (request.url == "/api/event") console.log("OUUUU");
-
+                    if (request.method === "GET") {
+                        reply.header("Access-Control-Allow-Origin", "*");
+                        reply.header(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, PATCH",
+                        );
+                        reply.header(
+                            "Access-Control-Allow-Headers",
+                            "Content-Type, Authorization",
+                        );
+                    }
                     console.log(request.url);
                     console.log(request.headers.jwt);
                     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
@@ -74,6 +98,8 @@ const startServer = async () => {
                     //     ],
                     //     attributes: ["id", "first_name", "email"], // Specify which fields to include from User
                     // });
+                    const events = await SEvent.findAll({ raw: true });
+                    console.log(events);
                     console.log(SUser.associations);
                     console.log(SRole.associations);
 
@@ -109,6 +135,8 @@ const startServer = async () => {
 
 startServer();
 
+//! TEST (C'est des tests Noah)
+
 export const startServerTest = async () => {
     const app = Fastify({
         logger: true,
@@ -136,6 +164,12 @@ export const startServerTest = async () => {
         await sequelize_test.authenticate();
         console.log("Connected to the database.");
         await sequelize_test.sync(); // Synchronisez les modèles avec la DB.
+
+        // Register CORS
+        app.register(cors, {
+            origin: "*",
+            methods: ["GET", "POST", "PUT", "DELETE"],
+        });
 
         app.register(categoryRoutes, { prefix: "/api" });
         app.register(eventRoutes, { prefix: "/api" });

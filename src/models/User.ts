@@ -1,141 +1,139 @@
-import { DataTypes, Model } from 'sequelize';
-import sequelize from '../config/database.js';
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../config/database.js";
 import z from "zod";
 
-class SUser extends Model {
-  public id!: number;
-  public first_name!: string;
-  public last_name!: string;
-  public email!: string;
-  public phone!: string;
-  public password!: string;
-  public is_adherent!: boolean;
-  public sub_type!: string;
-  public token_revocation_timestamp!: Date | null;
-}
+class SUser extends Model {}
 
-SUser.init({
-  id: { 
-    type: DataTypes.INTEGER,
-    primaryKey: true, 
-    autoIncrement: true 
-  },
-  first_name: { 
-    type: DataTypes.STRING(100), 
-    allowNull: false 
-  },
-  last_name: { 
-    type: DataTypes.STRING(100), 
-    allowNull: false 
-  },
-  email: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true
-    }
-  },
-  phone: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    unique: true,
-    validate: {
-      is: /^\+?[\d\s-]+$/
-    }
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      len: [8, 100]
-    }
-  },
-  is_adherent: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
-  },
-  sub_type: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  token_revocation_timestamp: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    defaultValue: null
-  }
-}, {
-  sequelize,
-  modelName: 'User'
-});
+SUser.init(
+    {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+        first_name: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+        },
+        last_name: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+        },
+        email: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+            unique: true,
+            validate: {
+                isEmail: true,
+            },
+        },
+        phone: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
+            unique: true,
+            validate: {
+                is: /^\+?[\d\s-]+$/,
+            },
+        },
+        password: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            validate: {
+                len: [8, 100],
+            },
+        },
+        is_adherent: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+        },
+        sub_type: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        token_revocation_timestamp: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
+    },
+    {
+        sequelize,
+        modelName: "User",
+    },
+);
 
 // Base schema with common validations
 export const ZUserBase = z.object({
-  first_name: z.string()
-    .min(1, 'First name is required')
-    .max(100, 'First name must be less than 100 characters')
-    .transform(v => v.trim()),
-    
-  last_name: z.string()
-    .min(1, 'Last name is required')
-    .max(100, 'Last name must be less than 100 characters')
-    .transform(v => v.trim()),
-    
-  email: z.string()
-    .email('Invalid email format')
-    .max(100, 'Email must be less than 100 characters')
-    .transform(v => v.toLowerCase()),
-    
-  phone: z.string()
-    .regex(/^\+?[\d\s-]+$/, 'Invalid phone number format')
-    .max(10, 'Phone number must be less than 10 characters'),
-    
-  is_adherent: z.boolean().default(false),
-  
-  sub_type: z.string().nullable().optional(),
+    first_name: z
+        .string()
+        .min(1, "First name is required")
+        .max(100, "First name must be less than 100 characters")
+        .transform((v) => v.trim()),
 
-  token_revocation_timestamp: z.date().nullable().optional(),
+    last_name: z
+        .string()
+        .min(1, "Last name is required")
+        .max(100, "Last name must be less than 100 characters")
+        .transform((v) => v.trim()),
+
+    email: z
+        .string()
+        .email("Invalid email format")
+        .max(100, "Email must be less than 100 characters")
+        .transform((v) => v.toLowerCase()),
+
+    phone: z
+        .string()
+        .regex(/^\+?[\d\s-]+$/, "Invalid phone number format")
+        .max(10, "Phone number must be less than 10 characters"),
+
+    is_adherent: z.boolean().default(false),
+
+    sub_type: z.string().nullable().optional(),
+
+    token_revocation_timestamp: z.date().nullable().optional(),
 });
 
 // Complete user schema with ID
 export const ZUser = ZUserBase.extend({
-  id: z.number().positive('ID must be a positive number'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must be less than 100 characters'),
+    id: z.number().positive("ID must be a positive number"),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .max(100, "Password must be less than 100 characters"),
 });
 
 // Schema for creating a new user
 export const ZCreateUser = ZUserBase.extend({
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must be less than 100 characters')
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .max(100, "Password must be less than 100 characters"),
 });
 
 // Schema for updating a user (all fields optional)
-export const ZUpdateUser = ZUserBase
-  .extend({
-    password: z.string()
-      .min(8, 'Password must be at least 8 characters')
-      .max(100, 'Password must be less than 100 characters')
-  })
-  .partial();
+export const ZUpdateUser = ZUserBase.extend({
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .max(100, "Password must be less than 100 characters"),
+}).partial();
 
 // Schema for public user data (no sensitive information)
-export const ZPublicUser = ZUser.omit({ 
-  password: true 
+export const ZPublicUser = ZUser.omit({
+    password: true,
 });
 
 // Ajouter aux types existants
 export const ZResetPasswordRequest = z.object({
-    email: z.string().email()
+    email: z.string().email(),
 });
 
 export const ZResetPassword = z.object({
     email: z.string().email(),
     tempCode: z.string().min(6).max(6),
-    newPassword: z.string().min(6)
+    newPassword: z.string().min(6),
 });
 
 export type ResetPasswordRequest = z.infer<typeof ZResetPasswordRequest>;

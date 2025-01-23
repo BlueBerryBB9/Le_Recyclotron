@@ -1,11 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
-class OTP extends Model {
-    public id!: number;
-    public password!: string;
-    public userId!: number;
-}
+class OTP extends Model {}
 
 OTP.init(
     {

@@ -4,9 +4,15 @@ import * as u from "../models/User.js";
 import { authenticate, authorize, isSelfOrAdmin } from "../middleware/auth.js";
 import * as z from "zod";
 
-export default async function userRoutes(fastify: FastifyInstance) {
+export default async (fastify: FastifyInstance) => {
     // Public routes
-    fastify.post("/users", userController.createUser);
+    fastify.post(
+        "/users",
+        {
+            schema: { body: u.ZCreateUser },
+        },
+        userController.createUser,
+    );
 
     // Protected routes
     fastify.get(
@@ -70,7 +76,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
         userController.removeUserRoles,
     );
     fastify.get(
-        "/users/:id/payment", 
+        "/users/:id/payment",
         {
             schema: {
                 params: z.object({ userId: z.string(), roleId: z.string() }),
@@ -84,10 +90,10 @@ export default async function userRoutes(fastify: FastifyInstance) {
         "/users/forgot-password",
         {
             schema: {
-                body: z.object({ email: z.string().email() })
-            }
+                body: z.object({ email: z.string().email() }),
+            },
         },
-        userController.forgotPassword
+        userController.forgotPassword,
     );
 
     fastify.post(
@@ -97,10 +103,10 @@ export default async function userRoutes(fastify: FastifyInstance) {
                 body: z.object({
                     email: z.string().email(),
                     tempCode: z.string(),
-                    newPassword: z.string()
-                })
-            }
+                    newPassword: z.string(),
+                }),
+            },
         },
-        userController.resetPassword
+        userController.resetPassword,
     );
-}
+};

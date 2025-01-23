@@ -2,10 +2,7 @@ import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
 
-class SCategory extends Model {
-    public id!: number;
-    public name!: string;
-}
+class SCategory extends Model {}
 
 SCategory.init(
     {
@@ -20,7 +17,7 @@ SCategory.init(
         },
     },
     {
-        tableName: "categories",
+        tableName: "Categories",
         sequelize,
     },
 );

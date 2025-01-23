@@ -1,7 +1,6 @@
 import { generateToken } from "../service/auth_service.js";
 import SUser from "../models/User.js";
 import SRole from "../models/Role.js";
-import { handleError } from "../error/error.js";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { intToString } from "../service/intToString.js";
 import * as argon from "argon2";
@@ -9,7 +8,8 @@ import * as hashConfig from "../config/hash.js";
 import { getRole } from "../service/getRole.js";
 import { createOTP } from "../service/otpService.js";
 import { MailService } from "../service/emailSender.js";
-import * as env from "../config/env.js"
+import * as env from "../config/env.js";
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -28,17 +28,16 @@ export const login = async (
             ],
         });
 
-        if (!user || !(await argon.verify(user.password, password))) {
-            return reply.status(401).send({
-                error: "Authentication failed",
-                message: "Invalid email or password",
-            });
-        }
+        if (
+            !user ||
+            !(await argon.verify(user.getDataValue("password"), password))
+        )
+            throw new RecyclotronApiErr("Auth", "InvalidInput", 401);
 
         const otpPassword = Math.floor(
             100000 + Math.random() * 900000,
         ).toString(); // Generate a 6-digit OTP
-        await createOTP(user.id, otpPassword);
+        await createOTP(user.getDataValue("id"), otpPassword);
 
         if (!env.EMAIL_SENDER || !env.EMAIL_PASSWORD) return;
 
@@ -47,7 +46,7 @@ export const login = async (
             env.EMAIL_PASSWORD,
         );
         await mailService.sendEmail(
-            user.email,
+            user.getDataValue("email"),
             "Your OTP Code",
             `Your OTP code is: ${otpPassword}`,
         );
@@ -59,7 +58,9 @@ export const login = async (
             message: "Check your email for the OTP code",
         });
     } catch (error) {
-        return handleError(error, reply);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
     }
 };
 
@@ -68,7 +69,7 @@ export const getCurrentUser = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id = intToString(request.body.id, "Authentication");
+        const id = intToString(request.body.id, "Auth");
         const user = await SUser.findByPk(id, {
             include: [
                 {
@@ -80,17 +81,17 @@ export const getCurrentUser = async (
         });
 
         if (!user) {
-            return reply.status(404).send({
-                error: "Not Found",
-                message: "User not found",
-            });
+            throw new RecyclotronApiErr("Auth", "NotFound", 404);
         }
 
         return reply.send(user);
     } catch (error) {
-        return handleError(error, reply);
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
     }
 };
+
 const tokenRevocations = {
     global: null as number | null,
     users: new Map<string, number>(),
@@ -103,13 +104,10 @@ export const revokeAllTokens = async (
     try {
         tokenRevocations.global = Date.now();
         return reply.send({
-            message: "All Tokens was revoke",
+            message: "All Tokens were revoked",
         });
     } catch (error) {
-        return reply.status(500).send({
-            error: "Internal Server Error",
-            message: "Error during revocation tokens",
-        });
+        throw new RecyclotronApiErr("Auth", "OperationFailed");
     }
 };
 
@@ -123,15 +121,12 @@ export const revokeUserTokens = async (
 ) => {
     try {
         const userId = request.params.userid;
-        tokenRevocations.users.set(userId, Date.now()); //la date à mettre sur une semaine
+        tokenRevocations.users.set(userId, Date.now());
         return reply.send({
-            message: "User token was revoke with succès",
+            message: "User token was revoked successfully",
         });
     } catch (error) {
-        return reply.status(500).send({
-            error: "Server Error",
-            message: "Error since tokens revocation",
-        });
+        throw new RecyclotronApiErr("Auth", "OperationFailed");
     }
 };
 

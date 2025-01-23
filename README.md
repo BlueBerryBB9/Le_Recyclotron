@@ -10,11 +10,6 @@
 - Things to do except classic security features :
 
   - Finish the webHook Onrequest that manages authorizations depending on the roles of the user (essentially the goal is to say : if role include repairman --> access granted for reparation, sorting... )
-  - Fix the user :
-    - implement a way to get user's role from inside the api to generate a token without doing a request from the api to the api itself
-    - set all the models on the same rule (for example put the fields in the first line of the models | i.e. : class SCategory extends Model { public id!: number; public name!: string; } instead of : class SEvent extends Model {} )
-    - implement the add and remove methods in the SUser model, which are (maybe) to be used later :shrugged:
-  - Switch from bcrypt to argon2id from password hashing
   - Add a login authentication with OTP (one-time-password) --> + Mail class implementation to send the OTP
   - Add a forgot password feature that sends email for people to reset their password
   - Add another layer of verification on sign up --> send a mail with a link to authenticate for example
@@ -23,8 +18,8 @@
   - Give proper test data to test database
   - Find a web host + db host ( we could use freesqldatabase for the moment )
   - Do the class diagram for the api (modification are to expect)
-  - Create and enter sound data (donneés saines, oui sound = saines) for test database / main database to allow testing / demos
-  - |-> Create a script that enters sound data in the database, in particular fake users.
+  - Create and enter sound data for test database / main database to allow testing / demos
+  - ╚-> Create a script that enters sound data in the database, in particular fake users.
   - scripts that deletes objects in jwt revoked table after a week (common validity date to set in the .env)
 
 - En Français :
@@ -35,8 +30,6 @@
 - Choses à faire en dehors des fonctionnalités de sécurité classiques :
 
   - Terminer le webHook Onrequest qui gère les autorisations en fonction des rôles de l'utilisateur (en gros le but est de dire : si le rôle inclut réparateur --> accès accordé pour réparation, tri... )
-  - Corriger l'utilisateur :
-    - implémenter les méthodes add et remove dans le model SUser, qui sont (peut-être) à utiliser plus tard :shrugged:
   - Ajouter une authentification de connexion avec OTP (mot de passe à usage unique) --> + Implémentation de classe Mail pour envoyer l'OTP
   - Ajoutez une fonctionnalité de mot de passe oublié qui envoie un e-mail aux personnes souhaitant réinitialiser leur mot de passe.
   - Ajouter une autre couche de vérification lors de l'inscription --> envoyer un mail avec un lien pour s'authentifier par exemple
@@ -46,7 +39,7 @@
   - Trouver un hébergeur + un hébergeur de base de données (nous pourrions utiliser freesqldatabase pour le moment)
   - Faire le diagramme de classes pour l'api (des modifications sont à prévoir)
   - Créer et saisir des données saines pour la base de données de test/base de données principale pour permettre les tests/démos
-  - Créer un script qui créé des données saines à mettre dans les base de données main / test
+  - ╚-> Créer un script qui créé des données saines à mettre dans les base de données main / test
   - scripts qui supprime les objets dans la table jwt revoked après une semaine (date de validité générale à mettre dans l'env)
 
 - Security tasks ! - (non-checked tasks in the lower list)

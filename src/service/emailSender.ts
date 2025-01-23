@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
 export class MailService {
     private transporter: nodemailer.Transporter;
@@ -34,11 +35,8 @@ export class MailService {
                 subject,
                 text,
             });
-
-            console.log(`Email envoyé : ${info.response}`);
         } catch (error) {
-            console.error("Erreur lors de l'envoi de l'email :", error);
-            throw error;
+            throw new RecyclotronApiErr("Mail", "OperationFailed");
         }
     }
 

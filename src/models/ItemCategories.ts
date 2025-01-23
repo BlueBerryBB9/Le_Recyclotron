@@ -3,10 +3,7 @@ import sequelize from "../config/database.js";
 import Item from "./Item.js";
 import Category from "./Category.js";
 
-class SItemCategory extends Model {
-    itemId!: number;
-    categoryId!: number;
-}
+class SItemCategory extends Model {}
 
 SItemCategory.init(
     {},

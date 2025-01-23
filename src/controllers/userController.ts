@@ -5,10 +5,12 @@ import SUser, {
     ZUpdateUser,
     CreateUser,
     UpdateUser,
+    ResetPasswordRequest,
+    ResetPassword,
 } from "../models/User.js";
 import SUserRole from "../models/UserRoles.js";
 import SRole from "../models/Role.js";
-import { BaseError, Error, ValidationError } from "sequelize";
+import { BaseError, Error, Op, ValidationError } from "sequelize";
 import {
     RecyclotronApiErr,
     SequelizeApiErr,
@@ -18,7 +20,8 @@ import { userInfo } from "os";
 import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
 import { MailService } from "../service/emailSender.js";
-import PasswordReset from "../models/PasswordReset.js";
+import SResetPassword from "../models/ResetPassword.js";
+import { FRONTEND_URL } from "../config/env.js";
 
 // Custom type for requests with params
 interface RequestWithParams extends FastifyRequest {
@@ -28,7 +31,7 @@ interface RequestWithParams extends FastifyRequest {
 }
 
 const mailService = new MailService("your-email@gmail.com", "your-password");
-const tempCodes = new Map<string, { code: string, expiry: Date }>();
+const tempCodes = new Map<string, { code: string; expiry: Date }>();
 
 // Create User
 export const createUser = async (
@@ -47,7 +50,7 @@ export const createUser = async (
             userData,
         });
 
-        const userWithRoles = await SUser.findByPk(user.id, {
+        const userWithRoles = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
@@ -119,14 +122,17 @@ export const updateUser = async (
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        user.password = await argon.hash(
-            user.password,
-            hashConfig.argon2Options,
+        user.setDataValue(
+            "password",
+            await argon.hash(
+                user.getDataValue("password"),
+                hashConfig.argon2Options,
+            ),
         );
 
         await user.update(userData);
 
-        const updatedUser = await SUser.findByPk(user.id, {
+        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
@@ -187,16 +193,19 @@ export const addUserRoles = async (
         for (let role of roles) {
             let userRole = await SUserRole.findOne({
                 where: {
-                    roleId: role.id,
-                    userId: user.id,
+                    roleId: role.getDataValue("id"),
+                    userId: user.getDataValue("id"),
                 },
             });
             if (userRole)
                 throw new RecyclotronApiErr("User", "AlreadyExists", 409);
-            SUserRole.create({ roleId: role.id, userId: user.id });
+            SUserRole.create({
+                roleId: role.getDataValue("id"),
+                userId: user.getDataValue("id"),
+            });
         }
 
-        const updatedUser = await SUser.findByPk(user.id, {
+        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
@@ -236,7 +245,7 @@ export const removeUserRoles = async (
         if (!userRole) throw new RecyclotronApiErr("UserRole", "NotFound", 404);
         await SUserRole.destroy({ where: { userId: userId, roleId: roleId } });
 
-        const updatedUser = await SUser.findByPk(user.id, {
+        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
@@ -258,27 +267,29 @@ export const forgotPassword = async (
     try {
         const { email } = request.body;
         const user = await SUser.findOne({ where: { email } });
-        
+
         if (!user) {
             throw new RecyclotronApiErr("User", "NotFound", 404);
         }
 
         // Générer un code temporaire
         const tempCode = Math.random().toString(36).substring(2, 8);
-        
+
         // Créer l'entrée de réinitialisation
-        await PasswordReset.create({
-            userId: user.id,
+        await SResetPassword.create({
+            userId: user.getDataValue("id"),
             resetCode: tempCode,
             expiryDate: new Date(Date.now() + 3600000), // 1 heure
-            used: false
+            used: false,
         });
 
         // Envoyer l'email avec le code
-        const resetLink = `http://127.0.0.1/api/reset-password?code=${tempCode}&email=${email}`;
+        const resetLink = `${FRONTEND_URL}/reset-password?code=${tempCode}&email=${email}`;
         await mailService.sendPasswordResetEmail(email, resetLink);
 
-        return reply.status(200).send({ message: "Email de réinitialisation envoyé" });
+        return reply
+            .status(200)
+            .send({ message: "Email de réinitialisation envoyé" });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;
@@ -293,21 +304,21 @@ export const resetPassword = async (
 ) => {
     try {
         const { email, tempCode, newPassword } = request.body;
-        
+
         const user = await SUser.findOne({ where: { email } });
         if (!user) {
             throw new RecyclotronApiErr("User", "NotFound", 404);
         }
 
-        const resetRequest = await PasswordReset.findOne({
+        const resetRequest = await SResetPassword.findOne({
             where: {
-                userId: user.id,
+                userId: user.getDataValue("id"),
                 resetCode: tempCode,
                 used: false,
                 expiryDate: {
-                    [Op.gt]: new Date()
-                }
-            }
+                    [Op.gt]: new Date(),
+                },
+            },
         });
 
         if (!resetRequest) {
@@ -315,13 +326,18 @@ export const resetPassword = async (
         }
 
         // Mettre à jour le mot de passe
-        const hashedPassword = await argon.hash(newPassword, hashConfig.argon2Options);
+        const hashedPassword = await argon.hash(
+            newPassword,
+            hashConfig.argon2Options,
+        );
         await user.update({ password: hashedPassword });
 
         // Marquer le code comme utilisé
         await resetRequest.update({ used: true });
 
-        return reply.status(200).send({ message: "Mot de passe réinitialisé avec succès" });
+        return reply
+            .status(200)
+            .send({ message: "Mot de passe réinitialisé avec succès" });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;

@@ -9,14 +9,7 @@ enum ItemStatus {
     REPARABLE,
 }
 
-class SItem extends Model {
-    public id!: number;
-    public name!: string;
-    public status!: ItemStatus;
-    public material!: string;
-    public image!: string;
-    public date!: Date;
-}
+class SItem extends Model {}
 
 SItem.init(
     {
@@ -47,7 +40,7 @@ SItem.init(
         },
     },
     {
-        tableName: "items",
+        tableName: "Items",
         sequelize,
     },
 );

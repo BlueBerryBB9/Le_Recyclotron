@@ -1,77 +1,42 @@
-export const authenticate = async (
-    request: { jwtVerify: () => any },
-    reply: {
-        status: (arg0: number) => {
-            (): any;
-            new (): any;
-            send: {
-                (arg0: { error: string; message: string }): void;
-                new (): any;
-            };
-        };
-    },
-) => {
-    try {
-        await request.jwtVerify();
-    } catch (err) {
-        reply.status(401).send({
-            error: "Unauthorized",
-            message: "Invalid or expired token",
-        });
-    }
-};
+import { FastifyReply, FastifyRequest } from "fastify";
+import "@fastify/jwt";
+import SRole from "../models/Role.js";
+import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
 export const authorize =
-    (allowedRoles: any[]) =>
-    async (
-        request: { user: { roles: any } },
-        reply: {
-            status: (arg0: number) => {
-                (): any;
-                new (): any;
-                send: {
-                    (arg0: { error: string; message: string }): any;
-                    new (): any;
-                };
-            };
-        },
-    ) => {
-        const userRoles = request.user.roles;
+    (inputRoles: string[]) =>
+    async (request: FastifyRequest, reply: FastifyReply) => {
+        const allowedRoles: SRole[] = [];
+        for (let role of inputRoles) {
+            const foundRole = await SRole.findOne({ where: { name: role } });
+            if (foundRole) {
+                allowedRoles.push(foundRole);
+            }
+        }
+        await request.jwtVerify();
+
+        const userRoles = (request.user as any).roles;
 
         const hasPermission = allowedRoles.some((role) =>
             userRoles.includes(role),
         );
 
         if (!hasPermission) {
-            return reply.status(403).send({
-                error: "Forbidden",
-                message: "Insufficient permissions",
-            });
+            throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
         }
     };
 
 export const isSelfOrAdmin = async (
-    request: { params: { id: string }; user: { id: any; roles: any } },
-    reply: {
-        status: (arg0: number) => {
-            (): any;
-            new (): any;
-            send: {
-                (arg0: { error: string; message: string }): any;
-                new (): any;
-            };
-        };
-    },
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
 ) => {
+    await request.jwtVerify();
+
     const userId = parseInt(request.params.id);
-    const requestingUserId = request.user.id;
-    const userRoles = request.user.roles;
+    const requestingUserId = (request.user as any).id;
+    const userRoles = (request.user as any).roles;
 
     if (userId !== requestingUserId && !userRoles.includes("Admin")) {
-        return reply.status(403).send({
-            error: "Forbidden",
-            message:
-                "You can only modify your own profile unless you are an admin",
-        });
+        throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
     }
 };

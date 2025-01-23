@@ -9,6 +9,7 @@ import {
     SubscriptionBody,
 } from "../models/Payment.js";
 import z from "zod";
+import { authorize } from "../middleware/auth.js";
 
 export default async (fastify: FastifyInstance) => {
     // Register raw body parser for Stripe webhook
@@ -21,27 +22,42 @@ export default async (fastify: FastifyInstance) => {
 
     fastify.post<{ Body: SubscriptionBody }>(
         "/subscription",
-        { schema: { body: subscriptionSchema } },
+        {
+            schema: { body: subscriptionSchema },
+            onRequest: [authorize],
+        },
         PaymentController.createSubscription,
     );
     fastify.delete<{ Params: { subscriptionId: string } }>(
         "/subscription/:id",
-        { schema: { params: z.object({ subscriptionId: z.string() }) } },
+        {
+            schema: { params: z.object({ subscriptionId: z.string() }) },
+            onRequest: [authorize],
+        },
         PaymentController.cancelSubscription,
     );
     fastify.post<{ Body: DonationBody }>(
         "/donation",
-        { schema: { body: donationSchema } },
+        {
+            schema: { body: donationSchema },
+            onRequest: [authorize],
+        },
         PaymentController.createDonation,
     );
     fastify.post<{ Body: PaymentMethodBody }>(
         "/payment-method",
-        { schema: { body: paymentMethodSchema } },
+        {
+            schema: { body: paymentMethodSchema },
+            onRequest: [authorize],
+        },
         PaymentController.updatePaymentMethod,
     );
     fastify.post(
         "/webhook",
-        { config: { rawBody: true } },
+        {
+            config: { rawBody: true },
+            onRequest: [authorize],
+        },
         PaymentController.handleWebhook,
     );
 };

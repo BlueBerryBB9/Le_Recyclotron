@@ -15,6 +15,7 @@ export function intToString(
         | "Auth"
         | "OTP"
         | "JWT"
+        | "MiddleWare"
         | "Mail"
         | "RegistrationInEvent",
 ): number {

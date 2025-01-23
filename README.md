@@ -4,6 +4,10 @@
 
 ## TODO - DONT HESITATE TO MODIFY THE FILE TO UPDATE FEATURE DEVELOPMENT
 
+## /!\ FAIRE FONCTIONNER : <<onRequest>> /!\
+
+## MAKE SOUND DATA FOR TESTING + TEST ROUTES AFTER
+
 - CHECK THAT DATA IS CORRECTLY RETURNED ON RESPONSE !!!!! (bcs it's not smth happening rn... i think...)
 - Check That ONnequest webhook works
 

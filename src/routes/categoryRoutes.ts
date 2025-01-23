@@ -7,7 +7,10 @@ export default async (fastify: FastifyInstance) => {
     // Create a new Category
     fastify.post<{ Body: m.InputCategory }>(
         "/categories",
-        { schema: { body: m.ZInputCategory } },
+        {
+            schema: { body: m.ZInputCategory },
+            onRequest: [authenticate],
+        },
         ctrl.createCategory,
     );
 
@@ -19,17 +22,25 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
             },
+            onRequest: [authenticate],
         },
         ctrl.createCategory,
     );
 
     // All categories
-    fastify.get("/categories", ctrl.getAllCategories);
+    fastify.get(
+        "/categories",
+        { onRequest: [authenticate] },
+        ctrl.getAllCategories,
+    );
 
     // Category details
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
+        {
+            schema: { params: z.object({ id: z.string() }) },
+            onRequest: [authenticate],
+        },
         ctrl.getCategoryById,
     );
 
@@ -41,6 +52,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialCategory,
             },
+            onRequest: [authenticate],
         },
         ctrl.updateCategoryById,
     );
@@ -48,14 +60,20 @@ export default async (fastify: FastifyInstance) => {
     // Delete Category
     fastify.delete<{ Params: { id: string } }>(
         "/categories/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
+        {
+            schema: { params: z.object({ id: z.string() }) },
+            onRequest: [authenticate],
+        },
         ctrl.deleteCategoryById,
     );
 
     // All categories of an Category
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id/categories",
-        { schema: { params: z.object({ CategoryId: z.string() }) } },
+        {
+            schema: { params: z.object({ CategoryId: z.string() }) },
+            onRequest: [authenticate],
+        },
         ctrl.getAllCategoriesOfCategory,
     );
 };

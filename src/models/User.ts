@@ -1,6 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
+import SRole from "./Role.js";
+import SUserRole from "./UserRoles.js";
+import { getRole } from "../service/getRole.js";
 
 class SUser extends Model {}
 
@@ -29,7 +32,7 @@ SUser.init(
         },
         phone: {
             type: DataTypes.STRING(10),
-            allowNull: false,
+            allowNull: true,
             unique: true,
             validate: {
                 is: /^\+?[\d\s-]+$/,
@@ -55,6 +58,12 @@ SUser.init(
             type: DataTypes.DATE,
             allowNull: true,
             defaultValue: null,
+        },
+        roles: {
+            type: DataTypes.VIRTUAL,
+            async get() {
+                return await getRole(this.getDataValue("id"));
+            },
         },
     },
     {

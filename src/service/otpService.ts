@@ -24,7 +24,7 @@ export const createOTP = async (
     }
 };
 
-export const verifyOTP = async (
+export const verifyOTPservice = async (
     userId: number,
     plainPassword: string,
 ): Promise<boolean> => {

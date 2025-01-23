@@ -2,41 +2,42 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import "@fastify/jwt";
 import SRole from "../models/Role.js";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import SUser from "../models/User.js";
 
-export const authorize =
-    (inputRoles: string[]) =>
-    async (request: FastifyRequest, reply: FastifyReply) => {
-        const allowedRoles: SRole[] = [];
-        for (let role of inputRoles) {
-            const foundRole = await SRole.findOne({ where: { name: role } });
-            if (foundRole) {
-                allowedRoles.push(foundRole);
-            }
-        }
+export function authorize(allowedRoles: string[]) {
+    return async (request: FastifyRequest, reply: FastifyReply) => {
         await request.jwtVerify();
 
-        const userRoles = (request.user as any).roles;
+        const userRoles = request.user.roles;
 
         const hasPermission = allowedRoles.some((role) =>
             userRoles.includes(role),
         );
-
-        if (!hasPermission) {
+        if (!hasPermission)
             throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
-        }
     };
-
-export const isSelfOrAdmin = async (
+}
+export const isSelfOrAdminOrRh = async (
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
 ) => {
     await request.jwtVerify();
 
     const userId = parseInt(request.params.id);
-    const requestingUserId = (request.user as any).id;
-    const userRoles = (request.user as any).roles;
+    const requestingUserId = request.user.id;
+    const userRoles = request.user.roles;
+    const target = await SUser.findByPk(userId);
+    if (!target) {
+        throw new RecyclotronApiErr("Auth", "NotFound", 404);
+    }
+    const targetRoles = await target.getDataValue("roles");
 
-    if (userId !== requestingUserId && !userRoles.includes("Admin")) {
+    if (
+        userId !== requestingUserId &&
+        !userRoles.includes("admin") &&
+        (!userRoles.includes("rh") &&
+        targetRoles.includes("client"))
+    ) {
         throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
     }
 };

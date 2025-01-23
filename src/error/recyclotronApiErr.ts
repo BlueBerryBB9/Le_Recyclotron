@@ -89,6 +89,7 @@ export class RecyclotronApiErr extends Error {
             | "DatabaseFailed"
             | "ResetFailed"
             | "InvalidResetCode"
+            | "EnvKeyMissing"
             | "ResetRequestFailed",
         statusCode?: number,
         sequelizeMessage?: string,

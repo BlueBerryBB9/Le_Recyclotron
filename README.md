@@ -8,8 +8,7 @@
 
 ## MAKE SOUND DATA FOR TESTING + TEST ROUTES AFTER
 
-- CHECK THAT DATA IS CORRECTLY RETURNED ON RESPONSE !!!!! (bcs it's not smth happening rn... i think...)
-- Check That ONnequest webhook works
+- Check That OnRequest webhook works
 
 - Things to do except classic security features :
 

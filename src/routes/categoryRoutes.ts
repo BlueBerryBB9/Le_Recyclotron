@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
 import z from "zod";
+import { authorize } from "../middleware/auth.js";
 
 export default async (fastify: FastifyInstance) => {
     // Create a new Category
@@ -9,7 +10,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories",
         {
             schema: { body: m.ZInputCategory },
-            onRequest: [authenticate],
+            onRequest: [authorize(['employee'])],
         },
         ctrl.createCategory,
     );
@@ -22,7 +23,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
             },
-            onRequest: [authenticate],
+            onRequest: [authorize(['employee'])],
         },
         ctrl.createCategory,
     );
@@ -30,7 +31,7 @@ export default async (fastify: FastifyInstance) => {
     // All categories
     fastify.get(
         "/categories",
-        { onRequest: [authenticate] },
+        { onRequest: [authorize(['employee'])] },
         ctrl.getAllCategories,
     );
 
@@ -39,7 +40,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authenticate],
+            onRequest: [authorize(['employee'])],
         },
         ctrl.getCategoryById,
     );
@@ -52,7 +53,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialCategory,
             },
-            onRequest: [authenticate],
+            onRequest: [authorize(['employee'])],
         },
         ctrl.updateCategoryById,
     );
@@ -62,7 +63,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authenticate],
+            onRequest: [authorize(['employee'])],
         },
         ctrl.deleteCategoryById,
     );
@@ -72,7 +73,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories/:id/categories",
         {
             schema: { params: z.object({ CategoryId: z.string() }) },
-            onRequest: [authenticate],
+            onRequest: [authorize(['employee'])],
         },
         ctrl.getAllCategoriesOfCategory,
     );

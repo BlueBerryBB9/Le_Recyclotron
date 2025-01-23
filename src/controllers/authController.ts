@@ -1,15 +1,15 @@
 import { generateToken } from "../service/auth_service.js";
-import SUser from "../models/User.js";
-import SRole from "../models/Role.js";
+import SUser, { CreateUser } from "../models/User.js";
+import SUserRoles from "../models/UserRoles.js";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { intToString } from "../service/intToString.js";
 import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
-import { getRole } from "../service/getRole.js";
-import { createOTP } from "../service/otpService.js";
+import { createOTP, verifyOTPservice } from "../service/otpService.js";
 import { MailService } from "../service/emailSender.js";
 import * as env from "../config/env.js";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import SRole from "../models/Role.js";
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -64,6 +64,90 @@ export const login = async (
     }
 };
 
+export const register = async (
+    request: FastifyRequest<{
+        Body: CreateUser;
+    }>,
+    reply: FastifyReply,
+) => {
+    try {
+        const { email, password, first_name, last_name } = request.body;
+
+        const existingUser = await SUser.findOne({ where: { email } });
+        if (existingUser) {
+            throw new RecyclotronApiErr("Auth", "AlreadyExists", 409);
+        }
+
+        const hashedPassword = await argon.hash(
+            password,
+            hashConfig.argon2Options,
+        );
+
+        const newUser = await SUser.create({
+            email,
+            password: hashedPassword,
+            first_name,
+            last_name,
+        });
+
+        const userRole = await SUserRoles.create({
+            user_id: newUser.getDataValue("id"),
+            role_id: 6,
+        });
+
+        const otpPassword = Math.floor(
+            100000 + Math.random() * 900000,
+        ).toString();
+        await createOTP(newUser.getDataValue("id"), otpPassword);
+
+        if (!env.EMAIL_SENDER || !env.EMAIL_PASSWORD) return;
+
+        const mailService = new MailService(
+            env.EMAIL_SENDER,
+            env.EMAIL_PASSWORD,
+        );
+        await mailService.sendEmail(
+            newUser.getDataValue("email"),
+            "Your OTP Code",
+            `Your OTP code is: ${otpPassword}`,
+        );
+
+        const { password: _, ...userWithoutPassword } = newUser.toJSON();
+
+        return reply.send({
+            statusCode: 201,
+            message:
+                "User registered successfully. Check your email for the OTP code",
+        });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
+    }
+};
+
+export const verifyOTP = async (
+    request: FastifyRequest<{ Body: { id: string; otp: string } }>,
+    reply: FastifyReply,
+) => {
+    await verifyOTPservice(
+        intToString(request.body.id, "Auth"),
+        request.body.otp,
+    );
+    let user = await SUser.findByPk(request.body.id);
+    if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 500);
+
+    return reply.send({
+        statusCode: 200,
+        message: "Authentication successful",
+        jwt: generateToken(
+            intToString(request.body.id, "Auth"),
+            user.getDataValue("email"),
+            user.getDataValue("roles"),
+        ),
+    });
+};
+
 export const getCurrentUser = async (
     request: FastifyRequest<{ Body: { id: string } }>,
     reply: FastifyReply,
@@ -80,9 +164,7 @@ export const getCurrentUser = async (
             attributes: { exclude: ["password"] },
         });
 
-        if (!user) {
-            throw new RecyclotronApiErr("Auth", "NotFound", 404);
-        }
+        if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
 
         return reply.send(user);
     } catch (error) {
@@ -132,12 +214,9 @@ export const revokeUserTokens = async (
 
 export const isTokenRevoked = (userId: string, tokenIat: number): boolean => {
     const tokenCreationDate = tokenIat * 1000;
-    if (
-        tokenRevocations.global &&
-        tokenCreationDate < tokenRevocations.global
-    ) {
+    if (tokenRevocations.global && tokenCreationDate < tokenRevocations.global)
         return true;
-    }
+
     if (userId) {
         const userRevocationTime = tokenRevocations.users.get(userId);
         if (userRevocationTime && tokenCreationDate < userRevocationTime) {

@@ -1,12 +1,11 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { authenticate, authorize, isSelfOrAdmin } from "../middleware/auth.js";
 import SUser, {
     ZCreateUser,
     ZUpdateUser,
     CreateUser,
-    UpdateUser,
     ResetPasswordRequest,
     ResetPassword,
+    UpdateUser,
 } from "../models/User.js";
 import SUserRole from "../models/UserRoles.js";
 import SRole from "../models/Role.js";
@@ -21,25 +20,18 @@ import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
 import { MailService } from "../service/emailSender.js";
 import SResetPassword from "../models/ResetPassword.js";
-import { FRONTEND_URL } from "../config/env.js";
-
-// Custom type for requests with params
-interface RequestWithParams extends FastifyRequest {
-    params: {
-        id: string;
-    };
-}
+import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
 
 const mailService = new MailService("your-email@gmail.com", "your-password");
 const tempCodes = new Map<string, { code: string; expiry: Date }>();
 
 // Create User
 export const createUser = async (
-    request: FastifyRequest<{ Body: CreateUser }>,
+    request: FastifyRequest<{ Body: {createUser: CreateUser; roles: number[]} }>,
     reply: FastifyReply,
 ) => {
     try {
-        const userData = ZCreateUser.parse(request.body);
+        const userData = ZCreateUser.parse(request.body.createUser);
 
         userData.password = await argon.hash(
             userData.password,
@@ -49,6 +41,13 @@ export const createUser = async (
         const user = await SUser.create({
             userData,
         });
+
+        for (let role of request.body.roles) {
+            SUserRole.create({
+                roleId: role,
+                userId: user.getDataValue("id"),
+            });
+        }
 
         const userWithRoles = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
@@ -118,7 +117,7 @@ export const updateUser = async (
 ) => {
     try {
         const user = await SUser.findByPk(request.params.id);
-        const userData = request.body;
+        const userData: UpdateUser = request.body;
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
@@ -285,6 +284,10 @@ export const forgotPassword = async (
 
         // Envoyer l'email avec le code
         const resetLink = `${FRONTEND_URL}/reset-password?code=${tempCode}&email=${email}`;
+        if (!EMAIL_SENDER || !EMAIL_PASSWORD) {
+            throw new RecyclotronApiErr("User", "EnvKeyMissing", 500)
+        }
+        let mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
         await mailService.sendPasswordResetEmail(email, resetLink);
 
         return reply

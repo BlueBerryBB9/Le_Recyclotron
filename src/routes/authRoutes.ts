@@ -24,11 +24,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
         "/auth/verify_otp",
         {
             schema: {
-                params: z.object({ otp: z.string() }),
+                body: z.object({
+                    id: z.string(),
+                    otp: z.string(),
+                }),
             },
-            onRequest: [authorize],
         },
-        authController.login,
+        authController.verifyOTP,
     );
 
     // Routes protégées

@@ -3,6 +3,7 @@ import { Sequelize } from "sequelize";
 import * as env from "../config/env.js";
 import { argon2Options } from "./hash.js";
 import argon from "argon2";
+import SRole from "../models/Role.js";
 
 const sequelize = new Sequelize(
     env.DB_NAME as string,
@@ -38,6 +39,32 @@ export async function seedDatabase() {
                 last_name: "Kerkour",
                 email: "wissal.kerkour@edu.ecole-89.com",
                 password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+            },
+        ]);
+        await SRole.bulkCreate([
+            {
+                id: 1,
+                name: "admin",
+            },
+            {
+                id: 2,
+                name: "rh",
+            },
+            {
+                id: 3,
+                name: "repairer",
+            },
+            {
+                id: 4,
+                name: "cm",
+            },
+            {
+                id: 5,
+                name: "employee",
+            },
+            {
+                id: 6,
+                name: "client",
             },
         ]);
         console.log("Default users inserted successfully!");

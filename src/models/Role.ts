@@ -16,7 +16,7 @@ SRole.init(
             allowNull: false,
             unique: true,
             validate: {
-                isIn: [["Admin", "Repairer", "CM", "Employee", "Client"]],
+                isIn: [["admin", "rh", "repairer", "CM", "employee", "client"]],
             },
         },
     },

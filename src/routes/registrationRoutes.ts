@@ -2,21 +2,23 @@ import * as f from "fastify";
 import * as rc from "../controllers/registrationController.js";
 import * as rm from "../models/Registration.js";
 import z from "zod";
-import { authorize } from "../middleware/auth.js";
+import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: rm.InputRegistration }>(
         "/registration",
         {
             schema: { body: rm.ZInputRegistration },
-            // onRequest: [{ authorize }],
+            onRequest: [authorize(["client"])],
         },
         rc.createRegistration,
     );
 
     fastify.get(
         "/registration",
-        // { onRequest: [{ authorize }] },
+        {
+            onRequest: [authorize(["cm"])],
+        },
         rc.getAllRegistrations,
     );
 
@@ -24,7 +26,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [{ authorize }],
+            // onRequest: [isSelfOrAdminOr(["cm"])],
         },
         rc.getRegistration,
     );
@@ -36,7 +38,7 @@ export default async (fastify: f.FastifyInstance) => {
                 body: rm.ZPartialRegistration,
                 params: z.object({ id: z.string() }),
             },
-            // onRequest: [{ authorize }],
+            // onRequest: [isSelfOrAdminOr()],
         },
         rc.updateRegistration,
     );
@@ -45,7 +47,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [{ authorize }],
+            // onRequest: [isSelfOrAdminOr()],
         },
         rc.deleteRegistration,
     );

@@ -90,7 +90,8 @@ export class RecyclotronApiErr extends Error {
             | "ResetFailed"
             | "InvalidResetCode"
             | "EnvKeyMissing"
-            | "ResetRequestFailed",
+            | "ResetRequestFailed"
+            | "InvalidLocation",
         statusCode?: number,
         sequelizeMessage?: string,
     ) {

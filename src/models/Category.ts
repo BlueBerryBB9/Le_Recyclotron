@@ -17,18 +17,19 @@ SCategory.init(
         },
     },
     {
-        tableName: "Categories",
+        modelName: "Category",
         sequelize,
     },
 );
 
 SCategory.hasMany(SCategory, {
+    foreignKey: "parentCategoryId",
     as: "children",
     onDelete: "CASCADE",
 });
 SCategory.belongsTo(SCategory, {
     as: "parent",
-    foreignKey: "parent_category_id",
+    foreignKey: "parentCategoryId",
 });
 
 export const ZCategory = z.object({

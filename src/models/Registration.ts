@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import User from "./User.js";
-import Event from "./Event.js";
+import SUser from "./User.js";
+import SEvent from "./Event.js";
 import { z } from "zod";
 
 class SRegistration extends Model {}
@@ -15,12 +15,12 @@ SRegistration.init(
     { sequelize, modelName: "Registration" },
 );
 
-User.belongsToMany(Event, {
+SUser.belongsToMany(SEvent, {
     as: "event",
     foreignKey: "eventId",
     through: SRegistration,
 });
-Event.belongsToMany(User, {
+SEvent.belongsToMany(SUser, {
     as: "user",
     foreignKey: "userId",
     through: SRegistration,

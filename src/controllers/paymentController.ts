@@ -53,7 +53,7 @@ export class PaymentController {
         }
     }
 
-    // Gérer un don unique
+    // Créer un don unique
     static async createDonation(
         request: FastifyRequest<{ Body: DonationBody }>,
         reply: FastifyReply,

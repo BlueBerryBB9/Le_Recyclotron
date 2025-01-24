@@ -1,7 +1,7 @@
 // src/models/Payment.ts
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import User from "../models/User.js";
+import SUser from "../models/User.js";
 import { z } from "zod";
 
 class SPayment extends Model {}
@@ -18,10 +18,15 @@ SPayment.init(
     { sequelize, modelName: "Payment" },
 );
 
-SPayment.belongsTo(User, { foreignKey: "user_id" });
+SPayment.belongsTo(SUser, {
+    foreignKey: "userId",
+    onDelete: "CASCADE", // Deletes payments if the user is deleted
+    onUpdate: "CASCADE", // Updates payments if the user's ID changes
+});
 
-// A DÉPLACER
-User.hasMany(SPayment);
+SUser.hasMany(SPayment, {
+    foreignKey: "userId",
+});
 
 export default SPayment;
 

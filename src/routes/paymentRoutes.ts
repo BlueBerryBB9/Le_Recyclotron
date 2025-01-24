@@ -44,7 +44,7 @@ export default async (fastify: FastifyInstance) => {
         },
         PaymentController.createDonation,
     );
-    fastify.post<{ Body: PaymentMethodBody }>(
+    fastify.put<{ Body: PaymentMethodBody }>(
         "/payment-method",
         {
             schema: { body: paymentMethodSchema },

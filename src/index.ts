@@ -1,6 +1,5 @@
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 // Local imports
-import sequelize from "./config/database.js";
 import sequelize_test from "./config/test_database.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
@@ -17,9 +16,69 @@ import SUser from "./models/User.js";
 import SRole from "./models/Role.js";
 import SEvent from "./models/Event.js";
 import cors from "@fastify/cors";
-import { CORS_IN_DEVELOPMENT, FRONTEND_URL } from "./config/env.js";
+import { NODE_ENV, FRONTEND_URL } from "./config/env.js";
 import { argon2Options } from "./config/hash.js";
 import argon from "argon2";
+import sequelize from "./config/database.js";
+import setupAssociations from "./models/Associations.js";
+
+async function seedDatabase() {
+    const userCount = await SUser.count(); // Check if the Users table is empty
+
+    if (userCount === 0) {
+        console.log("Inserting default users...");
+        await SUser.bulkCreate([
+            {
+                first_name: "Martin",
+                last_name: "Leroy",
+                email: "martin.leroy@edu.ecole-89.com",
+                password: await argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+            },
+            {
+                first_name: "Noah",
+                last_name: "Chantin",
+                email: "noah.chantin@edu.ecole-89.com",
+                password: await argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+            },
+            {
+                first_name: "Wissal",
+                last_name: "Kerkour",
+                email: "wissal.kerkour@edu.ecole-89.com",
+                password: await argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+            },
+        ]);
+        console.log("Default users inserted successfully!");
+        await SRole.bulkCreate([
+            {
+                id: 1,
+                name: "admin",
+            },
+            {
+                id: 2,
+                name: "rh",
+            },
+            {
+                id: 3,
+                name: "repairer",
+            },
+            {
+                id: 4,
+                name: "cm",
+            },
+            {
+                id: 5,
+                name: "employee",
+            },
+            {
+                id: 6,
+                name: "client",
+            },
+        ]);
+        console.log("Default roles inserted successfully!");
+    } else {
+        console.log("Default data already exists. No changes made.");
+    }
+}
 
 const startServer = async () => {
     const app = Fastify({
@@ -46,81 +105,14 @@ const startServer = async () => {
             }
         });
 
-        /*
-        NEW ?
-        */
-        async function seedDatabase() {
-            const userCount = await SUser.count(); // Check if the Users table is empty
-
-            if (userCount === 0) {
-                console.log("Inserting default users...");
-                await SUser.bulkCreate([
-                    {
-                        first_name: "Martin",
-                        last_name: "Leroy",
-                        email: "martin.leroy@edu.ecole-89.com",
-                        password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
-                    },
-                    {
-                        first_name: "Noah",
-                        last_name: "Chantin",
-                        email: "noah.chantin@edu.ecole-89.com",
-                        password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
-                    },
-                    {
-                        first_name: "Wissal",
-                        last_name: "Kerkour",
-                        email: "wissal.kerkour@edu.ecole-89.com",
-                        password: argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
-                    },
-                ]);
-                await SRole.bulkCreate([
-                    {
-                        id: 1,
-                        name: "admin",
-                    },
-                    {
-                        id: 2,
-                        name: "rh",
-                    },
-                    {
-                        id: 3,
-                        name: "repairer",
-                    },
-                    {
-                        id: 4,
-                        name: "cm",
-                    },
-                    {
-                        id: 5,
-                        name: "employee",
-                    },
-                    {
-                        id: 6,
-                        name: "client",
-                    },
-                ]);
-                console.log("Default users inserted successfully!");
-            } else {
-                console.log("Default data already exists. No changes made.");
-            }
-        }
-
-        sequelize.afterSync(async () => {
-            console.log("Database synced! Running seeder...");
-            await seedDatabase();
-        });
-
-        /*
-        NEW END?
-        */
-
+        setupAssociations();
         await sequelize.authenticate();
         console.log("Connected to the database.");
-        await sequelize.sync({ alter: true }); // Synchronization with the db, to use carefully though.
+        await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though.
+        await seedDatabase();
 
         // Register CORS
-        if (CORS_IN_DEVELOPMENT === "true") {
+        if (NODE_ENV === "dev") {
             app.register(cors, {
                 origin: "*", // Adjust the origin as needed
                 methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],

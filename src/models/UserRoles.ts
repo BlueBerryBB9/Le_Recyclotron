@@ -10,14 +10,14 @@ UserRole.init(
         userId: {
             type: DataTypes.INTEGER,
             references: {
-                model: User,
+                model: "Users",
                 key: "id",
             },
         },
         roleId: {
             type: DataTypes.INTEGER,
             references: {
-                model: Role,
+                model: "Roles",
                 key: "id",
             },
         },
@@ -27,17 +27,5 @@ UserRole.init(
         modelName: "UserRole",
     },
 );
-
-User.belongsToMany(Role, {
-    as: "roles",
-    foreignKey: "userId",
-    through: UserRole,
-});
-
-Role.belongsToMany(User, {
-    as: "users",
-    foreignKey: "roleId",
-    through: UserRole,
-});
 
 export default UserRole;

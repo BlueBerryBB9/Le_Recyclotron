@@ -9,7 +9,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/event",
         {
             schema: { body: em.ZInputEvent },
-            // onRequest: [authorize(['community_manager'])],
+            onRequest: [authorize(['community_manager'])],
         },
         ec.createEvent,
     );
@@ -45,7 +45,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/event/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [authorize(['community_manager'])],
+            onRequest: [authorize(['community_manager'])],
         },
         ec.deleteEvent,
     );

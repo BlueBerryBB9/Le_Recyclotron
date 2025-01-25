@@ -34,18 +34,18 @@ export default async function authRoutes(fastify: FastifyInstance) {
     );
 
     // Routes protégées
-    fastify.get(
-        "/auth/me",
-        {
-            schema: {
-                body: {
-                    id: z.string(),
-                },
-            },
-            // onRequest: [authorize],
-        },
-        authController.getCurrentUser,
-    );
+    // fastify.get(
+    //     "/auth/me",
+    //     {
+    //         schema: {
+    //             body: {
+    //                 id: z.string(),
+    //             },
+    //         },
+    //         // onRequest: [authorize],
+    //     },
+    //     authController.getCurrentUser,
+    // );
 
     // Route pour révoquer tous les tokens (globalement)
     fastify.post(

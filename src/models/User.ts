@@ -59,7 +59,7 @@ SUser.init(
             allowNull: true,
             defaultValue: null,
         },
-        roles: {
+        role: {
             type: DataTypes.VIRTUAL,
             async get() {
                 return await getRole(this.getDataValue("id"));

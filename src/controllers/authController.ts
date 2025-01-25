@@ -10,6 +10,7 @@ import { MailService } from "../service/emailSender.js";
 import * as env from "../config/env.js";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 import SRole from "../models/Role.js";
+import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -24,6 +25,7 @@ export const login = async (
                 {
                     model: SRole,
                     attributes: ["id", "name"],
+                    as: "roles",
                 },
             ],
         });
@@ -39,25 +41,25 @@ export const login = async (
         ).toString(); // Generate a 6-digit OTP
         await createOTP(user.getDataValue("id"), otpPassword);
 
-        if (!env.EMAIL_SENDER || !env.EMAIL_PASSWORD) return;
+        if (!EMAIL_SENDER || !EMAIL_PASSWORD) return;
 
-        const mailService = new MailService(
-            env.EMAIL_SENDER,
-            env.EMAIL_PASSWORD,
-        );
+
+        const mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
+
         await mailService.sendEmail(
             user.getDataValue("email"),
             "Your OTP Code",
             `Your OTP code is: ${otpPassword}`,
         );
 
-        const { password: _, ...userWithoutPassword } = user.toJSON();
+        // const { password: _, ...userWithoutPassword } = user.toJSON();
 
         return reply.send({
             statusCode: 200,
             message: "Check your email for the OTP code",
         });
     } catch (error) {
+        console.log(error);
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else throw new RecyclotronApiErr("Auth", "OperationFailed");
@@ -95,29 +97,9 @@ export const register = async (
             role_id: 6,
         });
 
-        const otpPassword = Math.floor(
-            100000 + Math.random() * 900000,
-        ).toString();
-        await createOTP(newUser.getDataValue("id"), otpPassword);
-
-        if (!env.EMAIL_SENDER || !env.EMAIL_PASSWORD) return;
-
-        const mailService = new MailService(
-            env.EMAIL_SENDER,
-            env.EMAIL_PASSWORD,
-        );
-        await mailService.sendEmail(
-            newUser.getDataValue("email"),
-            "Your OTP Code",
-            `Your OTP code is: ${otpPassword}`,
-        );
-
-        const { password: _, ...userWithoutPassword } = newUser.toJSON();
-
         return reply.send({
             statusCode: 201,
-            message:
-                "User registered successfully. Check your email for the OTP code",
+            message: "User registered successfully. Please log in.",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {

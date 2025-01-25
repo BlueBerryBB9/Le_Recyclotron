@@ -21,6 +21,8 @@ import { argon2Options } from "./config/hash.js";
 import argon from "argon2";
 import sequelize from "./config/database.js";
 import setupAssociations from "./models/Associations.js";
+import { corsConfig } from "./config/cors.js";
+import authRoutes from "./routes/authRoutes.js";
 
 async function seedDatabase() {
     const userCount = await SUser.count(); // Check if the Users table is empty
@@ -113,14 +115,15 @@ const startServer = async () => {
 
         // Register CORS
         if (NODE_ENV === "dev") {
-            app.register(cors, {
-                origin: "*", // Adjust the origin as needed
-                methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-            });
+            app.register(cors, corsConfig);
         } else {
             app.register(cors, {
                 origin: `${FRONTEND_URL}`, // Adjust the origin as needed
-                methods: ["GET", "POST", "PUT", "DELETE"],
+                methods: ["GET", "PUT", "DELETE"],
+                allowedHeaders: ["Content-Type", "Authorization"],
+                credentials: true,
+                preflightContinue: false,
+                optionsSuccessStatus: 204,
             });
         }
 
@@ -130,6 +133,7 @@ const startServer = async () => {
         app.register(paymentRoutes, { prefix: "/api" });
         app.register(registrationRoutes, { prefix: "/api" });
         app.register(userRoutes, { prefix: "/api" });
+        app.register(authRoutes, { prefix: "/api" });
 
         // Sould be:
         // - jwt verification

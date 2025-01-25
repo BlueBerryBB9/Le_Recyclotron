@@ -9,10 +9,10 @@ export class MailService {
         private password: string,
     ) {
         this.transporter = nodemailer.createTransport({
-            service: "gmail",
+            service: "Gmail",
             auth: {
-                user: email,
-                pass: password,
+                user: this.email,
+                pass: this.password,
             },
         });
     }
@@ -36,6 +36,7 @@ export class MailService {
                 text,
             });
         } catch (error) {
+            console.log(error);
             throw new RecyclotronApiErr("Mail", "OperationFailed");
         }
     }
@@ -47,7 +48,7 @@ export class MailService {
      */
     public async sendPasswordResetEmail(
         to: string,
-        resetLink: string
+        resetLink: string,
     ): Promise<void> {
         const subject = "Réinitialisation de mot de passe";
         const text = `

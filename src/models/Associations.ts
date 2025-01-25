@@ -5,13 +5,13 @@ import SUserRole from "./UserRoles.js";
 // Define associations
 const setupAssociations = () => {
     SUser.belongsToMany(SRole, {
-        as: "users",
+        as: "roles",
         foreignKey: "userId",
         through: SUserRole,
     });
 
     SRole.belongsToMany(SUser, {
-        as: "roles",
+        as: "users",
         foreignKey: "roleId",
         through: SUserRole,
     });

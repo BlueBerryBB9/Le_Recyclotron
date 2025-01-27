@@ -5,7 +5,11 @@ import SRole from "./Role.js";
 import SUserRole from "./UserRoles.js";
 import { getRole } from "../service/getRole.js";
 
-class SUser extends Model {}
+class SUser extends Model {
+    async getRole() {
+        return await getRole(this.getDataValue("id"));
+    }
+}
 
 SUser.init(
     {
@@ -58,12 +62,6 @@ SUser.init(
             type: DataTypes.DATE,
             allowNull: true,
             defaultValue: null,
-        },
-        role: {
-            type: DataTypes.VIRTUAL,
-            async get() {
-                return await getRole(this.getDataValue("id"));
-            },
         },
     },
     {

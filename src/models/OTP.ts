@@ -21,8 +21,7 @@ OTP.init(
     },
     {
         sequelize,
-        modelName: "OTP",
-        tableName: "otps",
+        tableName: "OTPs",
         timestamps: true,
     },
 );

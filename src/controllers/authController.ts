@@ -11,6 +11,7 @@ import * as env from "../config/env.js";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 import SRole from "../models/Role.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
+import OTP from "../models/OTP.js";
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -42,7 +43,6 @@ export const login = async (
         await createOTP(user.getDataValue("id"), otpPassword);
 
         if (!EMAIL_SENDER || !EMAIL_PASSWORD) return;
-
 
         const mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
 
@@ -119,13 +119,23 @@ export const verifyOTP = async (
     let user = await SUser.findByPk(request.body.id);
     if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 500);
 
+    OTP.destroy({
+        where: {
+            userId: request.body.id,
+        },
+    });
+    console.log("ROLESSSSS");
+    console.log(await user.getRole());
+    console.log("ROLESSSSS");
     return reply.send({
         statusCode: 200,
         message: "Authentication successful",
         jwt: generateToken(
             intToString(request.body.id, "Auth"),
             user.getDataValue("email"),
-            user.getDataValue("roles"),
+            (await user.getRole()).map((val) => {
+                return val.getDataValue("name");
+            }),
         ),
     });
 };
@@ -185,7 +195,11 @@ export const revokeUserTokens = async (
 ) => {
     try {
         const userId = request.params.userid;
+        console.log(tokenRevocations.users);
+        tokenRevocations.users.delete(userId);
+        console.log(tokenRevocations.users);
         tokenRevocations.users.set(userId, Date.now());
+        console.log(tokenRevocations.users);
         return reply.send({
             message: "User token was revoked successfully",
         });

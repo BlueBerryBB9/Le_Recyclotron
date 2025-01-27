@@ -14,18 +14,30 @@ import { fromError } from "zod-validation-error";
 import { validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
 import SUser from "./models/User.js";
 import SRole from "./models/Role.js";
+import SuserRoles from "./models/UserRoles.js";
 import SEvent from "./models/Event.js";
 import cors from "@fastify/cors";
-import { NODE_ENV, FRONTEND_URL } from "./config/env.js";
+import { NODE_ENV, FRONTEND_URL, JWT_SECRET } from "./config/env.js";
 import { argon2Options } from "./config/hash.js";
 import argon from "argon2";
 import sequelize from "./config/database.js";
 import setupAssociations from "./models/Associations.js";
 import { corsConfig } from "./config/cors.js";
 import authRoutes from "./routes/authRoutes.js";
+import fastifyJwt from "@fastify/jwt";
+import { where } from "sequelize";
+import SRegistration from "./models/Registration.js";
 
 async function seedDatabase() {
     const userCount = await SUser.count(); // Check if the Users table is empty
+    const userRoleCount = await SuserRoles.count(); // Check if the Users table is empty
+    const roleCount = await SRole.count(); // Check if the Users table is empty
+
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
+    await SUser.destroy({ truncate: true });
+    await SuserRoles.destroy({ truncate: true });
+    await SRole.destroy({ truncate: true });
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
     if (userCount === 0) {
         console.log("Inserting default users...");
@@ -50,6 +62,9 @@ async function seedDatabase() {
             },
         ]);
         console.log("Default users inserted successfully!");
+        console.log(await SUser.findAll());
+    }
+    if (roleCount === 0) {
         await SRole.bulkCreate([
             {
                 id: 1,
@@ -77,8 +92,83 @@ async function seedDatabase() {
             },
         ]);
         console.log("Default roles inserted successfully!");
-    } else {
-        console.log("Default data already exists. No changes made.");
+    }
+    if (userRoleCount === 0) {
+        await SuserRoles.bulkCreate([
+            {
+                userId: 1,
+                roleId: 1,
+            },
+            {
+                userId: 1,
+                roleId: 2,
+            },
+            {
+                userId: 1,
+                roleId: 3,
+            },
+            {
+                userId: 1,
+                roleId: 4,
+            },
+            {
+                userId: 1,
+                roleId: 5,
+            },
+            {
+                userId: 1,
+                roleId: 6,
+            },
+            {
+                userId: 2,
+                roleId: 1,
+            },
+            {
+                userId: 2,
+                roleId: 2,
+            },
+            {
+                userId: 2,
+                roleId: 3,
+            },
+            {
+                userId: 2,
+                roleId: 4,
+            },
+            {
+                userId: 2,
+                roleId: 5,
+            },
+            {
+                userId: 2,
+                roleId: 6,
+            },
+            {
+                userId: 3,
+                roleId: 1,
+            },
+            {
+                userId: 3,
+                roleId: 2,
+            },
+            {
+                userId: 3,
+                roleId: 3,
+            },
+            {
+                userId: 3,
+                roleId: 4,
+            },
+            {
+                userId: 3,
+                roleId: 5,
+            },
+            {
+                userId: 3,
+                roleId: 6,
+            },
+        ]);
+        console.log("Default UserRoles inserted successfully!");
     }
 }
 
@@ -113,13 +203,20 @@ const startServer = async () => {
         await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though.
         await seedDatabase();
 
+        if (!JWT_SECRET) {
+            throw new RecyclotronApiErr("JWT", "EnvKeyMissing");
+        } else {
+            app.register(fastifyJwt, {
+                secret: JWT_SECRET,
+            });
+        }
         // Register CORS
         if (NODE_ENV === "dev") {
             app.register(cors, corsConfig);
         } else {
             app.register(cors, {
                 origin: `${FRONTEND_URL}`, // Adjust the origin as needed
-                methods: ["GET", "PUT", "DELETE"],
+                methods: [],
                 allowedHeaders: ["Content-Type", "Authorization"],
                 credentials: true,
                 preflightContinue: false,
@@ -154,7 +251,8 @@ const startServer = async () => {
                         );
                     }
                     console.log(request.url);
-                    console.log(request.headers.jwt);
+                    console.log(request.jwtVerify);
+                    console.log(request.user);
                     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                     // const user = await SUser.findByPk(1, {
                     //     include: [
@@ -166,15 +264,10 @@ const startServer = async () => {
                     //     ],
                     //     attributes: ["id", "first_name", "email"], // Specify which fields to include from User
                     // });
-                    const events = await SEvent.findAll({ raw: true });
-                    console.log(events);
+                    console.log(SuserRoles.associations);
                     console.log(SUser.associations);
                     console.log(SRole.associations);
 
-                    // console.log(user);
-                    console.log(
-                        "AAAAAAAAAAAAAAAAAAAAAAAA22222222222AAAAAAAAAAA",
-                    );
                     console.log(
                         "AAAAAAAAAAAAAAAAAAAAAAAA22222222222222AAAAAAAAAAA",
                     );
@@ -182,6 +275,14 @@ const startServer = async () => {
                     console.error("Error in onRequest hook:", error);
                     throw error; // Re-throw to let Fastify handle it
                 }
+            },
+        );
+        app.addHook(
+            "onResponse",
+            async (request: FastifyRequest, reply: FastifyReply) => {
+                console.log("REPLY\n");
+                console.log(reply.statusCode);
+                console.log("REPLY\n");
             },
         );
 

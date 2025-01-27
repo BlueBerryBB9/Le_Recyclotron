@@ -28,6 +28,7 @@ export class SequelizeApiErr {
             | "JWT"
             | "Mail"
             | "MiddleWare"
+            | "Env"
             | "OTP",
         error: BaseError,
     ) {
@@ -74,6 +75,7 @@ export class RecyclotronApiErr extends Error {
             | "JWT"
             | "Mail"
             | "MiddleWare"
+            | "Env"
             | "Auth",
         msg:
             | "NotFound"

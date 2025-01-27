@@ -11,20 +11,23 @@ SRegistration.init(
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         date: { type: DataTypes.DATE, allowNull: false },
         seats: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: "Users",
+                key: "id",
+            },
+        },
+        eventId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: "Events",
+                key: "id",
+            },
+        },
     },
     { sequelize, modelName: "Registration" },
 );
-
-SUser.belongsToMany(SEvent, {
-    as: "event",
-    foreignKey: "eventId",
-    through: SRegistration,
-});
-SEvent.belongsToMany(SUser, {
-    as: "user",
-    foreignKey: "userId",
-    through: SRegistration,
-});
 
 export default SRegistration;
 

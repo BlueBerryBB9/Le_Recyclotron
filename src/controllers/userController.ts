@@ -76,9 +76,20 @@ export const createUser: RouteHandler<{
 export const getAllUsers: RouteHandler = async (request, reply) => {
     try {
         const users = await SUser.findAll({
-            include: [{ model: SRole, attributes: ["id", "name"] }],
-            attributes: { exclude: ["password"] },
+            include: [
+                {
+                    model: SRole,
+                    as: "roles", // Match the alias in setupAssociations
+                    attributes: ["id", "name"], // Select specific fields
+                },
+            ],
+            attributes: { exclude: ["password"] }, // Exclude sensitive fields
         });
+
+        console.log("USERS");
+        console.log(users);
+        console.log("USERS");
+
         if (users.length === 0)
             throw new RecyclotronApiErr("User", "NotFound", 404);
 
@@ -96,7 +107,9 @@ export const getUserById: RouteHandler<{
 }> = async (request, reply) => {
     try {
         const user = await SUser.findByPk(request.params.id, {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
+            include: [
+                { model: SRole, attributes: ["id", "name"], as: "roles" },
+            ],
             attributes: { exclude: ["password"] },
         });
 

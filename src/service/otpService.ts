@@ -36,15 +36,18 @@ export const verifyOTPservice = async (
             order: [["createdAt", "DESC"]], // Get the latest OTP
         });
 
-        if (!otp) {
-            return false;
-        }
+        if (!otp) throw new RecyclotronApiErr("Auth", "InvalidInput");
 
-        const isValid = await argon.verify(otp.getDataValue("password"), plainPassword);
+        const isValid = await argon.verify(
+            otp.getDataValue("password"),
+            plainPassword,
+        );
         return isValid;
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("OTP", error);
+        } else if (error instanceof RecyclotronApiErr) {
+            throw error;
         } else throw new RecyclotronApiErr("OTP", "CreationFailed", 500);
     }
 };

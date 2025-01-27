@@ -2,6 +2,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import { z } from "zod";
+import SRegistration from "./Registration.js";
 
 class SEvent extends Model {}
 

@@ -9,6 +9,13 @@ class SPayment extends Model {}
 SPayment.init(
     {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: "Users",
+                key: "id",
+            },
+        },
         id_stripe_payment: { type: DataTypes.STRING, allowNull: true },
         amount: { type: DataTypes.FLOAT, allowNull: false },
         type: { type: DataTypes.INTEGER },
@@ -17,16 +24,6 @@ SPayment.init(
     },
     { sequelize, modelName: "Payment" },
 );
-
-SPayment.belongsTo(SUser, {
-    foreignKey: "userId",
-    onDelete: "CASCADE", // Deletes payments if the user is deleted
-    onUpdate: "CASCADE", // Updates payments if the user's ID changes
-});
-
-SUser.hasMany(SPayment, {
-    foreignKey: "userId",
-});
 
 export default SPayment;
 

@@ -8,7 +8,7 @@ import * as userController from "../controllers/userController.js";
 import * as u from "../models/User.js";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import * as z from "zod";
-import { IncomingMessage, ServerResponse } from "http";
+import { IncomingMessage, request, ServerResponse } from "http";
 
 export default async (fastify: FastifyInstance) => {
     // Protected routes
@@ -33,10 +33,14 @@ export default async (fastify: FastifyInstance) => {
         >,
     });
 
-    fastify.get("/users", {
-        preHandler: [authorize(["rh"])],
-        handler: userController.getAllUsers as RouteHandlerMethod,
-    });
+    try {
+        fastify.get("/users", {
+            preHandler: [authorize(["rh"])],
+            handler: userController.getAllUsers as RouteHandlerMethod,
+        });
+    } catch (error) {
+        console.log(error);
+    }
 
     fastify.get("/users/:id", {
         schema: { params: z.object({ id: z.string() }) },

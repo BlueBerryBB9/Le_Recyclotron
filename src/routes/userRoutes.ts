@@ -118,35 +118,35 @@ export default async (fastify: FastifyInstance) => {
         >,
     });
 
-    // fastify.get("/users/:id/payment", {
-    //     preHandler: [isSelfOrAdminOr()],
-    //     schema: {
-    //         params: z.object({ userId: z.string(), roleId: z.string() }),
-    //     },
-    //     handler: userController.getPaymentsByUserId as RouteHandlerMethod<
-    //         RawServerDefault,
-    //         IncomingMessage,
-    //         ServerResponse,
-    //         {
-    //             Params: { userId: string; roleId: string };
-    //         }
-    //     >,
-    // });
+    fastify.get("/users/:id/payments", {
+        schema: {
+            params: z.object({ id: z.string() }),
+        },
+        preHandler: [await isSelfOrAdminOr()],
+        handler: userController.getPaymentsByUserId as RouteHandlerMethod<
+            RawServerDefault,
+            IncomingMessage,
+            ServerResponse,
+            {
+                Params: { id: string };
+            }
+        >,
+    });
 
-    // fastify.get("/users/:id/registrations", {
-    //     preHandler: [authorize(["admin"])],
-    //     schema: {
-    //         params: z.object({ userId: z.string(), roleId: z.string() }),
-    //     },
-    //     handler: userController.getRegistrationsByUserId as RouteHandlerMethod<
-    //         RawServerDefault,
-    //         IncomingMessage,
-    //         ServerResponse,
-    //         {
-    //             Params: { userId: string; roleId: string };
-    //         }
-    //     >,
-    // });
+    fastify.get("/users/:id/registrations", {
+        preHandler: [await isSelfOrAdminOr()],
+        schema: {
+            params: z.object({ userId: z.string(), roleId: z.string() }),
+        },
+        handler: userController.getRegistrationsByUserId as RouteHandlerMethod<
+            RawServerDefault,
+            IncomingMessage,
+            ServerResponse,
+            {
+                Params: { id: string };
+            }
+        >,
+    });
 
     // Password reset routes
     fastify.post("/users/forgot-password", {

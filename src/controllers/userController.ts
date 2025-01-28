@@ -348,48 +348,59 @@ export const resetPassword: RouteHandler<{
     }
 };
 
-// export const getRegistrationsByUserId = async (
-//     req: FastifyRequest<{ Params: { id: string } }>,
-//     rep: FastifyReply,
-// ) => {
-//     try {
-//         const id: number = intToString(req.params.id, "User");
-//         const registrations = await r.default.findByPk(id);
-//         if (!registrations)
-//             throw new RecyclotronApiErr("Registration", "NotFound", 404);
+export const getRegistrationsByUserId = async (
+    req: FastifyRequest<{ Params: { id: string } }>,
+    rep: FastifyReply,
+) => {
+    try {
+        const id: number = intToString(req.params.id, "Registration");
+        const registration = await r.default.findAll({
+            where: {
+                userId: id,
+            },
+        });
+        if (!registration)
+            throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
-//         return rep.status(200).send({
-//             data: registrations,
-//             message: "Registration fetched successfully",
-//         });
-//     } catch (error) {
-//         if (error instanceof RecyclotronApiErr) {
-//             throw error;
-//         } else if (error instanceof BaseError) {
-//             throw new SequelizeApiErr("Registration", error);
-//         } else throw new RecyclotronApiErr("Registration", "FetchFailed");
-//     }
-// };
+        return rep.status(200).send({
+            data: registration.map((reg) => {
+                return reg.dataValues;
+            }),
+            message: `Registrations fetched successfully for user No ${req.params.id}`,
+        });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Registration", error);
+        } else throw new RecyclotronApiErr("Registration", "FetchFailed");
+    }
+};
 
-// export const getPaymentsByUserId = async (
-//     req: FastifyRequest<{ Params: { id: string } }>,
-//     rep: FastifyReply,
-// ) => {
-//     try {
-//         const id: number = intToString(req.params.id, "Registration");
-//         const registration = await r.default.findByPk(id);
-//         if (!registration)
-//             throw new RecyclotronApiErr("Registration", "NotFound", 404);
+export const getPaymentsByUserId = async (
+    req: FastifyRequest<{ Params: { id: string } }>,
+    rep: FastifyReply,
+) => {
+    try {
+        const id: number = intToString(req.params.id, "Payment");
+        const payments = await r.default.findAll({
+            where: {
+                userId: id,
+            },
+        });
+        if (!payments) throw new RecyclotronApiErr("Payment", "NotFound", 404);
 
-//         return rep.status(200).send({
-//             data: registration,
-//             message: "Registration fetched successfully",
-//         });
-//     } catch (error) {
-//         if (error instanceof RecyclotronApiErr) {
-//             throw error;
-//         } else if (error instanceof BaseError) {
-//             throw new SequelizeApiErr("Registration", error);
-//         } else throw new RecyclotronApiErr("Registration", "FetchFailed");
-//     }
-// };
+        return rep.status(200).send({
+            data: payments.map((pay) => {
+                return pay.dataValues;
+            }),
+            message: `Payments fetched successfully for user No ${req.params.id}`,
+        });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Payment", error);
+        } else throw new RecyclotronApiErr("Payment", "FetchFailed");
+    }
+};

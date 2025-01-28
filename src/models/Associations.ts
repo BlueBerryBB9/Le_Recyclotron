@@ -17,26 +17,6 @@ const setupAssociations = () => {
         foreignKey: "roleId",
         through: SUserRole,
     });
-
-    // SEvent.hasMany(SRegistration, {
-    //     as: "registrations",
-    // });
-
-    // SRegistration.belongsTo(SEvent, {
-    //     foreignKey: "eventId",
-    //     onDelete: "CASCADE",
-    //     onUpdate: "CASCADE",
-    // });
-
-    // SUser.hasMany(SRegistration, {
-    //     as: "registrations",
-    // });
-
-    // SRegistration.belongsTo(SUser, {
-    //     foreignKey: "userId",
-    //     onDelete: "CASCADE",
-    //     onUpdate: "CASCADE",
-    // });
 };
 
 export default setupAssociations;

@@ -17,6 +17,8 @@ import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
 import OTP from "../models/OTP.js";
 import { BaseError } from "sequelize";
 
+
+//* login
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
     reply: FastifyReply,
@@ -70,6 +72,7 @@ export const login = async (
     }
 };
 
+//* register
 export const register = async (
     request: FastifyRequest<{
         Body: CreateUser;
@@ -112,6 +115,7 @@ export const register = async (
     }
 };
 
+//* verifOTP
 export const verifyOTP = async (
     request: FastifyRequest<{ Body: { id: string; otp: string } }>,
     reply: FastifyReply,
@@ -143,6 +147,7 @@ export const verifyOTP = async (
     });
 };
 
+//* getCurrentUser
 export const getCurrentUser = async (
     request: FastifyRequest,
     reply: FastifyReply,
@@ -174,11 +179,13 @@ export const getCurrentUser = async (
     }
 };
 
+//* revokeToken
 export const tokenRevocations = {
     global: null as number | null,
     users: new Map<string, number>(),
 };
 
+//* revokeAllTokens
 export const revokeAllTokens = async (
     request: FastifyRequest,
     reply: FastifyReply,
@@ -193,6 +200,7 @@ export const revokeAllTokens = async (
     }
 };
 
+//* revokeUserTokens
 export const revokeUserTokens = async (
     request: FastifyRequest<{
         Params: {
@@ -216,6 +224,7 @@ export const revokeUserTokens = async (
     }
 };
 
+//* isTokenRevoked
 export const isTokenRevoked = (userId: number, tokenIat: number): boolean => {
     const tokenCreationDate = tokenIat * 1000;
     if (tokenRevocations.global && tokenCreationDate < tokenRevocations.global)

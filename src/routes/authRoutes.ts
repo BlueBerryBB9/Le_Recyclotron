@@ -16,9 +16,45 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     email: z.string(),
                     password: z.string(),
                 }),
+                response: {
+                    200: {
+                        type: 'object',
+                        properties: {
+                            access_token: { type: 'string' },
+                            refresh_token: { type: 'string' },
+                            user: { type: 'object' }
+                        }
+                    }
+                }
             },
         },
         authController.login,
+    );
+
+    fastify.post(
+        "/auth/register",
+        {
+            schema: {
+                body: z.object({
+                    email: z.string(),
+                    password: z.string(),
+                    first_name: z.string(),
+                    last_name: z.string(),
+                    phone: z.string(),
+                }),
+                response: {
+                    201: {
+                        type: 'object',
+                        properties: {
+                            access_token: { type: 'string' },
+                            refresh_token: { type: 'string' },
+                            user: { type: 'object' }
+                        }
+                    }
+                }
+            },
+        },
+        authController.register,
     );
 
     fastify.post(

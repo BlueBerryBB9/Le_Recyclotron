@@ -28,7 +28,7 @@ To launch with a watcher : yarn nodemon
 
 ## MAKE SOUND DATA FOR TESTING + TEST ROUTES AFTER
 
-## MAKE CORS WORK !!! it's not doing it's job
+## MAKE CORS WORK !!! it's not doing its job
 
 - Things to do except classic security features :
 

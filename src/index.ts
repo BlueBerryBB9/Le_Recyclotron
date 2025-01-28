@@ -286,9 +286,8 @@ const startServer = async () => {
         app.addHook(
             "onResponse",
             async (request: FastifyRequest, reply: FastifyReply) => {
-                console.log("REPLY\n");
+                console.log("Reply");
                 console.log(reply.statusCode);
-                console.log("REPLY\n");
             },
         );
 

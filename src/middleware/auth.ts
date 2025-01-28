@@ -4,11 +4,21 @@ import SRole from "../models/Role.js";
 import SRegistration from "../models/Registration.js";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 import SUser from "../models/User.js";
+import { isTokenRevoked } from "../controllers/authController.js";
+
+interface MyCustomPayload {
+    user: { id: number; email: string; roles: string[] };
+    iat: number;
+}
 
 export function authorize(allowedRoles: string[]) {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             await request.jwtVerify();
+            const decodedToken = await request.jwtDecode<MyCustomPayload>();
+
+            if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
+                throw new RecyclotronApiErr("Auth", "PermissionDenied");
 
             const userRoles = request.user.roles;
 
@@ -38,6 +48,11 @@ export async function isSelfOrAdminOr(
         reply: FastifyReply,
     ) => {
         await request.jwtVerify();
+
+        const decodedToken = await request.jwtDecode<MyCustomPayload>();
+
+        if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
+            throw new RecyclotronApiErr("Auth", "PermissionDenied");
 
         const requestingUserId = request.user.id;
         const requestingUserRoles = request.user.roles;

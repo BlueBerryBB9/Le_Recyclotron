@@ -216,15 +216,13 @@ export const revokeUserTokens = async (
     }
 };
 
-export const isTokenRevoked = (userId: string, tokenIat: number): boolean => {
+export const isTokenRevoked = (userId: number, tokenIat: number): boolean => {
     const tokenCreationDate = tokenIat * 1000;
     if (tokenRevocations.global && tokenCreationDate < tokenRevocations.global)
         return true;
 
-    if (userId) {
-        const userRevocationTime = tokenRevocations.users.get(userId);
-        if (userRevocationTime && tokenCreationDate < userRevocationTime)
-            return true;
-    }
+    const userRevocationTime = tokenRevocations.users.get(userId.toString());
+    if (userRevocationTime && tokenCreationDate < userRevocationTime)
+        return true;
     return false;
 };

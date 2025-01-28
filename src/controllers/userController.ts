@@ -86,10 +86,6 @@ export const getAllUsers: RouteHandler = async (request, reply) => {
             attributes: { exclude: ["password"] }, // Exclude sensitive fields
         });
 
-        console.log("USERS");
-        console.log(users);
-        console.log("USERS");
-
         if (users.length === 0)
             throw new RecyclotronApiErr("User", "NotFound", 404);
 

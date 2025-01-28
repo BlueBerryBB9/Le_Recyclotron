@@ -261,13 +261,12 @@ const startServer = async () => {
                         );
                         reply.header(
                             "Access-Control-Allow-Headers",
-                            "Content-Type, Authorization",
+                            "Content-Type",
                         );
                     }
                     console.log(request.url);
-                    console.log(request.jwtVerify);
+                    console.log(await request.jwtVerify());
                     console.log(request.user);
-                    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                     // const user = await SUser.findByPk(1, {
                     //     include: [
                     //         {
@@ -278,13 +277,6 @@ const startServer = async () => {
                     //     ],
                     //     attributes: ["id", "first_name", "email"], // Specify which fields to include from User
                     // });
-                    console.log(SuserRoles.associations);
-                    console.log(SUser.associations);
-                    console.log(SRole.associations);
-
-                    console.log(
-                        "AAAAAAAAAAAAAAAAAAAAAAAA22222222222222AAAAAAAAAAA",
-                    );
                 } catch (error) {
                     console.error("Error in onRequest hook:", error);
                     throw error; // Re-throw to let Fastify handle it
@@ -297,23 +289,6 @@ const startServer = async () => {
                 console.log("REPLY\n");
                 console.log(reply.statusCode);
                 console.log("REPLY\n");
-            },
-        );
-
-        app.decorate(
-            "verifyJwtAndRevocation",
-            async function (request: any, reply: any) {
-                try {
-                    // Verify the JWT using the plugin
-                    const decodedToken = await request.jwtVerify();
-                    console.log(decodedToken);
-
-                    if (isTokenRevoked(request.user.id, decodedToken.iat))
-                        throw new RecyclotronApiErr("Auth", "PermissionDenied");
-                    
-                } catch (err) {
-                    reply.code(401).send({ error: "Unauthorized" });
-                }
             },
         );
 

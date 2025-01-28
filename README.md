@@ -33,6 +33,7 @@ To launch with a watcher : yarn nodemon
 - Things to do except classic security features :
 
   - Important :
+    - Create controller methods for registrations and payments for user
     - Test CORS + header ()
     - Test all routes in the order of the user workflow (register --> login --> get events, articles...)
     - Give proper test data to test database
@@ -48,16 +49,18 @@ To launch with a watcher : yarn nodemon
 
 - Choses à faire en dehors des fonctionnalités de sécurité classiques :
 
+  - Important :
+    - Créer des méthodes de contrôleur pour les inscriptions et les paiements pour l'utilisateur
+    - Tester CORS + en-tête ()
+    - Testez toutes les routes dans l'ordre du workflow utilisateur (inscription -> connexion -> obtenir des événements, des articles...)
+    - Donner les données de test appropriées à la base de données de test
+    - Faire le diagramme de classes pour l'api (des modifications sont à prévoir)
+  - Créer et saisir des données sonores pour la base de données de test/base de données principale afin de permettre les tests/démos
+  - ╚-> Créer un script qui saisit les données sonores dans la base de données, notamment les faux utilisateurs.
   - Ajoutez une fonctionnalité de mot de passe oublié qui envoie un e-mail aux personnes souhaitant réinitialiser leur mot de passe.
   - Ajouter une autre couche de vérification lors de l'inscription --> envoyer un mail avec un lien pour s'authentifier par exemple
-  - Tester CORS + en-tête
-  - Testez toutes les routes dans l'ordre du workflow utilisateur (inscription -> connexion -> obtenir des événements, des articles...)
-  - Donner les données de test appropriées à la base de données de test
+  - des scripts qui suppriment les objets de la table jwt révoqué au bout d'une semaine (date de validité commune à définir dans le .env)
   - Trouver un hébergeur + un hébergeur de base de données (nous pourrions utiliser freesqldatabase pour le moment)
-  - Faire le diagramme de classes pour l'api (des modifications sont à prévoir)
-  - Créer et saisir des données saines pour la base de données de test/base de données principale pour permettre les tests/démos
-  - ╚-> Créer un script qui créé des données saines à mettre dans les base de données main / test
-  - scripts qui supprime les objets dans la table jwt revoked après une semaine (date de validité générale à mettre dans l'env)
 
 - Security tasks ! - (non-checked tasks in the lower list)
 

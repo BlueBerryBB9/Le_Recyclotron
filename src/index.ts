@@ -291,14 +291,6 @@ const startServer = async () => {
             },
         );
 
-        //         app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-        //   console.log(`Incoming request: ${request.method} ${request.url}`);
-        //   // Example: Block a specific route
-        //   if (request.url === '/forbidden') {
-        //     reply.code(403).send({ error: 'Forbidden' });
-        //   }
-        //   });
-
         await app.listen({ port: 3000 });
         console.log("Server is running on port 3000");
     } catch (error) {
@@ -309,7 +301,7 @@ const startServer = async () => {
 
 startServer();
 
-//! TEST (C'est des tests Noah)
+//! TEST (C'est des tests Noah, Alban dit que t'es con et que tu devrais réfléchir)
 
 export const startServerTest = async () => {
     const app = Fastify({

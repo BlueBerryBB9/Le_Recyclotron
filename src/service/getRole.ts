@@ -2,8 +2,8 @@ import SUserRole from "../models/UserRoles.js";
 import SRole from "../models/Role.js";
 import SUser from "../models/User.js";
 
-export const getRole = async (userId: number) => {
-    const roles = await SRole.findAll({
+export const getRole = async (userId: number): Promise<SRole[]> => {
+    let roles = await SRole.findAll({
         include: [
             {
                 model: SUser,
@@ -14,4 +14,11 @@ export const getRole = async (userId: number) => {
         ],
     });
     return roles;
+};
+
+export const getRoleString = async (userId: number): Promise<string[]> => {
+    let roles = await getRole(userId);
+    return roles.map((role) => {
+        return role.getDataValue("name");
+    });
 };

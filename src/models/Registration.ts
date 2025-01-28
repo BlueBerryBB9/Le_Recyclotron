@@ -9,14 +9,13 @@ class SRegistration extends Model {}
 SRegistration.init(
     {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        date: { type: DataTypes.DATE, allowNull: false },
-        seats: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
         userId: {
             type: DataTypes.INTEGER,
             references: {
                 model: "Users",
                 key: "id",
             },
+            primaryKey: true,
         },
         eventId: {
             type: DataTypes.INTEGER,
@@ -24,7 +23,10 @@ SRegistration.init(
                 model: "Events",
                 key: "id",
             },
+            primaryKey: true,
         },
+        date: { type: DataTypes.DATE, allowNull: false },
+        seats: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     },
     { sequelize, modelName: "Registration" },
 );

@@ -21,3 +21,11 @@ export const generateToken = (id: number, email: string, roles: string[]) => {
         throw error;
     }
 };
+
+export const verifyJwtTime = (user: {
+    id: number;
+    email: string;
+    roles: string[];
+}) => {
+    
+};

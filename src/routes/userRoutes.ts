@@ -9,6 +9,7 @@ import * as u from "../models/User.js";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import * as z from "zod";
 import { IncomingMessage, request, ServerResponse } from "http";
+import { where } from "sequelize";
 
 export default async (fastify: FastifyInstance) => {
     // Protected routes
@@ -44,7 +45,7 @@ export default async (fastify: FastifyInstance) => {
 
     fastify.get("/users/:id", {
         schema: { params: z.object({ id: z.string() }) },
-        // preHandler: [isSelfOrAdminOr()],
+        preHandler: [await isSelfOrAdminOr()],
         handler: userController.getUserById as RouteHandlerMethod<
             RawServerDefault,
             IncomingMessage,

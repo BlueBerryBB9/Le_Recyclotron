@@ -10,17 +10,13 @@ export function authorize(allowedRoles: string[]) {
         try {
             await request.jwtVerify();
 
-            console.log(request.user);
             const userRoles = request.user.roles;
 
-            console.log(allowedRoles);
-            console.log(userRoles);
-            const hasPermission = allowedRoles.some((role) => {
-                console.log(role);
-                userRoles.includes(role);
-            });
-            if (!hasPermission) {
-                console.log("TELL ME SOMETHING AAAAAAAAAAAAAA222222222222");
+            if (
+                !allowedRoles.some((role) => {
+                    return userRoles.includes(role);
+                })
+            ) {
                 throw new RecyclotronApiErr(
                     "MiddleWare",
                     "PermissionDenied",
@@ -28,7 +24,6 @@ export function authorize(allowedRoles: string[]) {
                 );
             }
         } catch (error) {
-            console.log(error);
             throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
         }
     };

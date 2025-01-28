@@ -64,7 +64,7 @@ export const createUser: RouteHandler<{
             attributes: { exclude: ["password"] },
         });
 
-        return reply.status(201).send(userWithRoles);
+        return reply.status(201).send(userWithRoles?.dataValues);
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -108,7 +108,12 @@ export const getUserById: RouteHandler<{
     try {
         const user = await SUser.findByPk(request.params.id, {
             include: [
-                { model: SRole, attributes: ["id", "name"], as: "roles" },
+                {
+                    model: SRole,
+                    attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
+                },
             ],
             attributes: { exclude: ["password"] },
         });
@@ -119,6 +124,8 @@ export const getUserById: RouteHandler<{
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
+        } else if (error instanceof RecyclotronApiErr) {
+            throw error;
         } else throw new RecyclotronApiErr("User", "FetchFailed");
     }
 };

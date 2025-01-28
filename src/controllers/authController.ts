@@ -8,10 +8,14 @@ import * as hashConfig from "../config/hash.js";
 import { createOTP, verifyOTPservice } from "../service/otpService.js";
 import { MailService } from "../service/emailSender.js";
 import * as env from "../config/env.js";
-import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import {
+    RecyclotronApiErr,
+    SequelizeApiErr,
+} from "../error/recyclotronApiErr.js";
 import SRole from "../models/Role.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
 import OTP from "../models/OTP.js";
+import { BaseError } from "sequelize";
 
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
@@ -112,10 +116,11 @@ export const verifyOTP = async (
     request: FastifyRequest<{ Body: { id: string; otp: string } }>,
     reply: FastifyReply,
 ) => {
-    await verifyOTPservice(
+    let isValid = await verifyOTPservice(
         intToString(request.body.id, "Auth"),
         request.body.otp,
     );
+
     let user = await SUser.findByPk(request.body.id);
     if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 500);
 
@@ -124,33 +129,34 @@ export const verifyOTP = async (
             userId: request.body.id,
         },
     });
-    console.log("ROLESSSSS");
-    console.log(await user.getRole());
-    console.log("ROLESSSSS");
+
+    if (!isValid) throw new RecyclotronApiErr("Auth", "InvalidInput", 400);
+
     return reply.send({
         statusCode: 200,
         message: "Authentication successful",
         jwt: generateToken(
             intToString(request.body.id, "Auth"),
             user.getDataValue("email"),
-            (await user.getRole()).map((val) => {
-                return val.getDataValue("name");
-            }),
+            await user.getRoleString(),
         ),
     });
 };
 
 export const getCurrentUser = async (
-    request: FastifyRequest<{ Body: { id: string } }>,
+    request: FastifyRequest,
     reply: FastifyReply,
 ) => {
     try {
-        const id = intToString(request.body.id, "Auth");
+        request.jwtVerify();
+        const id = request.user.id;
         const user = await SUser.findByPk(id, {
             include: [
                 {
                     model: SRole,
                     attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
                 },
             ],
             attributes: { exclude: ["password"] },
@@ -160,13 +166,15 @@ export const getCurrentUser = async (
 
         return reply.send(user);
     } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Auth", error);
+        } else if (error instanceof RecyclotronApiErr) {
             throw error;
         } else throw new RecyclotronApiErr("Auth", "OperationFailed");
     }
 };
 
-const tokenRevocations = {
+export const tokenRevocations = {
     global: null as number | null,
     users: new Map<string, number>(),
 };
@@ -188,13 +196,13 @@ export const revokeAllTokens = async (
 export const revokeUserTokens = async (
     request: FastifyRequest<{
         Params: {
-            userid: string;
+            id: string;
         };
     }>,
     reply: FastifyReply,
 ) => {
     try {
-        const userId = request.params.userid;
+        const userId = request.params.id;
         console.log(tokenRevocations.users);
         tokenRevocations.users.delete(userId);
         console.log(tokenRevocations.users);
@@ -215,10 +223,8 @@ export const isTokenRevoked = (userId: string, tokenIat: number): boolean => {
 
     if (userId) {
         const userRevocationTime = tokenRevocations.users.get(userId);
-        if (userRevocationTime && tokenCreationDate < userRevocationTime) {
+        if (userRevocationTime && tokenCreationDate < userRevocationTime)
             return true;
-        }
-        return false;
     }
     return false;
 };

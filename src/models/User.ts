@@ -3,11 +3,14 @@ import sequelize from "../config/database.js";
 import z from "zod";
 import SRole from "./Role.js";
 import SUserRole from "./UserRoles.js";
-import { getRole } from "../service/getRole.js";
+import { getRole, getRoleString } from "../service/getRole.js";
 
 class SUser extends Model {
     async getRole() {
         return await getRole(this.getDataValue("id"));
+    }
+    async getRoleString() {
+        return await getRoleString(this.getDataValue("id"));
     }
 }
 

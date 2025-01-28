@@ -27,6 +27,7 @@ import authRoutes from "./routes/authRoutes.js";
 import fastifyJwt from "@fastify/jwt";
 import { where } from "sequelize";
 import SRegistration from "./models/Registration.js";
+import { isTokenRevoked } from "./controllers/authController.js";
 
 async function seedDatabase() {
     const userCount = await SUser.count(); // Check if the Users table is empty
@@ -46,23 +47,28 @@ async function seedDatabase() {
                 first_name: "Martin",
                 last_name: "Leroy",
                 email: "martin.leroy@edu.ecole-89.com",
-                password: await argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+                password: await argon.hash("ADMIN", argon2Options),
             },
             {
                 first_name: "Noah",
                 last_name: "Chantin",
                 email: "noah.chantin@edu.ecole-89.com",
-                password: await argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+                password: await argon.hash("ADMIN", argon2Options),
             },
             {
                 first_name: "Wissal",
                 last_name: "Kerkour",
                 email: "wissal.kerkour@edu.ecole-89.com",
-                password: await argon.hash("ADMIN", argon2Options), // Replace with a properly hashed password
+                password: await argon.hash("ADMIN", argon2Options),
+            },
+            {
+                first_name: "Martin2",
+                last_name: "Leroy2",
+                email: "martin4leroy@gmail.com",
+                password: await argon.hash("USER", argon2Options),
             },
         ]);
         console.log("Default users inserted successfully!");
-        console.log(await SUser.findAll());
     }
     if (roleCount === 0) {
         await SRole.bulkCreate([
@@ -95,6 +101,7 @@ async function seedDatabase() {
     }
     if (userRoleCount === 0) {
         await SuserRoles.bulkCreate([
+            // Martin Admin
             {
                 userId: 1,
                 roleId: 1,
@@ -119,6 +126,7 @@ async function seedDatabase() {
                 userId: 1,
                 roleId: 6,
             },
+            // Noah Admin
             {
                 userId: 2,
                 roleId: 1,
@@ -143,6 +151,7 @@ async function seedDatabase() {
                 userId: 2,
                 roleId: 6,
             },
+            // Wissal Admin
             {
                 userId: 3,
                 roleId: 1,
@@ -165,6 +174,11 @@ async function seedDatabase() {
             },
             {
                 userId: 3,
+                roleId: 6,
+            },
+            // Martin User
+            {
+                userId: 4,
                 roleId: 6,
             },
         ]);
@@ -283,6 +297,23 @@ const startServer = async () => {
                 console.log("REPLY\n");
                 console.log(reply.statusCode);
                 console.log("REPLY\n");
+            },
+        );
+
+        app.decorate(
+            "verifyJwtAndRevocation",
+            async function (request: any, reply: any) {
+                try {
+                    // Verify the JWT using the plugin
+                    const decodedToken = await request.jwtVerify();
+                    console.log(decodedToken);
+
+                    if (isTokenRevoked(request.user.id, decodedToken.iat))
+                        throw new RecyclotronApiErr("Auth", "PermissionDenied");
+                    
+                } catch (err) {
+                    reply.code(401).send({ error: "Unauthorized" });
+                }
             },
         );
 

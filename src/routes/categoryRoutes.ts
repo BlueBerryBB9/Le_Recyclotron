@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
 import z from "zod";
-import { authorize } from "../middleware/auth.js";
+import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 
 export default async (fastify: FastifyInstance) => {
     // Create a new Category

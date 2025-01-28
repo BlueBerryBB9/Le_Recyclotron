@@ -1,0 +1,404 @@
+graph TD
+    style CategoryRoutes fill:#672d2d
+    style A fill:#FF6B6B
+    style B fill:#FF6B6B
+    style C fill:#FF6B6B
+    style D fill:#FF6B6B
+    style E fill:#FF6B6B
+    style F fill:#FF6B6B
+    style G fill:#FF6B6B
+    style H fill:#FF6B6B
+    style I fill:#FF6B6B
+    style J fill:#FF6B6B
+    style K fill:#FF6B6B
+    style L fill:#FF6B6B
+
+    subgraph CategoryRoutes
+        subgraph POST /categories
+            A[InputCategory :
+            - name : string
+            - parent_category_id: number] -->|Route| B[SCategory :
+            - id : number 
+            - name : string]
+        end
+        subgraph GET /categories
+            C[None] -->|Route| D[SCategory :
+            - id : number 
+            - name : string]
+        end
+        subgraph GET /categories/:id
+            E[id: string] -->|Route| F[SCategory :
+            - id : number 
+            - name : string]
+        end
+        subgraph PUT /categories/:id
+            G[id: string, 
+            PartialCategory :
+            - id : number
+            - name : string
+            - parent_category_id : number] -->|Route| H[SCategory :
+            - id : number 
+            - name : string]
+        end
+        subgraph DELETE /categories/:id
+            I[id: string] -->|Route| J[None]
+        end
+        subgraph GET /categories/:id/categories
+            K[id: string] -->|Route| L[SCategory :
+            - id : int 
+            - name : string]
+        end
+    end
+
+    style EventRoutes fill:#5c4188
+    style M fill:#845EC2
+    style N fill:#845EC2
+    style O fill:#845EC2
+    style P fill:#845EC2
+    style Q fill:#845EC2
+    style R fill:#845EC2
+    style S fill:#845EC2
+    style T fill:#845EC2
+    style U fill:#845EC2
+    style V fill:#845EC2
+    style W fill:#845EC2
+    style X fill:#FF7F3F
+
+    subgraph EventRoutes
+        subgraph POST /event
+            M[InputEvent :
+            - title: string
+            - image: string
+            - desc: string
+            - date: date] -->|Route| N[SEvent :
+            - id: number
+            - title: string
+            - image: string
+            - desc: string
+            - date: date]
+        end
+        subgraph GET /event
+            O[None] -->|Route| P[SEvent :
+            - id: number
+            - title: string
+            - image: string
+            - desc: string
+            - date: date]
+        end
+        subgraph GET /event/:id
+            Q[id: string] -->|Route| R[SEvent :
+            - id: number
+            - title: string
+            - image: string
+            - desc: string
+            - date: date]
+        end
+        subgraph PUT /event/:id
+            S[id: string, 
+            PartialEvent :
+            - id: number
+            - title: string
+            - image: string
+            - desc: string
+            - date: date] -->|Route| T[SEvent :
+            - id: number
+            - title: string
+            - image: string
+            - desc: string
+            - date: date]
+        end
+        subgraph DELETE /event/:id
+            U[id: string] -->|Route| V[None]
+        end
+        subgraph GET /event/:id/registration
+            W[id: string] -->|Route| X[SRegistration :
+            - id: number
+            - date: date
+            - seats: number]
+        end
+    end
+    
+    style ItemsRoutes fill:#1d685f
+    style Y fill:#2A9D8F
+    style Z fill:#2A9D8F
+    style AA fill:#2A9D8F
+    style AB fill:#2A9D8F
+    style AC fill:#2A9D8F
+    style AD fill:#2A9D8F
+    style AE fill:#2A9D8F
+    style AF fill:#2A9D8F
+    style AG fill:#2A9D8F
+    style AH fill:#2A9D8F
+    style AI fill:#2A9D8F
+    style AJ fill:#2A9D8F
+    style AK fill:#2A9D8F
+    style AL fill:#2A9D8F
+    style AM fill:#2A9D8F
+    style AN fill:#FF6B6B
+    style AO fill:#2A9D8F
+    style AP fill:#2A9D8F
+
+    subgraph ItemsRoutes
+        subgraph POST /items
+            Y[InputItem :
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date] -->|Route| Z[SItem :
+            - id: number
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date]
+        end
+        subgraph GET /items
+            AA[None] -->|Route| AB[SItem :
+            - id: number
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date]
+        end
+        subgraph GET /items/:id
+            AC[id: string] -->|Route| AD[SItem :
+            - id: number
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date]
+        end
+        subgraph GET /items/:status
+            AE[status: string] -->|Route| AF[SItem :
+            - id: number
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date]
+        end
+        subgraph PUT /items/:id
+            AG[id: string, 
+            PartialItem :
+            - id: number
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date] -->|Route| AH[SItem :
+            - id: number
+            - name: string
+            - status: ItemStatus
+            - material: string
+            - image: string
+            - date: Date]
+        end
+        subgraph DELETE /items/:id
+            AI[id: string] -->|Route| AJ[None]
+        end
+        subgraph POST /items/:id/categories
+            AK[itemId: string, categoryId: string] -->|Route| AL[None]
+        end
+        subgraph GET /items/:id/categories
+            AM[id: string] -->|Route| AN[number]
+        end
+        subgraph DELETE /items/:id/categories/:id
+            AO[itemId: string, categoryId: string] -->|Route| AP[None]
+        end
+    end
+
+    style PaymentRoutes fill:#43567e
+    style AQ fill:#5c77b0
+    style AR fill:#5c77b0
+    style AS fill:#5c77b0
+    style AT fill:#5c77b0
+    style AU fill:#5c77b0
+    style AV fill:#5c77b0
+    style AW fill:#5c77b0
+    style AX fill:#5c77b0
+    style AY fill:#5c77b0
+    style AZ fill:#5c77b0
+
+    subgraph PaymentRoutes
+        subgraph POST /subscription
+            AQ[SubscriptionBody :
+            - customerId: string
+            - priceId: string
+            - userId: number] -->|Route| AR[SPayment :
+            - id : number
+            - id_stripe_payment : string
+            - amount : float
+            - type : number
+            - date : date
+            - status : string]
+        end
+        subgraph DELETE /subscription/:id
+            AS[subscriptionId: string] -->|Route| AT[None]
+        end
+        subgraph POST /donation
+            AU[DonationBody :
+            - amount: number,
+            - paymentMethodId: string,
+            - userId: number,
+            ] -->|Route| AV[SPayment :
+            - id : number
+            - id_stripe_payment : string
+            - amount : float
+            - type : number
+            - date : date
+            - status : string]
+        end
+        subgraph POST /payment-method
+            AW[PaymentMethodBody :
+            - customerId: string
+            - paymentMethodId: string] -->|Route| AX[None]
+        end
+        subgraph POST /webhook
+            AY[rawBody: string] -->|Route| AZ[None]
+        end
+    end
+
+    style RegistrationRoutes fill:#a1552f
+    style BA fill:#FF7F3F
+    style BB fill:#FF7F3F
+    style BC fill:#FF7F3F
+    style BD fill:#FF7F3F
+    style BE fill:#FF7F3F
+    style BF fill:#FF7F3F
+    style BG fill:#FF7F3F
+    style BH fill:#FF7F3F
+    style BI fill:#FF7F3F
+    style BJ fill:#FF7F3F
+
+    subgraph RegistrationRoutes
+        subgraph POST /registration
+            BA[InputRegistration :
+            - date : date
+            - seats : number] -->|Route| BB[SRegistration :
+            - id : number
+            - date : date
+            - seats : number]
+        end
+        subgraph GET /registration
+            BC[None] -->|Route| BD[SRegistration :
+            - id : number
+            - date : date
+            - seats : number]
+        end
+        subgraph GET /registration/:id
+            BE[id: string] -->|Route| BF[SRegistration :
+            - id : number
+            - date : date
+            - seats : number]
+        end
+        subgraph PUT /registration/:id
+            BG[id: string, 
+            PartialRegistration :
+            - id : number
+            - date : date
+            - seats : number] -->|Route| BH[SRegistration :
+            - id : number
+            - date : date
+            - seats : number]
+        end
+        subgraph DELETE /registration/:id
+            BI[id: string] -->|Route| BJ[None]
+        end
+    end
+
+    style UserRoutes fill:#9f799f
+    style BK fill:#ae00ae
+    style BL fill:#ae00ae
+    style BM fill:#ae00ae
+    style BN fill:#ae00ae
+    style BO fill:#ae00ae
+    style BP fill:#ae00ae
+    style BQ fill:#ae00ae
+    style BR fill:#ae00ae
+    style BS fill:#ae00ae
+    style BT fill:#ae00ae
+    style BU fill:#ae00ae
+    style BV fill:#ae00ae
+    style BW fill:#ae00ae
+    style BX fill:#ae00ae
+    subgraph UserRoutes
+        subgraph POST /users
+            BK[CreateUser :
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string] -->|Route| BL[SUser :
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string]
+        end
+        subgraph GET /users
+            BM[None] -->|Route| BN[SUser :
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string]
+        end
+        subgraph GET /users/:id
+            BO[id: string] -->|Route| BP[SUser :
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string]
+        end
+        subgraph PUT /users/:id
+            BQ[id: string, UpdateUser] -->|Route| BR[SUser :
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string]
+        end
+        subgraph DELETE /users/:id
+            BS[id: string] -->|Route| BT[None]
+        end
+        subgraph POST /users/:id/roles
+            BU[id: string, roles: number] -->|Route| BV[SUser :
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string]
+        end
+        subgraph DELETE /users/:id/roles
+            BW[id: string, roles: number] -->|Route| BX[SUser :
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone: string
+            - password: string
+            - is_adherent: boolean
+            - sub_type: string]
+        end
+    end

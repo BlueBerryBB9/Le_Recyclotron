@@ -2,10 +2,7 @@ import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
 
-class SCategory extends Model {
-    public id!: number;
-    public name!: string;
-}
+class SCategory extends Model {}
 
 SCategory.init(
     {
@@ -20,18 +17,19 @@ SCategory.init(
         },
     },
     {
-        tableName: "categories",
+        modelName: "Category",
         sequelize,
     },
 );
 
 SCategory.hasMany(SCategory, {
+    foreignKey: "parentCategoryId",
     as: "children",
     onDelete: "CASCADE",
 });
 SCategory.belongsTo(SCategory, {
     as: "parent",
-    foreignKey: "parent_category_id",
+    foreignKey: "parentCategoryId",
 });
 
 export const ZCategory = z.object({

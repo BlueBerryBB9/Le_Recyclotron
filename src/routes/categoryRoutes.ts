@@ -2,12 +2,16 @@ import { FastifyInstance } from "fastify";
 import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
 import z from "zod";
+import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 
 export default async (fastify: FastifyInstance) => {
     // Create a new Category
     fastify.post<{ Body: m.InputCategory }>(
         "/categories",
-        { schema: { body: m.ZInputCategory } },
+        {
+            schema: { body: m.ZInputCategory },
+            onRequest: [authorize(['employee'])],
+        },
         ctrl.createCategory,
     );
 
@@ -19,6 +23,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
             },
+            onRequest: [authorize(['employee'])],
         },
         ctrl.createCategory,
     );
@@ -26,14 +31,17 @@ export default async (fastify: FastifyInstance) => {
     // All categories
     fastify.get(
         "/categories",
-        { schema: { body: m.ZInputCategory } },
+        { onRequest: [authorize(['employee'])] },
         ctrl.getAllCategories,
     );
 
     // Category details
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
+        {
+            schema: { params: z.object({ id: z.string() }) },
+            onRequest: [authorize(['employee'])],
+        },
         ctrl.getCategoryById,
     );
 
@@ -45,6 +53,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialCategory,
             },
+            onRequest: [authorize(['employee'])],
         },
         ctrl.updateCategoryById,
     );
@@ -52,14 +61,20 @@ export default async (fastify: FastifyInstance) => {
     // Delete Category
     fastify.delete<{ Params: { id: string } }>(
         "/categories/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
+        {
+            schema: { params: z.object({ id: z.string() }) },
+            onRequest: [authorize(['employee'])],
+        },
         ctrl.deleteCategoryById,
     );
 
     // All categories of an Category
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id/categories",
-        { schema: { params: z.object({ CategoryId: z.string() }) } },
+        {
+            schema: { params: z.object({ CategoryId: z.string() }) },
+            onRequest: [authorize(['employee'])],
+        },
         ctrl.getAllCategoriesOfCategory,
     );
 };

@@ -2,10 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
 
-class SRole extends Model {
-    public id!: number;
-    public name!: string;
-}
+class SRole extends Model {}
 
 SRole.init(
     {
@@ -19,7 +16,7 @@ SRole.init(
             allowNull: false,
             unique: true,
             validate: {
-                isIn: [["Admin", "Repairer", "CM", "Employee", "Client"]],
+                isIn: [["admin", "rh", "repairer", "CM", "employee", "client"]],
             },
         },
     },

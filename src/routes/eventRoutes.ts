@@ -2,19 +2,30 @@ import * as f from "fastify";
 import * as ec from "../controllers/eventController.js";
 import * as em from "../models/Event.js";
 import z from "zod";
+import { authorize } from "../middleware/auth.js";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: em.InputEvent }>(
         "/event",
-        { schema: { body: em.ZInputEvent } },
+        {
+            schema: { body: em.ZInputEvent },
+            onRequest: [authorize(['community_manager'])],
+        },
         ec.createEvent,
     );
 
-    fastify.get("/event", ec.getAllEvents);
+    fastify.get(
+        "/event",
+        // { onRequest: [authorize(['community_manager'])] },
+        ec.getAllEvents,
+    );
 
     fastify.get<{ Params: { id: string } }>(
         "/event/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
+        {
+            schema: { params: z.object({ id: z.string() }) },
+            // onRequest: [authorize(['community_manager'])],
+        },
         ec.getEvent,
     );
 
@@ -25,15 +36,23 @@ export default async (fastify: f.FastifyInstance) => {
                 body: em.ZPartialEvent,
                 params: z.object({ id: z.string() }),
             },
+            // onRequest: [authorize(['community_manager'])],
         },
         ec.updateEvent,
     );
 
     fastify.delete<{ Params: { id: string } }>(
         "/event/:id",
-        { schema: { params: z.object({ id: z.string() }) } },
+        {
+            schema: { params: z.object({ id: z.string() }) },
+            onRequest: [authorize(['community_manager'])],
+        },
         ec.deleteEvent,
     );
 
-    fastify.get("/event/:id/registration", ec.getAllEventRegistrations);
+    fastify.get(
+        "/event/:id/registration",
+        // { onRequest: [authorize(['community_manager'])] },
+        ec.getAllEventRegistrations,
+    );
 };

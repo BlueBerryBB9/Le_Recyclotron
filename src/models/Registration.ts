@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import User from "./User.js";
-import Event from "./Event.js";
+import SUser from "./User.js";
+import SEvent from "./Event.js";
 import { z } from "zod";
 
 class SRegistration extends Model {}
@@ -9,22 +9,27 @@ class SRegistration extends Model {}
 SRegistration.init(
     {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: "Users",
+                key: "id",
+            },
+            primaryKey: true,
+        },
+        eventId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: "Events",
+                key: "id",
+            },
+            primaryKey: true,
+        },
         date: { type: DataTypes.DATE, allowNull: false },
         seats: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     },
     { sequelize, modelName: "Registration" },
 );
-
-User.belongsToMany(Event, {
-    as: "event",
-    foreignKey: "eventId",
-    through: SRegistration,
-});
-Event.belongsToMany(User, {
-    as: "user",
-    foreignKey: "userId",
-    through: SRegistration,
-});
 
 export default SRegistration;
 

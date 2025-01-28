@@ -1,23 +1,17 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import SPayment from "./Payment.js";
 import z from "zod";
+import SRole from "./Role.js";
+import SUserRole from "./UserRoles.js";
+import { getRole, getRoleString } from "../service/getRole.js";
 
 class SUser extends Model {
-    $remove(arg0: string, roles: import("./Role.js").default[]) {
-        throw new Error("Method not implemented.");
+    async getRole() {
+        return await getRole(this.getDataValue("id"));
     }
-    $add(arg0: string, roles: import("./Role.js").default[]) {
-        throw new Error("Method not implemented.");
+    async getRoleString() {
+        return await getRoleString(this.getDataValue("id"));
     }
-    public id!: number;
-    public first_name!: string;
-    public last_name!: string;
-    public email!: string;
-    public phone!: string;
-    public password!: string;
-    public is_adherent!: boolean;
-    public sub_type!: string;
 }
 
 SUser.init(
@@ -45,7 +39,7 @@ SUser.init(
         },
         phone: {
             type: DataTypes.STRING(10),
-            allowNull: false,
+            allowNull: true,
             unique: true,
             validate: {
                 is: /^\+?[\d\s-]+$/,
@@ -67,18 +61,17 @@ SUser.init(
             type: DataTypes.STRING,
             allowNull: true,
         },
+        token_revocation_timestamp: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
     },
     {
         sequelize,
         modelName: "User",
     },
 );
-
-//SPayment association's done here because otherwise SUser is not initialized when used in SPayment done before
-SPayment.belongsTo(SUser, { foreignKey: "user_id" });
-SUser.hasMany(SPayment);
-
-export default SUser;
 
 // Base schema with common validations
 export const ZUserBase = z.object({
@@ -103,11 +96,15 @@ export const ZUserBase = z.object({
     phone: z
         .string()
         .regex(/^\+?[\d\s-]+$/, "Invalid phone number format")
-        .max(10, "Phone number must be less than 10 characters"),
+        .max(10, "Phone number must be less than 10 characters")
+        .nullable()
+        .optional(),
 
     is_adherent: z.boolean().default(false),
 
     sub_type: z.string().nullable().optional(),
+
+    token_revocation_timestamp: z.date().nullable().optional(),
 });
 
 // Complete user schema with ID
@@ -125,7 +122,6 @@ export const ZCreateUser = ZUserBase.extend({
         .string()
         .min(8, "Password must be at least 8 characters")
         .max(100, "Password must be less than 100 characters"),
-    roles: z.array(z.number().positive()).default([]),
 });
 
 // Schema for updating a user (all fields optional)
@@ -134,7 +130,6 @@ export const ZUpdateUser = ZUserBase.extend({
         .string()
         .min(8, "Password must be at least 8 characters")
         .max(100, "Password must be less than 100 characters"),
-    roles: z.array(z.number().positive()),
 }).partial();
 
 // Schema for public user data (no sensitive information)
@@ -142,8 +137,24 @@ export const ZPublicUser = ZUser.omit({
     password: true,
 });
 
+// Ajouter aux types existants
+export const ZResetPasswordRequest = z.object({
+    email: z.string().email(),
+});
+
+export const ZResetPassword = z.object({
+    email: z.string().email(),
+    tempCode: z.string().min(6).max(6),
+    newPassword: z.string().min(6),
+});
+
+export type ResetPasswordRequest = z.infer<typeof ZResetPasswordRequest>;
+export type ResetPassword = z.infer<typeof ZResetPassword>;
+
 // TypeScript types
 export type User = z.infer<typeof ZUser>;
 export type CreateUser = z.infer<typeof ZCreateUser>;
 export type UpdateUser = z.infer<typeof ZUpdateUser>;
 export type PublicUser = z.infer<typeof ZPublicUser>;
+
+export default SUser;

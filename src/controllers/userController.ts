@@ -1,243 +1,395 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import bcrypt from "bcrypt";
-import { RecyclotronApiErr, SequelizeApiErr } from "../error/recyclotronApiErr.js";
-
+import {
+    FastifyRequest,
+    FastifyReply,
+    RawServerDefault,
+    FastifySchema,
+    RouteHandler,
+} from "fastify";
 import SUser, {
     ZCreateUser,
     ZUpdateUser,
-    CreateUser,
+    ResetPasswordRequest,
+    ResetPassword,
     UpdateUser,
+    CreateUser,
 } from "../models/User.js";
+import SUserRole from "../models/UserRoles.js";
 import SRole from "../models/Role.js";
-import { BaseError, Error, ValidationError } from "sequelize";
+import { BaseError, Error, Op, ValidationError } from "sequelize";
+import {
+    RecyclotronApiErr,
+    SequelizeApiErr,
+} from "../error/recyclotronApiErr.js";
+import { intToString } from "../service/intToString.js";
+import { userInfo } from "os";
+import * as argon from "argon2";
+import * as hashConfig from "../config/hash.js";
+import { MailService } from "../service/emailSender.js";
+import SResetPassword from "../models/ResetPassword.js";
+import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
+import * as z from "zod";
+import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import { Type } from "@sinclair/typebox";
+import { IncomingMessage } from "http";
+import * as r from "../models/Registration.js";
 
-// Custom type for requests with params
-interface RequestWithParams extends FastifyRequest {
-    params: {
-        id: string;
+// Create User
+export const createUser: RouteHandler<{
+    Body: {
+        createUser: CreateUser;
+        roles: number[];
     };
-}
-
-
-// Créer un nouvel utilisateur
-export const createUser = async (
-    request: FastifyRequest<{ Body: CreateUser }>,
-    reply: FastifyReply,
-) => {
+}> = async (request, reply) => {
     try {
-        const userData = ZCreateUser.parse(request.body);
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const userData = ZCreateUser.parse(request.body.createUser);
+
+        userData.password = await argon.hash(
+            userData.password,
+            hashConfig.argon2Options,
+        );
+
         const user = await SUser.create({
-            ...userData,
-            password: hashedPassword,
+            userData,
         });
 
-        // If roles are provided, associate them
-        if (userData.roles && userData.roles.length > 0) {
-            const roles = await SRole.findAll({
-                where: {
-                    id: userData.roles,
-                },
+        for (let role of request.body.roles) {
+            SUserRole.create({
+                roleId: role,
+                userId: user.getDataValue("id"),
             });
-            await user.set("roles", roles);
         }
 
-        // Fetch the user with roles
-        const userWithRoles = await SUser.findByPk(user.id, {
+        const userWithRoles = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
 
-        return reply.status(201).send(userWithRoles);
+        return reply.status(201).send(userWithRoles?.dataValues);
     } catch (error) {
-        if (error) {
-            throw new RecyclotronApiErr("User","InvalidInput",400)
-        }
-        throw new RecyclotronApiErr("User", "CreationFailed",500);
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        } else throw new RecyclotronApiErr("User", "CreationFailed");
     }
 };
 
-// Récupérer tous les utilisateurs
-export const getAllUsers = async (
-    request: FastifyRequest,
-    reply: FastifyReply,
-) => {
+// Get All Users
+export const getAllUsers: RouteHandler = async (request, reply) => {
     try {
         const users = await SUser.findAll({
-            include: [{ model: SRole, attributes: ["id", "name"] }],
-            attributes: { exclude: ["password"] },
+            include: [
+                {
+                    model: SRole,
+                    as: "roles", // Match the alias in setupAssociations
+                    attributes: ["id", "name"], // Select specific fields
+                },
+            ],
+            attributes: { exclude: ["password"] }, // Exclude sensitive fields
         });
+
+        if (users.length === 0)
+            throw new RecyclotronApiErr("User", "NotFound", 404);
+
         return reply.send(users);
     } catch (error) {
-        throw new RecyclotronApiErr("User","FetchAllFailed",500);
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        } else throw new RecyclotronApiErr("User", "FetchAllFailed");
     }
 };
-// Récupérer un utilisateur par ID
-export const getUserById = async (
-    request: RequestWithParams,
-    reply: FastifyReply,
-) => {
+
+// Get User by ID
+export const getUserById: RouteHandler<{
+    Params: { id: string };
+}> = async (request, reply) => {
     try {
         const user = await SUser.findByPk(request.params.id, {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
+            include: [
+                {
+                    model: SRole,
+                    attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
+                },
+            ],
             attributes: { exclude: ["password"] },
         });
 
-        if (!user)
-                throw new RecyclotronApiErr("User","NotFound",404)
+        if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         return reply.send(user);
     } catch (error) {
-        if(error instanceof RecyclotronApiErr)
-            throw error;
-        else if (error instanceof BaseError) {
+        if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
-        throw new RecyclotronApiErr("User", "FetchFailed",500);
-        }
+        } else if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("User", "FetchFailed");
     }
 };
 
-// Mettre à jour un utilisateur
-export const updateUser = async (
-    request: FastifyRequest<{ Params: { id: string }; Body: UpdateUser }>,
-    reply: FastifyReply,
-) => {
+// Update User
+export const updateUser: RouteHandler<{
+    Params: { id: string };
+    Body: UpdateUser;
+}> = async (request, reply) => {
     try {
-        const userData = ZUpdateUser.parse(request.body);
-        const id: number = parseInt(request.params.id);
-        const user = await SUser.findByPk(id);
+        const user = await SUser.findByPk(request.params.id);
+        const userData: UpdateUser = request.body;
 
-        if (!user) {
-            throw new RecyclotronApiErr("User","NotFound",404);
-        }
+        if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        // If password is being updated, hash it
-        if (userData.password) {
-            userData.password = await bcrypt.hash(userData.password, 10);
-        }
+        user.setDataValue(
+            "password",
+            await argon.hash(
+                user.getDataValue("password"),
+                hashConfig.argon2Options,
+            ),
+        );
 
         await user.update(userData);
 
-        // Update roles if provided
-        if (userData.roles) {
-            const roles = await SRole.findAll({
-                where: {
-                    id: userData.roles,
-                },
-            });
-            await user.set("roles", roles);
-        }
-
-        // Fetch updated user with roles
-        const updatedUser = await SUser.findByPk(user.id, {
+        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
 
         return reply.send(updatedUser);
     } catch (error) {
-        if (error instanceof ValidationError){
+        if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
-        }
-        if (error instanceof BaseError){
-            throw new SequelizeApiErr("User", error);
-        }
-        throw new RecyclotronApiErr("User", "UpdateFailed",500);
+        } else throw new RecyclotronApiErr("User", "UpdateFailed");
     }
 };
 
-// Supprimer un utilisateur
-export const deleteUser = async (
-    request: RequestWithParams,
-    reply: FastifyReply,
-) => {
+// Delete User
+export const deleteUser: RouteHandler<{
+    Params: { id: string };
+}> = async (request, reply) => {
     try {
-        const user = await SUser.findByPk(parseInt(request.params.id));
+        const user = await SUser.findByPk(request.params.id);
 
-        if (!user) {
-            throw new RecyclotronApiErr("User","NotFound",400);
-        }
+        if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         await user.destroy();
         return reply.status(204).send();
     } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        }
-        throw new RecyclotronApiErr("User", "DeletionFailed",500);
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        } else throw new RecyclotronApiErr("User", "UpdateFailed");
     }
 };
 
-// Ajouter des rôles à un utilisateur
-export const addUserRoles = async (
-    request: FastifyRequest<{
-        Params: { id: string };
-        Body: { roles: number[] };
-    }>,
-    reply: FastifyReply,
-) => {
+// Add User Roles
+export const addUserRoles: RouteHandler<{
+    Params: { id: string };
+    Body: { roles: number[] };
+}> = async (request, reply) => {
     try {
-        const id: number = parseInt(request.params.id);
-        const user = await SUser.findByPk(id);
-        if (!user) { 
-            throw new RecyclotronApiErr("User","NotFound",404);
-        }
-;
+        const user = await SUser.findByPk(request.params.id);
+        if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
+
         const roles = await SRole.findAll({
             where: {
-                id: (request.body as { roles: number[] }).roles,
+                id: request.body.roles,
             },
         });
+        if (roles.length === 0)
+            throw new RecyclotronApiErr("RoleInUser", "NotFound", 404);
 
-        await user.$add("roles", roles);
+        for (let role of roles) {
+            let userRole = await SUserRole.findOne({
+                where: {
+                    roleId: role.getDataValue("id"),
+                    userId: user.getDataValue("id"),
+                },
+            });
+            if (userRole)
+                throw new RecyclotronApiErr("User", "AlreadyExists", 409);
+            SUserRole.create({
+                roleId: role.getDataValue("id"),
+                userId: user.getDataValue("id"),
+            });
+        }
 
-        // Fetch updated user with roles
-        const updatedUser = await SUser.findByPk(user.id, {
+        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
             include: [{ model: SRole, attributes: ["id", "name"] }],
             attributes: { exclude: ["password"] },
         });
 
         return reply.send(updatedUser);
     } catch (error) {
-        if (error instanceof RecyclotronApiErr)
-            throw error;
-        
-            throw new RecyclotronApiErr("User","OperationFailed",500)
-        }
-    };
-// Supprimer des rôles d'un utilisateur
-export const removeUserRoles = async (
-    request: FastifyRequest<{
-        Params: { id: string };
-        Body: { roles: number[] };
-    }>,
-    reply: FastifyReply,
-) => {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        } else throw new RecyclotronApiErr("User", "UpdateFailed");
+    }
+};
+
+// Remove User Roles
+export const removeUserRoles: RouteHandler<{
+    Params: { userId: string; roleId: string };
+}> = async (request, reply) => {
     try {
-        const id: number = parseInt(request.params.id);
-        const user = await SUser.findByPk(id);
+        const userId: number = intToString(request.params.userId, "User");
+        const user = await SUser.findByPk(userId);
+        if (!user) throw new RecyclotronApiErr("RoleInUser", "NotFound", 404);
+
+        const roleId: number = intToString(request.params.roleId, "RoleInUser");
+        const role = await SRole.findByPk(request.params.roleId);
+        if (!role) throw new RecyclotronApiErr("RoleInUser", "NotFound", 404);
+
+        const userRole = await SUserRole.findOne({
+            where: {
+                roleId: roleId,
+                userId: userId,
+            },
+        });
+        if (!userRole) throw new RecyclotronApiErr("UserRole", "NotFound", 404);
+        await SUserRole.destroy({ where: { userId: userId, roleId: roleId } });
+
+        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
+            include: [{ model: SRole, attributes: ["id", "name"] }],
+            attributes: { exclude: ["password"] },
+        });
+
+        return reply.send(updatedUser);
+    } catch (error) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        } else throw new RecyclotronApiErr("User", "DeletionFailed");
+    }
+};
+
+// Forgot Password
+export const forgotPassword: RouteHandler<{
+    Body: ResetPasswordRequest;
+}> = async (request, reply) => {
+    try {
+        const { email } = request.body;
+        const user = await SUser.findOne({ where: { email } });
+
         if (!user) {
             throw new RecyclotronApiErr("User", "NotFound", 404);
         }
-        const roles = await SRole.findAll({
-            where: {
-                id: (request.body as { roles: number[] }).roles,
-            },
+
+        // Générer un code temporaire
+        const tempCode = Math.random().toString(36).substring(2, 8);
+
+        // Créer l'entrée de réinitialisation
+        await SResetPassword.create({
+            userId: user.getDataValue("id"),
+            resetCode: tempCode,
+            expiryDate: new Date(Date.now() + 3600000), // 1 heure
+            used: false,
         });
-        if (roles.length === 0) {
-            throw new RecyclotronApiErr("User", "InvalidInput", 401);
+
+        // Envoyer l'email avec le code
+        const resetLink = `${FRONTEND_URL}/reset-password?code=${tempCode}&email=${email}`;
+        if (!EMAIL_SENDER || !EMAIL_PASSWORD) {
+            throw new RecyclotronApiErr("User", "EnvKeyMissing", 500);
         }
-        await user.$remove("roles", roles);
-        const updatedUser = await SUser.findByPk(user.id, {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
-            attributes: { exclude: ["password"] },
-        });
-        return reply.send(updatedUser);
+        let mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
+        await mailService.sendPasswordResetEmail(email, resetLink);
+
+        return reply
+            .status(200)
+            .send({ message: "Email de réinitialisation envoyé" });
     } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
         }
-        throw new RecyclotronApiErr("User", "OperationFailed", 500);
+        throw new RecyclotronApiErr("User", "ResetRequestFailed");
     }
 };
+
+// Reset Password
+export const resetPassword: RouteHandler<{
+    Body: ResetPassword;
+}> = async (request, reply) => {
+    try {
+        const { email, tempCode, newPassword } = request.body;
+
+        const user = await SUser.findOne({ where: { email } });
+        if (!user) {
+            throw new RecyclotronApiErr("User", "NotFound", 404);
+        }
+
+        const resetRequest = await SResetPassword.findOne({
+            where: {
+                userId: user.getDataValue("id"),
+                resetCode: tempCode,
+                used: false,
+                expiryDate: {
+                    [Op.gt]: new Date(),
+                },
+            },
+        });
+
+        if (!resetRequest) {
+            throw new RecyclotronApiErr("User", "InvalidResetCode", 400);
+        }
+
+        // Mettre à jour le mot de passe
+        const hashedPassword = await argon.hash(
+            newPassword,
+            hashConfig.argon2Options,
+        );
+        await user.update({ password: hashedPassword });
+
+        // Marquer le code comme utilisé
+        await resetRequest.update({ used: true });
+
+        return reply
+            .status(200)
+            .send({ message: "Mot de passe réinitialisé avec succès" });
+    } catch (error) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        }
+        throw new RecyclotronApiErr("User", "ResetFailed");
+    }
+};
+
+// export const getRegistrationsByUserId = async (
+//     req: FastifyRequest<{ Params: { id: string } }>,
+//     rep: FastifyReply,
+// ) => {
+//     try {
+//         const id: number = intToString(req.params.id, "User");
+//         const registrations = await r.default.findByPk(id);
+//         if (!registrations)
+//             throw new RecyclotronApiErr("Registration", "NotFound", 404);
+
+//         return rep.status(200).send({
+//             data: registrations,
+//             message: "Registration fetched successfully",
+//         });
+//     } catch (error) {
+//         if (error instanceof RecyclotronApiErr) {
+//             throw error;
+//         } else if (error instanceof BaseError) {
+//             throw new SequelizeApiErr("Registration", error);
+//         } else throw new RecyclotronApiErr("Registration", "FetchFailed");
+//     }
+// };
+
+// export const getPaymentsByUserId = async (
+//     req: FastifyRequest<{ Params: { id: string } }>,
+//     rep: FastifyReply,
+// ) => {
+//     try {
+//         const id: number = intToString(req.params.id, "Registration");
+//         const registration = await r.default.findByPk(id);
+//         if (!registration)
+//             throw new RecyclotronApiErr("Registration", "NotFound", 404);
+
+//         return rep.status(200).send({
+//             data: registration,
+//             message: "Registration fetched successfully",
+//         });
+//     } catch (error) {
+//         if (error instanceof RecyclotronApiErr) {
+//             throw error;
+//         } else if (error instanceof BaseError) {
+//             throw new SequelizeApiErr("Registration", error);
+//         } else throw new RecyclotronApiErr("Registration", "FetchFailed");
+//     }
+// };

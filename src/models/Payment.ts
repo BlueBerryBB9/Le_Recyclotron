@@ -9,6 +9,13 @@ class SPayment extends Model {}
 SPayment.init(
     {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        userId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: "Users",
+                key: "id",
+            },
+        },
         id_stripe_payment: { type: DataTypes.STRING, allowNull: true },
         amount: { type: DataTypes.FLOAT, allowNull: false },
         type: { type: DataTypes.INTEGER },
@@ -17,9 +24,6 @@ SPayment.init(
     },
     { sequelize, modelName: "Payment" },
 );
-
-// SPayment association's done in models/User.js because otherwise SUser is not initialized when used in SPayment done before
-// SPayment.belongsTo(SUser, { foreignKey: "user_id" });
 
 export default SPayment;
 

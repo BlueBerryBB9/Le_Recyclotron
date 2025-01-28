@@ -1,11 +1,11 @@
 import { Model } from "sequelize";
 import sequelize from "../config/database.js";
-import Item from "./Item.js";
-import Category from "./Category.js";
+import SItem from "./Item.js";
+import SCategory from "./Category.js";
 
-class ItemCategory extends Model {}
+class SItemCategory extends Model {}
 
-ItemCategory.init(
+SItemCategory.init(
     {},
     {
         sequelize,
@@ -13,15 +13,15 @@ ItemCategory.init(
     },
 );
 
-Item.belongsToMany(Category, {
+SItem.belongsToMany(SCategory, {
     as: "category",
     foreignKey: "categoryId",
-    through: ItemCategory,
+    through: SItemCategory,
 });
-Category.belongsToMany(Item, {
+SCategory.belongsToMany(SItem, {
     as: "item",
     foreignKey: "itemId",
-    through: ItemCategory,
+    through: SItemCategory,
 });
 
-export default ItemCategory;
+export default SItemCategory;

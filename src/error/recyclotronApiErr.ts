@@ -5,9 +5,10 @@ import {
     UniqueConstraintError as SequelizeUniqueConstraintError,
 } from "sequelize";
 
+// get the function when first error was launched
 function getFunctionLine(error: Error): string {
     const stackLines = error.stack?.split("\n") || [];
-    return stackLines[1];
+    return stackLines[2];
 }
 
 export class SequelizeApiErr {
@@ -16,10 +17,19 @@ export class SequelizeApiErr {
             | "Item"
             | "Category"
             | "User"
+            | "RoleInUser"
             | "Event"
             | "Payment"
             | "Registration"
-            | "RegistrationInEvent",
+            | "RegistrationInEvent"
+            | "UserRole"
+            | "Auth"
+            | "Role"
+            | "JWT"
+            | "Mail"
+            | "MiddleWare"
+            | "Env"
+            | "OTP",
         error: BaseError,
     ) {
         if (error instanceof SequelizeValidationError)
@@ -54,10 +64,19 @@ export class RecyclotronApiErr extends Error {
             | "Item"
             | "Category"
             | "User"
+            | "RoleInUser"
             | "Event"
             | "Payment"
             | "Registration"
-            | "RegistrationInEvent",
+            | "RegistrationInEvent"
+            | "UserRole"
+            | "Role"
+            | "OTP"
+            | "JWT"
+            | "Mail"
+            | "MiddleWare"
+            | "Env"
+            | "Auth",
         msg:
             | "NotFound"
             | "InvalidInput"
@@ -69,7 +88,12 @@ export class RecyclotronApiErr extends Error {
             | "UpdateFailed"
             | "FetchFailed"
             | "FetchAllFailed"
-            | "DatabaseFailed",
+            | "DatabaseFailed"
+            | "ResetFailed"
+            | "InvalidResetCode"
+            | "EnvKeyMissing"
+            | "ResetRequestFailed"
+            | "InvalidLocation",
         statusCode?: number,
         sequelizeMessage?: string,
     ) {
@@ -79,16 +103,22 @@ export class RecyclotronApiErr extends Error {
                 subject +
                     " : " +
                     msg +
-                    ":" +
+                    " : " +
                     sequelizeMessage +
-                    "in" +
+                    " in " +
                     functionLine,
             );
             this.message =
-                subject + " : " + msg + sequelizeMessage + "in" + functionLine;
+                subject +
+                " : " +
+                msg +
+                " " +
+                sequelizeMessage +
+                " in " +
+                functionLine;
         } else {
-            super(subject + " : " + msg + "in" + functionLine);
-            this.message = subject + " : " + msg + "in" + functionLine;
+            super(subject + " : " + msg + " in " + functionLine);
+            this.message = subject + " : " + msg + " in " + functionLine;
         }
         this.statusCode = statusCode ? statusCode : 500;
     }

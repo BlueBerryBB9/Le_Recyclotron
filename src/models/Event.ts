@@ -2,6 +2,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import { z } from "zod";
+import SRegistration from "./Registration.js";
 
 class SEvent extends Model {}
 
@@ -11,6 +12,7 @@ SEvent.init(
         title: { type: DataTypes.STRING, allowNull: false },
         description: { type: DataTypes.STRING },
         date: { type: DataTypes.DATE, allowNull: false },
+        image: { type: DataTypes.STRING, allowNull: true },
     },
     { sequelize, modelName: "Event" },
 );

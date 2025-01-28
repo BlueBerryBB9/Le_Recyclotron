@@ -1,7 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import * as i from "../models/Item.js";
-import ItemCategory from "../models/ItemCategories.js";
-import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
+import SItemCategory from "../models/ItemCategories.js";
+import {
+    RecyclotronApiErr,
+    SequelizeApiErr,
+} from "../error/recyclotronApiErr.js";
+import SCategory from "../models/Category.js";
+import { BaseError } from "sequelize";
+import { intToString } from "../service/intToString.js";
 
 // Create new item
 export const createItem = async (
@@ -9,20 +15,15 @@ export const createItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const { name, status, material, image, date } = request.body;
-        const newItem = await i.default.create({
-            name,
-            status,
-            material,
-            image,
-            date,
-        });
+        const newItem = await i.default.create(request.body);
         reply.code(201).send({
             data: newItem,
             message: "newItem created successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "CreationFailed");
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("User", error);
+        } else throw new RecyclotronApiErr("User", "CreationFailed");
     }
 };
 
@@ -41,7 +42,11 @@ export const getAllItems = async (
             message: "All items fetched successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "FetchAllFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "FetchAllFailed");
     }
 };
 
@@ -51,7 +56,7 @@ export const getItemById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(request.params.id);
+        const id: number = intToString(request.params.id, "Item");
         const item = await i.default.findByPk(id);
         if (!item) {
             return new RecyclotronApiErr("Item", "NotFound", 404);
@@ -61,7 +66,11 @@ export const getItemById = async (
             message: "Item fetched by id successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "FetchFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "FetchFailed");
     }
 };
 
@@ -73,12 +82,19 @@ export const getItemByStatus = async (
     try {
         const status = request.params.status;
         const items = await i.default.findAll({ where: { status } });
+        if (items.length === 0)
+            return new RecyclotronApiErr("Item", "NotFound", 404);
+
         reply.code(200).send({
             data: items,
             message: "Items fetched by status successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "FetchFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "FetchFailed");
     }
 };
 
@@ -90,18 +106,22 @@ export const updateItemById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(request.params.id);
-        const { name, status, material, image, date } = request.body;
+        const id: number = intToString(request.params.id, "Item");
         const item = await i.default.findByPk(id);
-        if (!item) {
-            return new RecyclotronApiErr("Item", "NotFound", 404)
-        }
-        await item.update({ name, status, material, image, date });
+        if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
+
+        await item.update(request.body);
+
         reply.code(200).send({
+            data: item,
             message: "Item updated successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "UpdateFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "UpdateFailed");
     }
 };
 
@@ -111,15 +131,19 @@ export const deleteItemById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = parseInt(request.params.id);
+        const id: number = intToString(request.params.id, "Item");
         const item = await i.default.findByPk(id);
-        if (!item) {
-            return new RecyclotronApiErr("Item", "NotFound", 404)
-        }
+        if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
+
         await item.destroy();
-        reply.code(200).send({ message: "Item deleted successfully." });
+
+        reply.code(204).send({ message: "Item deleted successfully." });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "DeletionFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "DeletionFailed");
     }
 };
 
@@ -129,21 +153,35 @@ export const addCategoryToItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const itemId: number = parseInt(request.params.itemId);
-        const categoryId: number = parseInt(request.params.categoryId);
-        if (!itemId || !categoryId) {
-            return new RecyclotronApiErr("Item", "NotFound", 404)
-        }
-        await ItemCategory.create({
+        const itemId: number = intToString(request.params.itemId, "Item");
+        if (!i.default.findByPk(itemId))
+            return new RecyclotronApiErr("Item", "NotFound", 404);
+
+        const categoryId = intToString(request.params.categoryId, "Category");
+        if (!SCategory.findByPk(categoryId))
+            return new RecyclotronApiErr("Category", "NotFound", 404);
+
+        const itemcategory = await SItemCategory.findOne({
+            where: { categoryid: categoryId, itemId: itemId },
+        });
+        if (itemcategory)
+            throw new RecyclotronApiErr("Item", "AlreadyExists", 409);
+
+        const itemcategories = await SItemCategory.create({
             itemId,
             categoryId,
         });
 
         reply.code(200).send({
+            data: itemcategories,
             message: "All category of item fetch successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "CreationFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "CreationFailed");
     }
 };
 
@@ -153,23 +191,23 @@ export const getAllCategoriesOfItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const itemId: number = parseInt(request.params.id);
-        const categories = await ItemCategory.findAll({
-            where: { itemId: itemId },
+        const id: number = intToString(request.params.id, "Item");
+        const categories = await SItemCategory.findAll({
+            where: { itemId: id },
         });
-        if (!categories) {
-            return new RecyclotronApiErr("Item", "NotFound", 404)
-        }
-        const categoriesId: number[] = [];
-        for (let element in categories) {
-            categoriesId.push(parseInt(element[1]));
-        }
+        if (categories.length === 0)
+            return new RecyclotronApiErr("Item", "NotFound", 404);
+
         reply.code(200).send({
-            data: categoriesId,
+            data: categories,
             message: "All category of item fetch successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "FetchAllFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "FetchFailed");
     }
 };
 
@@ -179,18 +217,25 @@ export const deleteCategoryOfItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const itemId = parseInt(request.params.itemId);
-        const categoryId = parseInt(request.params.categoryId);
-        if (!itemId || !categoryId) {
-            return new RecyclotronApiErr("Item", "NotFound", 404)
-        }
-        await ItemCategory.destroy({
+        const itemId = intToString(request.params.itemId, "Item");
+        const categoryId = intToString(request.params.categoryId, "Category");
+        const itemCategory = await SItemCategory.findOne({
             where: { itemId: itemId, categoryId: categoryId },
         });
-        reply.code(200).send({
+        if (!itemCategory)
+            return new RecyclotronApiErr("Item", "NotFound", 404);
+
+        await SItemCategory.destroy({
+            where: { itemId: itemId, categoryId: categoryId },
+        });
+        reply.code(204).send({
             message: "Category removed from item successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Item", "DeletionFailed");
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Item", error);
+        } else throw new RecyclotronApiErr("Item", "DeletionFailed");
     }
 };

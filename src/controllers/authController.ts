@@ -179,10 +179,23 @@ export const getCurrentUser = async (
 };
 
 //* revokeToken
-export const tokenRevocations = {
-    global: null as number | null,
-    users: new Map<string, number>(),
+
+export let tokenRevocations: {
+    global: number | null;
+    users: Map<string, number>;
 };
+
+if (env.NODE_ENV === "dev") {
+    tokenRevocations = {
+        global: null as number | null,
+        users: new Map<string, number>(),
+    };
+} else {
+    tokenRevocations = {
+        global: Date.now() as number | null,
+        users: new Map<string, number>(),
+    };
+}
 
 //* revokeAllTokens
 export const revokeAllTokens = async (

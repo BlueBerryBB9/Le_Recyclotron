@@ -21,10 +21,20 @@ export async function seedDatabase(sequelize: any) {
     const itemCategoriesCount = await SItemCategory.count();
     const paymentCount = await SPayment.count();
 
+    // Allows to truncate without checking foreign key constraints
+    // on joint table with foreign keys like userRole.
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
+
     await SUser.destroy({ truncate: true });
     await UserRole.destroy({ truncate: true });
     await SRole.destroy({ truncate: true });
+    await SEvent.destroy({ truncate: true });
+    await SRegistration.destroy({ truncate: true });
+    await SCategory.destroy({ truncate: true });
+    await SItem.destroy({ truncate: true });
+    await SItemCategory.destroy({ truncate: true });
+    await SPayment.destroy({ truncate: true });
+
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
     if (userCount === 0) {
@@ -223,7 +233,7 @@ export async function seedDatabase(sequelize: any) {
                 parentCategoryId: 1,
             },
             {
-                name: "électronique",
+                name: "Electronique",
             },
             {
                 name: "Câbles",

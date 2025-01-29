@@ -115,18 +115,18 @@ export const deleteEvent = async (
 };
 
 export const getAllEventRegistrations = async (
-    req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
+    request: FastifyRequest<{ Params: { id: string } }>,
+    response: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = intToString(request.params.id, "Event");
         const registrations = await SRegistration.findAll({
             where: { EventId: id },
         });
         if (registrations.length === 0)
             throw new RecyclotronApiErr("RegistrationInEvent", "NotFound", 404);
 
-        return rep.status(200).send({
+        return response.status(200).send({
             data: registrations,
             message: "Fetched all event registrations",
         });

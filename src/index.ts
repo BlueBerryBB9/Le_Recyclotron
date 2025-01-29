@@ -15,7 +15,7 @@ import { validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
 import cors from "@fastify/cors";
 import { NODE_ENV, FRONTEND_URL, JWT_SECRET } from "./config/env.js";
 import sequelize from "./config/database.js";
-import setupAssociations from "./models/Associations.js";
+import setupAssociations from "./models/UserRolesAssociations.js";
 import { corsConfig } from "./config/cors.js";
 import authRoutes from "./routes/authRoutes.js";
 import fastifyJwt from "@fastify/jwt";
@@ -61,9 +61,8 @@ export const startServer = async () => {
         }
 
         // Register CORS
-        console.log(NODE_ENV);
+        console.log("NODE_ENV :" + NODE_ENV);
         if (NODE_ENV === "dev") {
-            console.log(NODE_ENV);
             app.register(cors, corsConfig);
         } else {
             app.register(cors, {
@@ -112,7 +111,7 @@ export const startServer = async () => {
         app.addHook(
             "onResponse",
             async (request: FastifyRequest, reply: FastifyReply) => {
-                console.log("Reply");
+                console.log("Reply code :");
                 console.log(reply.statusCode);
             },
         );

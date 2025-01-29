@@ -7,7 +7,7 @@ import {
 } from "../error/recyclotronApiErr.js";
 import SCategory from "../models/Category.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 
 // Create new item
 export const createItem = async (
@@ -56,7 +56,7 @@ export const getItemById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Item");
+        const id: number = stringToInt(request.params.id, "Item");
         const item = await i.default.findByPk(id);
         if (!item) {
             return new RecyclotronApiErr("Item", "NotFound", 404);
@@ -106,7 +106,7 @@ export const updateItemById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Item");
+        const id: number = stringToInt(request.params.id, "Item");
         const item = await i.default.findByPk(id);
         if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
 
@@ -131,7 +131,7 @@ export const deleteItemById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Item");
+        const id: number = stringToInt(request.params.id, "Item");
         const item = await i.default.findByPk(id);
         if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
 
@@ -153,11 +153,11 @@ export const addCategoryToItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const itemId: number = intToString(request.params.itemId, "Item");
+        const itemId: number = stringToInt(request.params.itemId, "Item");
         if (!i.default.findByPk(itemId))
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
-        const categoryId = intToString(request.params.categoryId, "Category");
+        const categoryId = stringToInt(request.params.categoryId, "Category");
         if (!SCategory.findByPk(categoryId))
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
@@ -191,7 +191,7 @@ export const getAllCategoriesOfItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Item");
+        const id: number = stringToInt(request.params.id, "Item");
         const categories = await SItemCategory.findAll({
             where: { itemId: id },
         });
@@ -217,8 +217,8 @@ export const deleteCategoryOfItem = async (
     reply: FastifyReply,
 ) => {
     try {
-        const itemId = intToString(request.params.itemId, "Item");
-        const categoryId = intToString(request.params.categoryId, "Category");
+        const itemId = stringToInt(request.params.itemId, "Item");
+        const categoryId = stringToInt(request.params.categoryId, "Category");
         const itemCategory = await SItemCategory.findOne({
             where: { itemId: itemId, categoryId: categoryId },
         });

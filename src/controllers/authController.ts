@@ -2,7 +2,7 @@ import { generateToken } from "../service/auth_service.js";
 import SUser, { CreateUser, ZCreateUser } from "../models/User.js";
 import SUserRoles from "../models/UserRoles.js";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
 import { createOTP, verifyOTPservice } from "../service/otpService.js";
@@ -120,7 +120,7 @@ export const verifyOTP = async (
     reply: FastifyReply,
 ) => {
     let isValid = await verifyOTPservice(
-        intToString(request.body.id, "Auth"),
+        stringToInt(request.body.id, "Auth"),
         request.body.otp,
     );
 
@@ -139,7 +139,7 @@ export const verifyOTP = async (
         statusCode: 200,
         message: "Authentication successful",
         jwt: generateToken(
-            intToString(request.body.id, "Auth"),
+            stringToInt(request.body.id, "Auth"),
             user.getDataValue("email"),
             await user.getRoleString(),
         ),

@@ -15,7 +15,7 @@ export const generateToken = (id: number, email: string, roles: string[]) => {
                 roles: roles,
             },
             JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN },
+            { expiresIn: JWT_EXPIRES_IN }, // actually 2 weeks, format : "336h"
         );
     } catch (error) {
         throw error;
@@ -26,6 +26,4 @@ export const verifyJwtTime = (user: {
     id: number;
     email: string;
     roles: string[];
-}) => {
-    
-};
+}) => {};

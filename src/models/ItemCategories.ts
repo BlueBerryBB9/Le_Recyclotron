@@ -24,4 +24,14 @@ SCategory.belongsToMany(SItem, {
     through: SItemCategory,
 });
 
+SItem.beforeDestroy(async (item) => {
+    await SItemCategory.destroy({ where: { itemId: item.getDataValue("id") } });
+});
+
+SCategory.beforeDestroy(async (category) => {
+    await SItemCategory.destroy({
+        where: { categoryId: category.getDataValue("id") },
+    });
+});
+
 export default SItemCategory;

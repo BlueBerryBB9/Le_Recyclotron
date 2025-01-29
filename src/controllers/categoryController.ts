@@ -5,7 +5,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 
 export const createCategory = async (
     request: FastifyRequest<{ Body: i.InputCategory }>,
@@ -29,7 +29,7 @@ export const createChildCategory = async (
     reply: FastifyReply,
 ) => {
     try {
-        const parent_category_id: number = intToString(
+        const parent_category_id: number = stringToInt(
             request.params.id,
             "Category",
         );
@@ -57,7 +57,7 @@ export const createChildCategory = async (
     }
 };
 
-// Get all Categorys
+// Get all Categories
 export const getAllCategories = async (
     request: FastifyRequest,
     reply: FastifyReply,
@@ -84,7 +84,7 @@ export const getCategoryById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Category");
+        const id: number = stringToInt(request.params.id, "Category");
         const category = await i.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
@@ -111,7 +111,7 @@ export const updateCategoryById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Category");
+        const id: number = stringToInt(request.params.id, "Category");
         const Category = await i.default.findByPk(id);
         if (!Category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
@@ -135,7 +135,7 @@ export const deleteCategoryById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Category");
+        const id: number = stringToInt(request.params.id, "Category");
         const category = await i.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
@@ -157,19 +157,64 @@ export const getAllCategoriesOfCategory = async (
     reply: FastifyReply,
 ) => {
     try {
-        const parent_category_id: number = intToString(
+        const parent_category_id: number = stringToInt(
             request.params.id,
             "Category",
         );
-        const categories = await i.default.findAll({
-            where: { parent_category_id: parent_category_id },
-        });
-        if (categories.length === 0)
-            throw new RecyclotronApiErr("Category", "NotFound", 404);
 
+        // Stores the final structure (parent category and its children)
+        let allCategories: any[] = [];
+
+        // Recursive function to get categories and their children
+        const getCategories = async (parentId: number): Promise<any> => {
+            console.log(`Fetching categories for parentId: ${parentId}`); // Debugging line
+
+            // Fetch categories whose parent matches the current parentId
+            const subCategories = await i.default.findAll({
+                where: { parentCategoryId: parentId },
+            });
+
+            if (subCategories.length === 0) return;
+
+            // For each subcategory, recursively fetch its child categories
+            const categoriesWithChildren = await Promise.all(
+                subCategories.map(async (category) => {
+                    const categoryId = category.getDataValue("id");
+
+                    // Recursively fetch children for each subcategory
+                    const children = await getCategories(categoryId);
+
+                    // Return the category along with its children
+                    return {
+                        ...category.dataValues, // Include category info
+                        children, // Add child categories if they exist
+                    };
+                }),
+            );
+
+            // Add the current level categories with their children
+            return categoriesWithChildren;
+        };
+
+        // Start the recursion with the given parent category
+        const categoriesWithParent = await getCategories(parent_category_id);
+
+        // Add the parent category itself to the result
+        const parentCategory = await i.default.findByPk(parent_category_id);
+        if (parentCategory) {
+            allCategories = [
+                {
+                    ...parentCategory.dataValues,
+                    children: categoriesWithParent, // Attach the fetched children to the parent category
+                },
+            ];
+        }
+
+        // Send response
         reply.code(200).send({
-            data: categories,
-            message: "All childCategory of category fetch successfully",
+            data: allCategories,
+            message:
+                "All categories including parent and children fetched successfully",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {

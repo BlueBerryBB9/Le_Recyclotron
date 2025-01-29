@@ -6,7 +6,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
@@ -49,7 +49,7 @@ export const getEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(req.params.id, "Event");
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
@@ -71,7 +71,7 @@ export const updateEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(req.params.id, "Event");
         const data = req.body;
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
@@ -95,7 +95,7 @@ export const deleteEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(req.params.id, "Event");
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
@@ -119,7 +119,7 @@ export const getAllEventRegistrations = async (
     response: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Event");
+        const id: number = stringToInt(request.params.id, "Event");
         const registrations = await SRegistration.findAll({
             where: { EventId: id },
         });

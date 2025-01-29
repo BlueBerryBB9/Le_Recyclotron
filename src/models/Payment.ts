@@ -15,6 +15,7 @@ SPayment.init(
                 model: "Users",
                 key: "id",
             },
+            onDelete: "CASCADE",
         },
         id_stripe_payment: { type: DataTypes.STRING, allowNull: true },
         amount: { type: DataTypes.FLOAT, allowNull: false },

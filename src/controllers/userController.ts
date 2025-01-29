@@ -13,7 +13,7 @@ import {
     RecyclotronApiErr,
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 import { userInfo } from "os";
 import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
@@ -53,7 +53,9 @@ export const createUser: RouteHandler<{
             attributes: { exclude: ["password"] },
         });
 
-        return reply.status(201).send(userWithRoles?.dataValues);
+        if (!userWithRoles) throw new RecyclotronApiErr("User", "NotFound");
+
+        return reply.status(201).send(userWithRoles.dataValues);
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -217,11 +219,11 @@ export const removeUserRoles: RouteHandler<{
     Params: { userId: string; roleId: string };
 }> = async (request, reply) => {
     try {
-        const userId: number = intToString(request.params.userId, "User");
+        const userId: number = stringToInt(request.params.userId, "User");
         const user = await SUser.findByPk(userId);
         if (!user) throw new RecyclotronApiErr("RoleInUser", "NotFound", 404);
 
-        const roleId: number = intToString(request.params.roleId, "RoleInUser");
+        const roleId: number = stringToInt(request.params.roleId, "RoleInUser");
         const role = await SRole.findByPk(request.params.roleId);
         if (!role) throw new RecyclotronApiErr("RoleInUser", "NotFound", 404);
 
@@ -342,7 +344,7 @@ export const getRegistrationsByUserId = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const registration = await r.default.findAll({
             where: {
                 userId: id,
@@ -371,7 +373,7 @@ export const getPaymentsByUserId = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Payment");
+        const id: number = stringToInt(req.params.id, "Payment");
         const payments = await r.default.findAll({
             where: {
                 userId: id,

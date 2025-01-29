@@ -239,6 +239,10 @@ export async function seedDatabase(sequelize: any) {
                 name: "Câbles",
                 parentCategoryId: 3,
             },
+            {
+                name: "T-shirts col V",
+                parentCategoryId: 2,
+            },
         ]);
         console.log("Default categories inserted successfully!");
     }

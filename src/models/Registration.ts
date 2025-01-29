@@ -30,6 +30,16 @@ SRegistration.init(
     { sequelize, modelName: "Registration", timestamps: true },
 );
 
+SUser.beforeDestroy(async (user) => {
+    await SRegistration.destroy({ where: { userId: user.getDataValue("id") } });
+});
+
+SEvent.beforeDestroy(async (event) => {
+    await SRegistration.destroy({
+        where: { roleId: event.getDataValue("id") },
+    });
+});
+
 export default SRegistration;
 
 export const ZRegistration = z.object({

@@ -1,6 +1,6 @@
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
-export function intToString(
+export function stringToInt(
     i: string,
     error_subject:
         | "Item"

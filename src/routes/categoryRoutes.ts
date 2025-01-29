@@ -10,7 +10,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories",
         {
             schema: { body: m.ZInputCategory },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.createCategory,
     );
@@ -23,7 +23,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
             },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.createCategory,
     );
@@ -31,7 +31,7 @@ export default async (fastify: FastifyInstance) => {
     // All categories
     fastify.get(
         "/categories",
-        { onRequest: [authorize(['employee'])] },
+        { onRequest: [authorize(["employee"])] },
         ctrl.getAllCategories,
     );
 
@@ -40,7 +40,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.getCategoryById,
     );
@@ -53,7 +53,7 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialCategory,
             },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.updateCategoryById,
     );
@@ -63,7 +63,7 @@ export default async (fastify: FastifyInstance) => {
         "/categories/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.deleteCategoryById,
     );
@@ -72,8 +72,8 @@ export default async (fastify: FastifyInstance) => {
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id/categories",
         {
-            schema: { params: z.object({ CategoryId: z.string() }) },
-            onRequest: [authorize(['employee'])],
+            schema: { params: z.object({ id: z.string() }) },
+            onRequest: [authorize(["employee"])],
         },
         ctrl.getAllCategoriesOfCategory,
     );

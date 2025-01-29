@@ -5,7 +5,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 
 // Error handling middleware
 const errorHandler = (rep: FastifyReply, error: any) => {
@@ -59,7 +59,7 @@ export const getRegistration = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const registration = await r.default.findByPk(id);
         if (!registration)
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
@@ -85,7 +85,7 @@ export const updateRegistration = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const data = req.body;
 
         const registration = await r.default.findByPk(id);
@@ -112,7 +112,7 @@ export const deleteRegistration = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const registration = await r.default.findByPk(id);
         if (!registration)
             return new RecyclotronApiErr("Registration", "NotFound", 404);

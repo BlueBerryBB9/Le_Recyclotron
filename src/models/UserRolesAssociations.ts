@@ -19,4 +19,14 @@ const setupAssociations = () => {
     });
 };
 
+SUser.beforeDestroy(async (user) => {
+    await SUserRole.destroy({ where: { userId: user.getDataValue("id") } });
+});
+
+SRole.beforeDestroy(async (role) => {
+    await SUserRole.destroy({
+        where: { roleId: role.getDataValue("id") },
+    });
+});
+
 export default setupAssociations;

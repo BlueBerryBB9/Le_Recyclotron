@@ -59,13 +59,16 @@ export const startServer = async () => {
                 secret: JWT_SECRET,
             });
         }
+
         // Register CORS
+        console.log(NODE_ENV);
         if (NODE_ENV === "dev") {
+            console.log(NODE_ENV);
             app.register(cors, corsConfig);
         } else {
             app.register(cors, {
                 origin: `${FRONTEND_URL}`, // Adjust the origin as needed
-                methods: [],
+                methods: ["GET", "POST", "PUT", "DELETE"],
                 allowedHeaders: ["Content-Type", "Authorization"],
                 credentials: true,
                 preflightContinue: false,
@@ -88,30 +91,18 @@ export const startServer = async () => {
             "onRequest",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 try {
-                    if (request.method === "GET") {
-                        reply.header("Access-Control-Allow-Origin", "*");
-                        reply.header(
-                            "Access-Control-Allow-Methods",
-                            "GET, POST, PUT, DELETE, PATCH",
-                        );
-                        reply.header(
-                            "Access-Control-Allow-Headers",
-                            "Content-Type",
-                        );
-                    }
-                    console.log(request.url);
-                    console.log(await request.jwtVerify());
-                    console.log(request.user);
-                    // const user = await SUser.findByPk(1, {
-                    //     include: [
-                    //         {
-                    //             model: SRole,
-                    //             as: "roles", // Alias defined in the association
-                    //             attributes: ["id", "name"], // Specify which fields to include from Role
-                    //         },
-                    //     ],
-                    //     attributes: ["id", "first_name", "email"], // Specify which fields to include from User
-                    // });
+                    // REPLACING CORS HEADER
+                    // if (request.method === "GET") {
+                    //     reply.header("Access-Control-Allow-Origin", "*");
+                    //     reply.header(
+                    //         "Access-Control-Allow-Methods",
+                    //         "GET, POST, PUT, DELETE, PATCH",
+                    //     );
+                    //     reply.header(
+                    //         "Access-Control-Allow-Headers",
+                    //         "Content-Type",
+                    //     );
+                    // }
                 } catch (error) {
                     console.error("Error in onRequest hook:", error);
                     throw error; // Re-throw to let Fastify handle it

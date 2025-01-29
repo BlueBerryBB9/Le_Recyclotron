@@ -34,10 +34,6 @@ SItem.init(
             type: DataTypes.STRING(256),
             allowNull: false,
         },
-        date: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
     },
     {
         tableName: "Items",
@@ -51,10 +47,9 @@ export const ZItem = z.object({
     status: z.nativeEnum(ItemStatus),
     material: z.string(),
     image: z.string(),
-    date: z.coerce.date(),
 });
 
-export const ZPartialItem = ZItem.partial(); // tous les champs sont devenus optionels
+export const ZPartialItem = ZItem.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputItem = ZItem.omit({ id: true }); // le même objet sans l'id
 
 export type Item = z.infer<typeof ZItem>; // Le type typescript qui correspond à l'objet

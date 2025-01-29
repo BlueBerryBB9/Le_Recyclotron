@@ -14,13 +14,13 @@ SItemCategory.init(
 );
 
 SItem.belongsToMany(SCategory, {
-    as: "category",
-    foreignKey: "categoryId",
+    as: "items",
+    foreignKey: "itemId",
     through: SItemCategory,
 });
 SCategory.belongsToMany(SItem, {
-    as: "item",
-    foreignKey: "itemId",
+    as: "categories",
+    foreignKey: "categoryId",
     through: SItemCategory,
 });
 

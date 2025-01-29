@@ -3,6 +3,7 @@ import * as rc from "../controllers/registrationController.js";
 import * as rm from "../models/Registration.js";
 import z from "zod";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
+import { where } from "sequelize";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: rm.InputRegistration }>(
@@ -26,7 +27,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [isSelfOrAdminOr(["cm"])],
+            onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.getRegistration,
     );
@@ -38,7 +39,7 @@ export default async (fastify: f.FastifyInstance) => {
                 body: rm.ZPartialRegistration,
                 params: z.object({ id: z.string() }),
             },
-            // onRequest: [isSelfOrAdminOr()],
+            onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.updateRegistration,
     );
@@ -47,7 +48,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/registration/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [isSelfOrAdminOr()],
+            onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.deleteRegistration,
     );

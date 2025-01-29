@@ -1,7 +1,7 @@
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import * as authController from "../controllers/authController.js";
 import { Identifier } from "sequelize";
-import SUser from "../models/User.js";
+import SUser, { ZCreateUser } from "../models/User.js";
 import { FastifyInstance, RawServerDefault, RouteHandlerMethod } from "fastify";
 import * as z from "zod";
 import { IncomingMessage, ServerResponse } from "http";
@@ -16,16 +16,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     email: z.string(),
                     password: z.string(),
                 }),
-                response: {
-                    200: {
-                        type: 'object',
-                        properties: {
-                            access_token: { type: 'string' },
-                            refresh_token: { type: 'string' },
-                            user: { type: 'object' }
-                        }
-                    }
-                }
             },
         },
         authController.login,
@@ -35,23 +25,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
         "/auth/register",
         {
             schema: {
-                body: z.object({
-                    email: z.string(),
-                    password: z.string(),
-                    first_name: z.string(),
-                    last_name: z.string(),
-                    phone: z.string(),
-                }),
-                response: {
-                    201: {
-                        type: 'object',
-                        properties: {
-                            access_token: { type: 'string' },
-                            refresh_token: { type: 'string' },
-                            user: { type: 'object' }
-                        }
-                    }
-                }
+                body: ZCreateUser,
             },
         },
         authController.register,

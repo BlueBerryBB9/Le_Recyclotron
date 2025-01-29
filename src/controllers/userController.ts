@@ -1,13 +1,6 @@
-import {
-    FastifyRequest,
-    FastifyReply,
-    RawServerDefault,
-    FastifySchema,
-    RouteHandler,
-} from "fastify";
+import { FastifyRequest, FastifyReply, RouteHandler } from "fastify";
 import SUser, {
     ZCreateUser,
-    ZUpdateUser,
     ResetPasswordRequest,
     ResetPassword,
     UpdateUser,
@@ -15,7 +8,7 @@ import SUser, {
 } from "../models/User.js";
 import SUserRole from "../models/UserRoles.js";
 import SRole from "../models/Role.js";
-import { BaseError, Error, Op, ValidationError } from "sequelize";
+import { BaseError, Op } from "sequelize";
 import {
     RecyclotronApiErr,
     SequelizeApiErr,
@@ -27,10 +20,6 @@ import * as hashConfig from "../config/hash.js";
 import { MailService } from "../service/emailSender.js";
 import SResetPassword from "../models/ResetPassword.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
-import * as z from "zod";
-import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Type } from "@sinclair/typebox";
-import { IncomingMessage } from "http";
 import * as r from "../models/Registration.js";
 
 // Create User

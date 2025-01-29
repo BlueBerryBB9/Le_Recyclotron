@@ -97,14 +97,11 @@ export const ZUserBase = z.object({
         .string()
         .regex(/^\+?[\d\s-]+$/, "Invalid phone number format")
         .max(10, "Phone number must be less than 10 characters")
-        .nullable()
         .optional(),
 
     is_adherent: z.boolean().default(false),
 
     sub_type: z.string().nullable().optional(),
-
-    token_revocation_timestamp: z.date().nullable().optional(),
 });
 
 // Complete user schema with ID

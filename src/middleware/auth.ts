@@ -41,7 +41,7 @@ export function authorize(allowedRoles: string[]) {
 
 export async function isSelfOrAdminOr(
     roles: string[] | null = null,
-    where: string = "user",
+    entity: string = "user",
 ) {
     return async (
         request: FastifyRequest<{ Params: { id: string } }>,
@@ -58,9 +58,9 @@ export async function isSelfOrAdminOr(
         const requestingUserRoles = request.user.roles;
         let targetUserId: number;
 
-        if (where === "user") {
+        if (entity === "user") {
             targetUserId = parseInt(request.params.id);
-        } else if (where === "registration") {
+        } else if (entity === "registration") {
             const targetRegistrationId = parseInt(request.params.id);
             const targetRegistration =
                 await SRegistration.findByPk(targetRegistrationId);

@@ -18,8 +18,7 @@ SPayment.init(
         },
         id_stripe_payment: { type: DataTypes.STRING, allowNull: true },
         amount: { type: DataTypes.FLOAT, allowNull: false },
-        type: { type: DataTypes.INTEGER },
-        date: { type: DataTypes.DATE, allowNull: false },
+        type: { type: DataTypes.INTEGER }, // donation = 0, subscription = 1 ?
         status: { type: DataTypes.STRING, allowNull: true },
     },
     { sequelize, modelName: "Payment" },

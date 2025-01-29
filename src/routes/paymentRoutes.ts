@@ -24,7 +24,7 @@ export default async (fastify: FastifyInstance) => {
         "/subscription",
         {
             schema: { body: subscriptionSchema },
-            // onRequest: [authorize],
+            onRequest: [authorize(["client"])],
         },
         PaymentController.createSubscription,
     );
@@ -32,7 +32,7 @@ export default async (fastify: FastifyInstance) => {
         "/subscription/:id",
         {
             schema: { params: z.object({ subscriptionId: z.string() }) },
-            // onRequest: [authorize],
+            onRequest: [authorize(["client"])],
         },
         PaymentController.cancelSubscription,
     );
@@ -40,7 +40,7 @@ export default async (fastify: FastifyInstance) => {
         "/donation",
         {
             schema: { body: donationSchema },
-            // onRequest: [authorize],
+            onRequest: [authorize(["client"])],
         },
         PaymentController.createDonation,
     );
@@ -48,7 +48,7 @@ export default async (fastify: FastifyInstance) => {
         "/payment-method",
         {
             schema: { body: paymentMethodSchema },
-            // onRequest: [authorize],
+            onRequest: [authorize(["client"])],
         },
         PaymentController.updatePaymentMethod,
     );
@@ -56,7 +56,7 @@ export default async (fastify: FastifyInstance) => {
         "/webhook",
         {
             config: { rawBody: true },
-            // onRequest: [authorize],
+            onRequest: [authorize(["admin"])],
         },
         PaymentController.handleWebhook,
     );

@@ -22,7 +22,7 @@ export const createRegistration = async (
         const createdRegistration = await r.default.create(req.body);
 
         return rep.status(201).send({
-            data: createdRegistration,
+            data: createdRegistration.dataValues,
             message: "Registration Created",
         });
     } catch (error) {

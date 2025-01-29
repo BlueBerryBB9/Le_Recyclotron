@@ -3,11 +3,23 @@ import SUser from "../models/User.js";
 import UserRole from "../models/UserRoles.js";
 import { argon2Options } from "../config/hash.js";
 import argon from "argon2";
+import SCategory from "../models/Category.js";
+import SEvent from "../models/Event.js";
+import SItem from "../models/Item.js";
+import SItemCategory from "../models/ItemCategories.js";
+import SPayment from "../models/Payment.js";
+import SRegistration from "../models/Registration.js";
 
 export async function seedDatabase(sequelize: any) {
-    const userCount = await SUser.count(); // Check if the Users table is empty
-    const userRoleCount = await UserRole.count(); // Check if the Users table is empty
-    const roleCount = await SRole.count(); // Check if the Users table is empty
+    const userCount = await SUser.count();
+    const userRoleCount = await UserRole.count();
+    const roleCount = await SRole.count();
+    const eventCount = await SEvent.count();
+    const registrationCount = await SRegistration.count();
+    const categoryCount = await SCategory.count();
+    const itemCount = await SItem.count();
+    const itemCategoriesCount = await SItemCategory.count();
+    const paymentCount = await SPayment.count();
 
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
     await SUser.destroy({ truncate: true });
@@ -16,7 +28,6 @@ export async function seedDatabase(sequelize: any) {
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
     if (userCount === 0) {
-        console.log("Inserting default users...");
         await SUser.bulkCreate([
             {
                 first_name: "Martin",
@@ -41,6 +52,12 @@ export async function seedDatabase(sequelize: any) {
                 last_name: "Leroy2",
                 email: "martin4leroy@gmail.com",
                 password: await argon.hash("USER", argon2Options),
+            },
+            {
+                first_name: "Noah2",
+                last_name: "Chantin2",
+                email: "alyxisss@gmail.com",
+                password: await argon.hash("EMPLOYEE", argon2Options),
             },
         ]);
         console.log("Default users inserted successfully!");
@@ -156,7 +173,112 @@ export async function seedDatabase(sequelize: any) {
                 userId: 4,
                 roleId: 6,
             },
+            // Noah Employee
+            {
+                userId: 5,
+                roleId: 5,
+            },
         ]);
-        console.log("Default UserRoles inserted successfully!");
+        console.log("Default userRoles inserted successfully!");
+    }
+    if (eventCount === 0) {
+        await SEvent.bulkCreate([
+            {
+                title: "title 1",
+                description: "title 1 description",
+                date: new Date(),
+                image: "image.com",
+            },
+            {
+                title: "title 2",
+                description: "title 2 description",
+                date: new Date(),
+                image: "image.com",
+            },
+        ]);
+        console.log("Default events inserted successfully!");
+    }
+    if (registrationCount === 0) {
+        await SRegistration.bulkCreate([
+            {
+                seats: 2,
+                userId: 4,
+                eventId: 1,
+            },
+            {
+                seats: 1,
+                userId: 4,
+                eventId: 2,
+            },
+        ]);
+        console.log("Default registrations inserted successfully!");
+    }
+    if (categoryCount === 0) {
+        await SCategory.bulkCreate([
+            {
+                name: "Vêtements",
+            },
+            {
+                name: "T-shirts",
+                parentCategoryId: 1,
+            },
+            {
+                name: "électronique",
+            },
+            {
+                name: "Câbles",
+                parentCategoryId: 3,
+            },
+        ]);
+        console.log("Default categories inserted successfully!");
+    }
+    if (itemCount === 0) {
+        await SItem.bulkCreate([
+            {
+                name: "t-shirt supreme",
+                status: 0,
+                material: "coton",
+                image: "image.com",
+            },
+            {
+                name: "câble hdmi",
+                status: 0,
+                material: "metal",
+                image: "image.com",
+            },
+        ]);
+        console.log("Default items inserted successfully!");
+    }
+    if (itemCategoriesCount === 0) {
+        await SItemCategory.bulkCreate([
+            {
+                categoryId: 2,
+                itemId: 1,
+            },
+            {
+                categoryId: 4,
+                itemId: 2,
+            },
+        ]);
+        console.log("Default item categories inserted successfully!");
+    }
+    if (paymentCount === 0) {
+        await SPayment.bulkCreate([
+            {
+                userId: 4,
+                id_stripe_payment: 1,
+                amount: 1,
+                type: 0,
+                status: "finished",
+            },
+            {
+                userId: 4,
+                id_stripe_payment: 1,
+                amount: 1,
+                type: 0,
+                status: "finished",
+            },
+        ]);
+        console.log("Default payments inserted successfully!");
     }
 }

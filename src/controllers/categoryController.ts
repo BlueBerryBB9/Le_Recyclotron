@@ -63,7 +63,6 @@ export const getAllCategories = async (
     reply: FastifyReply,
 ) => {
     try {
-        console.log("HERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEEEEEEE");
         const categories = await i.default.findAll();
         if (categories.length === 0)
             return new RecyclotronApiErr("Category", "NotFound", 404);

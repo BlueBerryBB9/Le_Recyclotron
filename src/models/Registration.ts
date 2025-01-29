@@ -25,21 +25,21 @@ SRegistration.init(
             },
             primaryKey: true,
         },
-        date: { type: DataTypes.DATE, allowNull: false },
         seats: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     },
-    { sequelize, modelName: "Registration" },
+    { sequelize, modelName: "Registration", timestamps: true },
 );
 
 export default SRegistration;
 
 export const ZRegistration = z.object({
     id: z.number(),
-    date: z.coerce.date(),
     seats: z.number(),
+    userId: z.number(),
+    eventId: z.number(),
 });
 
-export const ZPartialRegistration = ZRegistration.partial(); // tous les champs sont devenus optionels
+export const ZPartialRegistration = ZRegistration.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputRegistration = ZRegistration.omit({ id: true }); // le même objet sans l'id
 
 export type Registration = z.infer<typeof ZRegistration>; // Le type typescript qui correspond à l'objet

@@ -12,41 +12,54 @@ graph TD
     style J fill:#FF6B6B
     style K fill:#FF6B6B
     style L fill:#FF6B6B
+    style M1 fill:#FF6B6B
+    style N1 fill:#FF6B6B
 
     subgraph CategoryRoutes
         subgraph POST /categories
             A[InputCategory :
             - name : string
-            - parent_category_id: number] -->|createCategory| B[SCategory :
+            - parent_category_id?: number] -->|createCategory| B[SCategory :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
+        end
+        subgraph POST /categories/:id/categories
+            M1[InputCategory :
+            - name : string] -->|createChildCategory| N1[SCategory :
+            - id : number 
+            - name : string
+            - parent_category_id: number]
         end
         subgraph GET /categories
-            C[None] -->|getAllCategories| D[SCategory :
+            C[None] -->|getAllCategories| D[SCategoryArray :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
         end
         subgraph GET /categories/:id
             E[id: string] -->|getCategoryById| F[SCategory :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
         end
         subgraph PUT /categories/:id
             G[id: string, 
             PartialCategory :
-            - id : number
-            - name : string
-            - parent_category_id : number] -->|updateCategory| H[SCategory :
+            - name?: string
+            - parent_category_id?: number] -->|updateCategory| H[SCategory :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
         end
         subgraph DELETE /categories/:id
             I[id: string] -->|deleteCategory| J[None]
         end
         subgraph GET /categories/:id/categories
-            K[id: string] -->|getChildCategories| L[SCategory :
-            - id : int 
-            - name : string]
+            K[id: string] -->|getChildCategories| L[SCategoryArray :
+            - id : number 
+            - name : string
+            - parent_category_id: number]
         end
     end
 
@@ -408,8 +421,6 @@ graph TD
     style BZ fill:#6B8E23
     style CA fill:#6B8E23
     style CB fill:#6B8E23
-    style CC fill:#6B8E23
-    style CD fill:#6B8E23
     style CE fill:#6B8E23
     style CF fill:#6B8E23
     style CG fill:#6B8E23
@@ -421,34 +432,28 @@ graph TD
     
     subgraph AuthRoutes
         subgraph POST /auth/login
-            BY[LoginDto:
+            BY[Login:
             - email: string
-            - password: string] -->|login| BZ[AuthResponse:
-            - access_token: string
-            - refresh_token: string
-            - user: SUser]
+            - password: string] -->|login| BZ[None]
         end
         subgraph POST /auth/register
-            CA[RegisterDto:
+            CA[Register:
             - email: string
             - password: string
             - first_name: string
             - last_name: string
-            - phone: string] -->|register| CB[AuthResponse:
-            - access_token: string
-            - refresh_token: string
-            - user: SUser]
+            - phone?: string] -->|register| CB[None]
         end
         subgraph POST /auth/verify_otp
             CE[VerifyOTPDto:
             - id: string
-            - otp: string] -->|verifyOTP| CF[None]
+            - otp: string] -->|verifyOTP| CF[JWT]
         end
         subgraph GET /auth/me
             CG[None] -->|getCurrentUser| CH[SUser]
         end
         subgraph POST /auth/revoke-all
-            CI[None] -->|revokeAllTokens| CJ[message: string]
+            CI[None] -->|revokeAllTokens| CJ[None]
         end
         subgraph POST /auth/revoke-user/:id
             CK[id: string] -->|revokeUserTokens| CL[None]

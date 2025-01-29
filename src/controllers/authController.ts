@@ -1,5 +1,5 @@
 import { generateToken } from "../service/auth_service.js";
-import SUser, { CreateUser } from "../models/User.js";
+import SUser, { CreateUser, ZCreateUser } from "../models/User.js";
 import SUserRoles from "../models/UserRoles.js";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { intToString } from "../service/intToString.js";
@@ -16,7 +16,6 @@ import SRole from "../models/Role.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
 import OTP from "../models/OTP.js";
 import { BaseError } from "sequelize";
-
 
 //* login
 export const login = async (
@@ -80,26 +79,24 @@ export const register = async (
     reply: FastifyReply,
 ) => {
     try {
-        const { email, password, first_name, last_name } = request.body;
+        const userData = ZCreateUser.parse(request.body);
 
-        const existingUser = await SUser.findOne({ where: { email } });
-        if (existingUser) {
+        const existingUser = await SUser.findOne({
+            where: { email: userData.email },
+        });
+        if (existingUser)
             throw new RecyclotronApiErr("Auth", "AlreadyExists", 409);
-        }
 
         const hashedPassword = await argon.hash(
-            password,
+            userData.password,
             hashConfig.argon2Options,
         );
 
         const newUser = await SUser.create({
-            email,
-            password: hashedPassword,
-            first_name,
-            last_name,
+            userData,
         });
 
-        const userRole = await SUserRoles.create({
+        await SUserRoles.create({
             user_id: newUser.getDataValue("id"),
             role_id: 6,
         });
@@ -109,7 +106,9 @@ export const register = async (
             message: "User registered successfully. Please log in.",
         });
     } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Auth", error);
+        } else if (error instanceof RecyclotronApiErr) {
             throw error;
         } else throw new RecyclotronApiErr("Auth", "OperationFailed");
     }

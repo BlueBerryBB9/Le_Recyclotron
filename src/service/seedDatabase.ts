@@ -206,11 +206,6 @@ export async function seedDatabase(sequelize: any) {
             userId: 4,
             eventId: 1,
         },
-        {
-            seats: 1,
-            userId: 4,
-            eventId: 2,
-        },
     ]);
     console.log("Default registrations inserted successfully!");
     await SCategory.bulkCreate([

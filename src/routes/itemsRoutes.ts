@@ -16,11 +16,7 @@ export default async (fastify: FastifyInstance) => {
     );
 
     // All items
-    fastify.get(
-        "/item",
-        { onRequest: [authorize(["employee"])] },
-        ctrl.getAllItems,
-    );
+    fastify.get("/item", ctrl.getAllItems);
 
     // Item details
     fastify.get<{ Params: { id: string } }>(
@@ -37,7 +33,7 @@ export default async (fastify: FastifyInstance) => {
         "/item/:status/",
         {
             schema: { params: z.object({ status: z.string() }) },
-            onRequest: [authorize(["repairer"])],
+            onRequest: [authorize(["repairer", "client"])],
         },
         ctrl.getItemByStatus,
     );

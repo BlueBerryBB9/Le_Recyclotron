@@ -26,6 +26,7 @@ export const createRegistration = async (
     }
 };
 
+// UPGRADE TO DO : REGROUP THEM BY EVENT
 export const getAllRegistrations = async (
     req: FastifyRequest,
     rep: FastifyReply,
@@ -36,7 +37,9 @@ export const getAllRegistrations = async (
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
         return rep.status(200).send({
-            data: registrations,
+            data: registrations.map((reg) => {
+                return reg.dataValues;
+            }),
             message: "Fetched all Registrations",
         });
     } catch (error) {
@@ -89,7 +92,7 @@ export const updateRegistration = async (
 
         await registration.update(data);
         return rep.status(200).send({
-            data: registration,
+            data: registration.dataValues,
             message: "Registration updated successfully",
         });
     } catch (error) {
@@ -111,9 +114,8 @@ export const deleteRegistration = async (
         if (!registration)
             return new RecyclotronApiErr("Registration", "NotFound", 404);
 
-        await r.default.destroy({
-            where: { id },
-        });
+        await registration.destroy();
+
         return rep.status(204).send({
             message: "Registration deleted successfully",
         });

@@ -2,6 +2,16 @@
 <h3 align="center">Easy to use inventory management, showcase website and employee role management web application !<h3>
 <br>
 
+# NOTES
+
+- les items de status vendable doivent être affichable pour les client !!
+- All categories of an Category maybe useless
+- MAYBE USELESS, why dont use update instead of add category to item?
+- ITEMS SHOULD HAVE ONLY ONE CATEGORY
+- add a route so from an category you can get all the tree for it so parent and child categories
+- Why relation many to many between items and categories ?
+- why not just have the last category of the "tree" of categories instead of all ? deserves to be debate depending on front implementation. what happens to item bound to a category when a children category of it is created ?
+
 ### Authors :
 
 - [BlueBerryBB9](https://github.com/BlueBerryBB9)

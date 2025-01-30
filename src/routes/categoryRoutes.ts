@@ -29,18 +29,13 @@ export default async (fastify: FastifyInstance) => {
     );
 
     // All categories
-    fastify.get(
-        "/categories",
-        { onRequest: [authorize(["employee"])] },
-        ctrl.getAllCategories,
-    );
+    fastify.get("/categories", ctrl.getAllCategories);
 
     // Category details
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(["employee"])],
         },
         ctrl.getCategoryById,
     );
@@ -68,6 +63,7 @@ export default async (fastify: FastifyInstance) => {
         ctrl.deleteCategoryById,
     );
 
+    // MAYBE USELESS WITH GET ALL ROUTE
     // All categories of an Category
     fastify.get<{ Params: { id: string } }>(
         "/categories/:id/categories",

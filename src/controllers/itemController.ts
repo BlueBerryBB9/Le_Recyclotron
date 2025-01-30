@@ -76,7 +76,7 @@ export const getItemById = async (
 
 // Get items by status
 export const getItemByStatus = async (
-    request: FastifyRequest<{ Params: { status: string } }>,
+    request: FastifyRequest<{ Params: { status: string } }>, // Status is an enum
     reply: FastifyReply,
 ) => {
     try {
@@ -147,6 +147,8 @@ export const deleteItemById = async (
     }
 };
 
+// MAYBE USELESS, why dont use update instead of add category to item?
+// ITEMS SHOULD HAVE ONLY ONE CATEGORY
 // Add category to item
 export const addCategoryToItem = async (
     request: FastifyRequest<{ Params: { itemId: string; categoryId: string } }>,

@@ -7,12 +7,6 @@ import {
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
 
-// Error handling middleware
-const errorHandler = (rep: FastifyReply, error: any) => {
-    console.error(error);
-    return rep.status(500).send({ error: "Internal Server Error" });
-};
-
 // Wrap each controller method with try/catch for error handling
 export const createRegistration = async (
     req: FastifyRequest<{ Body: r.InputRegistration }>,

@@ -87,18 +87,18 @@ export const register = async (
         if (existingUser)
             throw new RecyclotronApiErr("Auth", "AlreadyExists", 409);
 
-        const hashedPassword = await argon.hash(
+        userData.password = await argon.hash(
             userData.password,
             hashConfig.argon2Options,
         );
 
         const newUser = await SUser.create({
-            userData,
+            ...userData,
         });
 
         await SUserRoles.create({
-            user_id: newUser.getDataValue("id"),
-            role_id: 6,
+            userId: newUser.getDataValue("id"),
+            roleId: 6,
         });
 
         return reply.send({
@@ -119,31 +119,38 @@ export const verifyOTP = async (
     request: FastifyRequest<{ Body: { id: string; otp: string } }>,
     reply: FastifyReply,
 ) => {
-    let isValid = await verifyOTPservice(
-        stringToInt(request.body.id, "Auth"),
-        request.body.otp,
-    );
-
-    let user = await SUser.findByPk(request.body.id);
-    if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 500);
-
-    OTP.destroy({
-        where: {
-            userId: request.body.id,
-        },
-    });
-
-    if (!isValid) throw new RecyclotronApiErr("Auth", "InvalidInput", 400);
-
-    return reply.send({
-        statusCode: 200,
-        message: "Authentication successful",
-        jwt: generateToken(
+    try {
+        let isValid = await verifyOTPservice(
             stringToInt(request.body.id, "Auth"),
-            user.getDataValue("email"),
-            await user.getRoleString(),
-        ),
-    });
+            request.body.otp,
+        );
+        if (!isValid) throw new RecyclotronApiErr("Auth", "InvalidInput", 400);
+
+        let user = await SUser.findByPk(request.body.id);
+        if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
+
+        await OTP.destroy({
+            where: {
+                userId: request.body.id,
+            },
+        });
+
+        return reply.send({
+            statusCode: 200,
+            message: "Authentication successful",
+            jwt: generateToken(
+                stringToInt(request.body.id, "Auth"),
+                user.getDataValue("email"),
+                await user.getRoleString(),
+            ),
+        });
+    } catch (error) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Auth", error);
+        } else if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
+    }
 };
 
 //* getCurrentUser
@@ -223,11 +230,8 @@ export const revokeUserTokens = async (
 ) => {
     try {
         const userId = request.params.id;
-        console.log(tokenRevocations.users);
         tokenRevocations.users.delete(userId);
-        console.log(tokenRevocations.users);
         tokenRevocations.users.set(userId, Date.now());
-        console.log(tokenRevocations.users);
         return reply.send({
             message: "User token was revoked successfully",
         });

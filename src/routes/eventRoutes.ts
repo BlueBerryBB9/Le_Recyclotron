@@ -46,7 +46,7 @@ export default async (fastify: f.FastifyInstance) => {
     );
 
     fastify.get<{ Params: { id: string } }>(
-        "/event/:id/registration",
+        "/event/:id/registrations",
         {
             schema: { params: z.object({ id: z.string() }) },
             onRequest: [authorize(["cm"])],

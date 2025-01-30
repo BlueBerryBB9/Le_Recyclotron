@@ -14,11 +14,13 @@ interface MyCustomPayload {
 export function authorize(allowedRoles: string[]) {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         try {
+            console.log(request.headers.authorization);
             await request.jwtVerify();
             const decodedToken = await request.jwtDecode<MyCustomPayload>();
+            console.log(decodedToken);
 
             if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
-                throw new RecyclotronApiErr("Auth", "PermissionDenied");
+                throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
 
             const userRoles = request.user.roles;
 
@@ -34,7 +36,11 @@ export function authorize(allowedRoles: string[]) {
                 );
             }
         } catch (error) {
-            throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
+            if (error instanceof RecyclotronApiErr) {
+                throw error;
+            } else {
+                throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
+            }
         }
     };
 }
@@ -83,6 +89,16 @@ export async function isSelfOrAdminOr(
         if (!roles)
             throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
 
+        const targetUser = await SUser.findByPk(targetUserId);
+        if (!targetUser)
+            throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
+
+        if (
+            requestingUserRoles.includes("rh") &&
+            (await targetUser.getRoleString()).includes("client")
+        ) {
+            throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
+        }
         const hasRolePermission = roles.some((role) =>
             requestingUserRoles.includes(role),
         );

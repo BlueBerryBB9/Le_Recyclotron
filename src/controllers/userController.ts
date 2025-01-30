@@ -21,6 +21,7 @@ import { MailService } from "../service/emailSender.js";
 import SResetPassword from "../models/ResetPassword.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
 import * as r from "../models/Registration.js";
+import SPayment from "../models/Payment.js";
 
 // Create User
 export const createUser: RouteHandler<{
@@ -38,18 +39,25 @@ export const createUser: RouteHandler<{
         );
 
         const user = await SUser.create({
-            userData,
+            ...userData,
         });
 
         for (let role of request.body.roles) {
-            SUserRole.create({
+            await SUserRole.create({
                 roleId: role,
                 userId: user.getDataValue("id"),
             });
         }
 
         const userWithRoles = await SUser.findByPk(user.getDataValue("id"), {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
+            include: [
+                {
+                    model: SRole,
+                    attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
+                },
+            ],
             attributes: { exclude: ["password"] },
         });
 
@@ -139,7 +147,14 @@ export const updateUser: RouteHandler<{
         await user.update(userData);
 
         const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
+            include: [
+                {
+                    model: SRole,
+                    attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
+                },
+            ],
             attributes: { exclude: ["password"] },
         });
 
@@ -169,7 +184,7 @@ export const deleteUser: RouteHandler<{
     }
 };
 
-// Add User Roles
+// Add User Roles COHéRENCE A IMPLEMENTER --> ADMIN = TOUT, CLIENT
 export const addUserRoles: RouteHandler<{
     Params: { id: string };
     Body: { roles: number[] };
@@ -193,16 +208,22 @@ export const addUserRoles: RouteHandler<{
                     userId: user.getDataValue("id"),
                 },
             });
-            if (userRole)
-                throw new RecyclotronApiErr("User", "AlreadyExists", 409);
-            SUserRole.create({
+            if (userRole) continue;
+            await SUserRole.create({
                 roleId: role.getDataValue("id"),
                 userId: user.getDataValue("id"),
             });
         }
 
         const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
+            include: [
+                {
+                    model: SRole,
+                    attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
+                },
+            ],
             attributes: { exclude: ["password"] },
         });
 
@@ -237,7 +258,14 @@ export const removeUserRoles: RouteHandler<{
         await SUserRole.destroy({ where: { userId: userId, roleId: roleId } });
 
         const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
-            include: [{ model: SRole, attributes: ["id", "name"] }],
+            include: [
+                {
+                    model: SRole,
+                    attributes: ["id", "name"],
+                    as: "roles",
+                    through: { attributes: [] },
+                },
+            ],
             attributes: { exclude: ["password"] },
         });
 
@@ -374,7 +402,7 @@ export const getPaymentsByUserId = async (
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Payment");
-        const payments = await r.default.findAll({
+        const payments = await SPayment.findAll({
             where: {
                 userId: id,
             },

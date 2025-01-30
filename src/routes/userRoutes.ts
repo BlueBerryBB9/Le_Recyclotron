@@ -34,14 +34,10 @@ export default async (fastify: FastifyInstance) => {
         >,
     });
 
-    try {
-        fastify.get("/users", {
-            preHandler: [authorize(["rh"])],
-            handler: userController.getAllUsers as RouteHandlerMethod,
-        });
-    } catch (error) {
-        console.log(error);
-    }
+    fastify.get("/users", {
+        preHandler: [authorize(["rh"])],
+        handler: userController.getAllUsers as RouteHandlerMethod,
+    });
 
     fastify.get("/users/:id", {
         schema: { params: z.object({ id: z.string() }) },
@@ -57,7 +53,7 @@ export default async (fastify: FastifyInstance) => {
     });
 
     fastify.put("/users/:id", {
-        // preHandler: [isSelfOrAdminOr()],
+        preHandler: [await isSelfOrAdminOr(["rh"])],
         schema: {
             params: z.object({ id: z.string() }),
             body: u.ZUpdateUser,
@@ -86,11 +82,12 @@ export default async (fastify: FastifyInstance) => {
         >,
     });
 
-    // Role management routes (Admin only)
+    // Role management routes
     fastify.post("/users/:id/roles", {
         preHandler: [authorize(["rh"])],
         schema: {
-            params: z.object({ userId: z.string() }),
+            params: z.object({ id: z.string() }),
+            body: z.object({ roles: z.array(z.number()) }),
         },
         handler: userController.addUserRoles as RouteHandlerMethod<
             RawServerDefault,
@@ -136,7 +133,7 @@ export default async (fastify: FastifyInstance) => {
     fastify.get("/users/:id/registrations", {
         preHandler: [await isSelfOrAdminOr()],
         schema: {
-            params: z.object({ userId: z.string(), roleId: z.string() }),
+            params: z.object({ id: z.string() }),
         },
         handler: userController.getRegistrationsByUserId as RouteHandlerMethod<
             RawServerDefault,

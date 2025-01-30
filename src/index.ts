@@ -63,9 +63,9 @@ export const startServer = async () => {
         // Register CORS
         console.log("NODE_ENV :" + NODE_ENV);
         if (NODE_ENV === "dev") {
-            app.register(cors, corsConfig);
+            await app.register(cors, corsConfig);
         } else {
-            app.register(cors, {
+            await app.register(cors, {
                 origin: `${FRONTEND_URL}`, // Adjust the origin as needed
                 methods: ["GET", "POST", "PUT", "DELETE"],
                 allowedHeaders: ["Content-Type", "Authorization"],
@@ -102,6 +102,7 @@ export const startServer = async () => {
                     //         "Content-Type",
                     //     );
                     // }
+                    console.log(request.url);
                 } catch (error) {
                     console.error("Error in onRequest hook:", error);
                     throw error; // Re-throw to let Fastify handle it

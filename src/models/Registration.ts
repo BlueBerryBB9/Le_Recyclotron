@@ -36,7 +36,7 @@ SUser.beforeDestroy(async (user) => {
 
 SEvent.beforeDestroy(async (event) => {
     await SRegistration.destroy({
-        where: { roleId: event.getDataValue("id") },
+        where: { eventId: event.getDataValue("id") },
     });
 });
 

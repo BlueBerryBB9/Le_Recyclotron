@@ -101,10 +101,8 @@ export const deleteEvent = async (
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
-        await e.default.destroy({
-            where: { id },
-        });
-        return rep.status(204).send({
+        await event.destroy();
+        return rep.status(200).send({
             message: "Event deleted successfully",
         });
     } catch (error) {

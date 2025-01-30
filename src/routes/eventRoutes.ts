@@ -49,7 +49,7 @@ export default async (fastify: f.FastifyInstance) => {
         "/event/:id/registrations",
         {
             schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(["cm"])],
+            onRequest: [authorize(["employee"])],
         },
         ec.getAllEventRegistrations,
     );

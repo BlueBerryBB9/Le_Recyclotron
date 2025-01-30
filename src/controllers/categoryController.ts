@@ -15,7 +15,7 @@ export const createCategory = async (
         const newCategory = await i.default.create(request.body);
         reply.code(201).send({
             data: newCategory,
-            message: "new Category created successfully",
+            message: "New Category created successfully",
         });
     } catch (error) {
         if (error instanceof BaseError) {
@@ -46,7 +46,7 @@ export const createChildCategory = async (
         });
         reply.code(201).send({
             data: newCategory,
-            message: "newCategory created successfully",
+            message: "New Child Category created successfully",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
@@ -63,18 +63,53 @@ export const getAllCategories = async (
     reply: FastifyReply,
 ) => {
     try {
-        const categories = await i.default.findAll();
-        if (categories.length === 0)
-            return new RecyclotronApiErr("Category", "NotFound", 404);
+        const categories = await i.default.findAll({
+            where: { parentCategoryId: null },
+        });
+
+        if (categories.length === 0) {
+            throw new RecyclotronApiErr("Category", "NotFound", 404);
+        }
+
+        let allCategories: any[] = [];
+
+        // Recursive function to get categories and their children
+        const getCategories = async (parentId: number): Promise<any[]> => {
+            const subCategories = await i.default.findAll({
+                where: { parentCategoryId: parentId },
+            });
+
+            if (subCategories.length === 0) return [];
+
+            return await Promise.all(
+                subCategories.map(async (category) => ({
+                    ...category.dataValues,
+                    children: await getCategories(category.getDataValue("id")),
+                })),
+            );
+        };
+
+        for (const cate of categories) {
+            const categoriesWithChildren = await getCategories(
+                cate.getDataValue("id"),
+            );
+
+            allCategories.push({
+                ...cate.dataValues,
+                children: categoriesWithChildren,
+            });
+        }
 
         reply.code(200).send({
-            data: categories,
+            data: allCategories,
             message: "All categories fetched successfully",
         });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("Category", error);
-        } else throw new RecyclotronApiErr("Category", "FetchAllFailed");
+        } else {
+            throw new RecyclotronApiErr("Category", "FetchAllFailed");
+        }
     }
 };
 
@@ -141,7 +176,12 @@ export const deleteCategoryById = async (
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
         await category.destroy();
-        reply.code(204).send({ message: "category deleted successfully." });
+        reply
+            .code(200)
+            .send({
+                statuscode: 200,
+                message: "Category deleted successfully.",
+            });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;

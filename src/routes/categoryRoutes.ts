@@ -25,7 +25,7 @@ export default async (fastify: FastifyInstance) => {
             },
             onRequest: [authorize(["employee"])],
         },
-        ctrl.createCategory,
+        ctrl.createChildCategory,
     );
 
     // All categories

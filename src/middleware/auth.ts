@@ -56,6 +56,7 @@ export async function isSelfOrAdminOr(
         await request.jwtVerify();
 
         const decodedToken = await request.jwtDecode<MyCustomPayload>();
+        console.log(decodedToken);
 
         if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
             throw new RecyclotronApiErr("Auth", "PermissionDenied");

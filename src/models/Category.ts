@@ -39,10 +39,13 @@ export const ZCategory = z.object({
 });
 
 export const ZPartialCategory = ZCategory.partial().omit({ id: true }); // tous les champs sont devenus optionels
-export const ZInputCategory = ZCategory.omit({ id: true }); // le même objet sans l'id
+export const ZInputCategory = ZCategory.omit({
+    id: true,
+    parent_category_id: true,
+});
 
 export type Category = z.infer<typeof ZCategory>; // Le type typescript qui correspond à l'objet
 export type PartialCategory = z.infer<typeof ZPartialCategory>; // Le type typescript avec toutes les props optionelles
-export type InputCategory = z.infer<typeof ZInputCategory>; // Le type typescript sans l'id
+export type InputCategory = z.infer<typeof ZInputCategory>;
 
 export default SCategory;

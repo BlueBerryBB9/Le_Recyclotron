@@ -102,6 +102,9 @@ export const register = async (
         });
 
         return reply.send({
+            data: {
+                id: newUser.getDataValue("id"),
+            },
             statusCode: 201,
             message: "User registered successfully. Please log in.",
         });

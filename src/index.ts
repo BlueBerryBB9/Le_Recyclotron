@@ -49,7 +49,7 @@ export const startServer = async () => {
         setupAssociations();
         await sequelize.authenticate();
         console.log("Connected to the database.");
-        await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though.
+        await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though. // add node env check
         await seedDatabase(sequelize);
 
         if (!JWT_SECRET) {

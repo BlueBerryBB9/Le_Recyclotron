@@ -83,25 +83,10 @@ export const startServer = async () => {
         app.register(userRoutes, { prefix: "/api" });
         app.register(authRoutes, { prefix: "/api" });
 
-        // Sould be:
-        // - jwt verification
-        // - role verification
         app.addHook(
             "onRequest",
             async (request: FastifyRequest, reply: FastifyReply) => {
                 try {
-                    // REPLACING CORS HEADER
-                    // if (request.method === "GET") {
-                    //     reply.header("Access-Control-Allow-Origin", "*");
-                    //     reply.header(
-                    //         "Access-Control-Allow-Methods",
-                    //         "GET, POST, PUT, DELETE, PATCH",
-                    //     );
-                    //     reply.header(
-                    //         "Access-Control-Allow-Headers",
-                    //         "Content-Type",
-                    //     );
-                    // }
                     console.log(request.url);
                 } catch (error) {
                     console.error("Error in onRequest hook:", error);
@@ -116,6 +101,26 @@ export const startServer = async () => {
                 console.log(reply.statusCode);
             },
         );
+        app.addHook("preSerialization", async (request, reply, payload) => {
+            const responseSchemas = request.routeOptions?.schema?.response as
+                | Record<string, any>
+                | undefined;
+            const responseSchema = responseSchemas?.[String(reply.statusCode)];
+
+            if (responseSchema && "parse" in responseSchema) {
+                const parseResult = responseSchema.safeParse(payload);
+                if (!parseResult.success) {
+                    request.log.error(
+                        "Invalid response format:",
+                        parseResult.error,
+                    );
+                    throw new Error("Response validation failed");
+                }
+                return parseResult.data;
+            }
+
+            return payload;
+        });
 
         await app.listen({ port: 3000 });
         console.log("Server is running on port 3000");
@@ -220,6 +225,27 @@ export const startServerTest = async () => {
                 console.log(reply.statusCode);
             },
         );
+        app.addHook("preSerialization", async (request, reply, payload) => {
+            const responseSchemas = request.routeOptions?.schema?.response as
+                | Record<string, any>
+                | undefined;
+            const responseSchema = responseSchemas?.[String(reply.statusCode)];
+
+            if (responseSchema && "parse" in responseSchema) {
+                const parseResult = responseSchema.safeParse(payload);
+                if (!parseResult.success) {
+                    request.log.error(
+                        "Invalid response format:",
+                        parseResult.error,
+                    );
+                    throw new Error("Response validation failed");
+                }
+                return parseResult.data;
+            }
+
+            return payload;
+        });
+
         console.log("Server test is live.");
         return app;
     } catch (error) {

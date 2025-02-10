@@ -27,6 +27,7 @@ SCategory.hasMany(SCategory, {
     as: "children",
     onDelete: "CASCADE",
 });
+
 SCategory.belongsTo(SCategory, {
     as: "parent",
     foreignKey: "parentCategoryId",
@@ -43,9 +44,15 @@ export const ZInputCategory = ZCategory.omit({
     id: true,
     parent_category_id: true,
 });
+export const ZInputChildCategory = ZCategory.omit({
+    id: true,
+});
 
-export type Category = z.infer<typeof ZCategory>; // Le type typescript qui correspond à l'objet
-export type PartialCategory = z.infer<typeof ZPartialCategory>; // Le type typescript avec toutes les props optionelles
+export const ZParentCategory = ZCategory.omit({ parent_category_id: true });
+
+export type Category = z.infer<typeof ZCategory>;
+export type PartialCategory = z.infer<typeof ZPartialCategory>;
 export type InputCategory = z.infer<typeof ZInputCategory>;
+export type InputChildCategory = z.infer<typeof ZInputChildCategory>;
 
 export default SCategory;

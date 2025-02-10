@@ -32,6 +32,17 @@ export const ZEvent = ZEventFull.partial({
 export const ZPartialEvent = ZEvent.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputEvent = ZEvent.omit({ id: true }); // le même objet sans l'id
 
+export const ZEventWithRegistrations = ZEvent.extend({
+    Registrations: z.array(ZRegistration),
+    createdAt: z.date(),
+    updatedAt: z.date()
+});
+
+export const ZEventListOutput = z.array(ZEventWithRegistrations);
+
+export type EventWithRegistrations = z.infer<typeof ZEventWithRegistrations>;
+export type EventListOutput = z.infer<typeof ZEventListOutput>;
+
 export type Event = z.infer<typeof ZEvent>; // Le type typescript qui correspond à l'objet
 export type PartialEvent = z.infer<typeof ZPartialEvent>; // Le type typescript avec toutes les props optionelles
 export type InputEvent = z.infer<typeof ZInputEvent>; // Le type typescript sans l'id

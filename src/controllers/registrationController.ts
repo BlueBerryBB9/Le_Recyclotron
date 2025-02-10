@@ -10,7 +10,12 @@ import { stringToInt } from "../service/stringToInt.js";
 // Wrap each controller method with try/catch for error handling
 export const createRegistration = async (
     req: FastifyRequest<{ Body: r.InputRegistration }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: r.Registration;
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const createdRegistration = await r.default.create(req.body);
@@ -29,7 +34,12 @@ export const createRegistration = async (
 // UPGRADE TO DO : REGROUP THEM BY EVENT
 export const getAllRegistrations = async (
     req: FastifyRequest,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: r.Registration[];
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const registrations = await r.default.findAll();
@@ -53,7 +63,12 @@ export const getAllRegistrations = async (
 
 export const getRegistration = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: r.Registration;
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");
@@ -79,7 +94,12 @@ export const updateRegistration = async (
         Params: { id: string };
         Body: r.PartialRegistration;
     }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: r.Registration;
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");
@@ -106,7 +126,11 @@ export const updateRegistration = async (
 
 export const deleteRegistration = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");

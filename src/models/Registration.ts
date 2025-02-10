@@ -49,6 +49,13 @@ export const ZRegistration = z.object({
     eventId: z.number(),
 });
 
+export const ZRegistrationOutput = z.object({
+    id: z.number(),
+    seats: z.number(),
+    user: ZPublicUser,
+    event: ZEvent,
+});
+
 export const ZPartialRegistration = ZRegistration.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputRegistration = ZRegistration.omit({ id: true }); // le même objet sans l'id
 

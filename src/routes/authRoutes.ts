@@ -1,10 +1,12 @@
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
+import { ZUserWithRole } from "../models/User.js";
 import * as authController from "../controllers/authController.js";
 import { Identifier } from "sequelize";
 import SUser, { ZCreateUser } from "../models/User.js";
 import { FastifyInstance, RawServerDefault, RouteHandlerMethod } from "fastify";
 import * as z from "zod";
 import { IncomingMessage, ServerResponse } from "http";
+import { defaultErrors, singleResponse } from "../utils/responseSchemas.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
     // Routes publiques
@@ -16,6 +18,12 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     email: z.string(),
                     password: z.string(),
                 }),
+                response: {
+                    ...defaultErrors,
+                    200: z.object({
+                        message: z.string(),
+                    }),
+                },
             },
         },
         authController.login,
@@ -26,6 +34,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
         {
             schema: {
                 body: ZCreateUser,
+                response: {
+                    ...defaultErrors,
+                    201: z.object({
+                        data: z.object({ id: z.string() }),
+                        message: z.string(),
+                    }),
+                },
             },
         },
         authController.register,
@@ -39,6 +54,13 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     id: z.string(),
                     otp: z.string(),
                 }),
+                response: {
+                    ...defaultErrors,
+                    200: z.object({
+                        data: z.object({ jwt: z.string() }),
+                        message: z.string(),
+                    }),
+                },
             },
         },
         authController.verifyOTP,
@@ -48,6 +70,12 @@ export default async function authRoutes(fastify: FastifyInstance) {
     fastify.get(
         "/auth/me",
         {
+            schema: {
+                response: {
+                    ...defaultErrors,
+                    200: ZUserWithRole,
+                },
+            },
             onRequest: [authorize(["client", "employee"])],
         },
         authController.getCurrentUser,
@@ -61,10 +89,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
             schema: {
                 response: {
                     200: {
-                        type: "object",
-                        properties: {
-                            message: { type: "string" },
-                        },
+                        ...defaultErrors,
+                        message: z.string(),
                     },
                 },
             },
@@ -73,20 +99,24 @@ export default async function authRoutes(fastify: FastifyInstance) {
     );
 
     // Route pour révoquer les tokens d'un utilisateur spécifique
-    fastify.post("/auth/revoke-user/:id", {
-        preHandler: [await isSelfOrAdminOr()],
-        schema: {
-            params: z.object({
-                id: z.string(),
-            }),
+    fastify.post(
+        "/auth/revoke-user/:id",
+        {
+            onRequest: [await isSelfOrAdminOr()],
+            schema: {
+                params: z.object({
+                    id: z.string(),
+                }),
+                schema: {
+                    response: {
+                        200: {
+                            ...defaultErrors,
+                            message: z.string(),
+                        },
+                    },
+                },
+            },
         },
-        handler: authController.revokeUserTokens as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Params: { id: string };
-            }
-        >,
-    });
+        authController.revokeUserTokens,
+    );
 }

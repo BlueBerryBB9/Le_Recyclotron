@@ -44,6 +44,16 @@ export const paymentMethodSchema = z.object({
     paymentMethodId: z.string(),
 });
 
+export const ZPayment = z.object({
+    id: z.number(),
+    userId: z.number(),
+    id_stripe_payment: z.string().nullable(),
+    amount: z.number(),
+    type: z.number(),
+    status: z.string().nullable(),
+});
+
+export type Payment = z.infer<typeof ZPayment>;
 export type SubscriptionBody = z.infer<typeof subscriptionSchema>;
 export type DonationBody = z.infer<typeof donationSchema>;
 export type PaymentMethodBody = z.infer<typeof paymentMethodSchema>;

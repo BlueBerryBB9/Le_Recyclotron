@@ -52,6 +52,17 @@ export const ZItem = z.object({
 export const ZPartialItem = ZItem.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputItem = ZItem.omit({ id: true }); // le même objet sans l'id
 
+export const ZItemOutput = ZItem.extend({
+    categories: z.array(z.lazy(() => ZCategory)),
+    createdAt: z.date(),
+    updatedAt: z.date()
+});
+
+export const ZItemListOutput = z.array(ZItemOutput);
+
+export type ItemOutput = z.infer<typeof ZItemOutput>;
+export type ItemListOutput = z.infer<typeof ZItemListOutput>;
+
 export type Item = z.infer<typeof ZItem>; // Le type typescript qui correspond à l'objet
 export type PartialItem = z.infer<typeof ZPartialItem>; // Le type typescript avec toutes les props optionelles
 export type InputItem = z.infer<typeof ZInputItem>; // Le type typescript sans l'id

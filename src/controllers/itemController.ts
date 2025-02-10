@@ -12,7 +12,12 @@ import { stringToInt } from "../service/stringToInt.js";
 // Create new item
 export const createItem = async (
     request: FastifyRequest<{ Body: i.InputItem }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: i.Item; 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const newItem = await i.default.create(request.body);
@@ -30,7 +35,12 @@ export const createItem = async (
 // Get all items
 export const getAllItems = async (
     request: FastifyRequest,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: i.Item[]; 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const items = await i.default.findAll();
@@ -53,7 +63,12 @@ export const getAllItems = async (
 // Get item by ID
 export const getItemById = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: i.Item; 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
@@ -77,7 +92,12 @@ export const getItemById = async (
 // Get items by status
 export const getItemByStatus = async (
     request: FastifyRequest<{ Params: { status: string } }>, // Status is an enum
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: i.Item[], 
+            message: string, 
+        } 
+    }>,
 ) => {
     try {
         const status = request.params.status;
@@ -103,7 +123,12 @@ export const updateItemById = async (
         Params: { id: string };
         Body: i.PartialItem;
     }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: i.Item; 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
@@ -128,7 +153,11 @@ export const updateItemById = async (
 // Delete item by ID
 export const deleteItemById = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
@@ -152,7 +181,12 @@ export const deleteItemById = async (
 // Add category to item
 export const addCategoryToItem = async (
     request: FastifyRequest<{ Params: { itemId: string; categoryId: string } }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: SItemCategory; 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const itemId: number = stringToInt(request.params.itemId, "Item");
@@ -190,7 +224,12 @@ export const addCategoryToItem = async (
 // Get all categories of an item
 export const getAllCategoriesOfItem = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            data: SItemCategory[]; 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
@@ -216,7 +255,11 @@ export const getAllCategoriesOfItem = async (
 // Delete category of an item
 export const deleteCategoryOfItem = async (
     request: FastifyRequest<{ Params: { itemId: string; categoryId: string } }>,
-    reply: FastifyReply,
+    reply: FastifyReply<{ 
+        Body: { 
+            message: string; 
+        } 
+    }>,
 ) => {
     try {
         const itemId = stringToInt(request.params.itemId, "Item");

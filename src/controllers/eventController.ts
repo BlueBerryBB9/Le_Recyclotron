@@ -10,7 +10,12 @@ import { stringToInt } from "../service/stringToInt.js";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: e.Event;
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const event = await e.default.create(req.body);
@@ -25,7 +30,15 @@ export const createEvent = async (
     }
 };
 
-export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
+export const getAllEvents = async (
+    req: FastifyRequest,
+    rep: FastifyReply<{
+        Body: {
+            data: e.Event[];
+            message: string;
+        };
+    }>,
+) => {
     try {
         const events = await e.default.findAll();
         if (events.length === 0)
@@ -48,7 +61,12 @@ export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
 
 export const getEvent = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: e.Event;
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Event");
@@ -70,7 +88,12 @@ export const getEvent = async (
 
 export const updateEvent = async (
     req: FastifyRequest<{ Params: { id: string }; Body: e.PartialEvent }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            data: e.Event;
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Event");
@@ -94,7 +117,11 @@ export const updateEvent = async (
 
 export const deleteEvent = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
+    rep: FastifyReply<{
+        Body: {
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Event");
@@ -116,7 +143,12 @@ export const deleteEvent = async (
 
 export const getAllEventRegistrations = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    response: FastifyReply,
+    response: FastifyReply<{
+        Body: {
+            data: SRegistration[];
+            message: string;
+        };
+    }>,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Event");

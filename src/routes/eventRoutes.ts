@@ -3,12 +3,19 @@ import * as ec from "../controllers/eventController.js";
 import * as em from "../models/Event.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
+import { defaultErrors, singleResponse, listResponse } from "../utils/responseSchemas.js";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: em.InputEvent }>(
         "/event",
         {
-            schema: { body: em.ZInputEvent },
+            schema: {
+                body: em.ZInputEvent,
+                response: {
+                    ...defaultErrors,
+                    201: singleResponse(em.ZEvent)
+                }
+            },
             onRequest: [authorize(["cm"])],
         },
         ec.createEvent,

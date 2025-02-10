@@ -4,12 +4,19 @@ import * as rm from "../models/Registration.js";
 import z from "zod";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import { where } from "sequelize";
+import { defaultErrors, singleResponse, listResponse } from "../utils/responseSchemas.js";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: rm.InputRegistration }>(
         "/registration",
         {
-            schema: { body: rm.ZInputRegistration },
+            schema: {
+                body: rm.ZInputRegistration,
+                response: {
+                    ...defaultErrors,
+                    201: singleResponse(rm.ZRegistration)
+                }
+            },
             onRequest: [authorize(["client"])],
         },
         rc.createRegistration,
@@ -18,6 +25,12 @@ export default async (fastify: f.FastifyInstance) => {
     fastify.get(
         "/registration",
         {
+            schema: {
+                response: {
+                    ...defaultErrors,
+                    200: listResponse(rm.ZRegistration)
+                }
+            },
             onRequest: [authorize(["cm"])],
         },
         rc.getAllRegistrations,

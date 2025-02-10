@@ -17,7 +17,11 @@ export class PaymentController {
     // Créer un abonnement mensuel
     static async createSubscription(
         request: FastifyRequest<{ Body: SubscriptionBody }>,
-        reply: FastifyReply,
+        reply: FastifyReply<{ 
+            Body: { 
+                subscriptionId: string;
+            } 
+        }>,
     ) {
         try {
             const validateData = subscriptionSchema.parse(request.body);
@@ -56,7 +60,11 @@ export class PaymentController {
     // Créer un don unique
     static async createDonation(
         request: FastifyRequest<{ Body: DonationBody }>,
-        reply: FastifyReply,
+        reply: FastifyReply<{ 
+            Body: { 
+                clientSecret: string;
+            } 
+        }>,
     ) {
         try {
             const validateData = donationSchema.parse(request.body);
@@ -95,7 +103,11 @@ export class PaymentController {
     // Mettre à jour les coordonnées bancaires
     static async updatePaymentMethod(
         request: FastifyRequest<{ Body: PaymentMethodBody }>,
-        reply: FastifyReply,
+        reply: FastifyReply<{ 
+            Body: { 
+                success: boolean;
+            } 
+        }>,
     ) {
         try {
             const validateData = paymentMethodSchema.parse(request.body);
@@ -119,34 +131,41 @@ export class PaymentController {
                     .status(400)
                     .send({ error: "Validation Error", details: error.errors });
             }
-            return reply
-                .status(400)
-                .send({
-                    error: "Erreur lors de la mise à jour du moyen de paiement",
-                });
+            return reply.status(400).send({
+                error: "Erreur lors de la mise à jour du moyen de paiement",
+            });
         }
     }
 
     // Résilier un abonnement
     static async cancelSubscription(
         request: FastifyRequest<{ Params: { subscriptionId: string } }>,
-        reply: FastifyReply
-      ) {
+        reply: FastifyReply<{ 
+            Body: { 
+                success: boolean;
+            } 
+        }>,
+    ) {
         try {
-          const { subscriptionId } = request.params;
-    
-          const subscription = await stripe.subscriptions.cancel(subscriptionId);
-    
-          await SPayment.update(
-            { status: 'cancelled' },
-            { where: { stripeSubscriptionId: subscriptionId } }
-          );
-    
-          return reply.send({ success: true });
+            const { subscriptionId } = request.params;
+
+            const subscription =
+                await stripe.subscriptions.cancel(subscriptionId);
+
+            await SPayment.update(
+                { status: "cancelled" },
+                { where: { stripeSubscriptionId: subscriptionId } },
+            );
+
+            return reply.send({ success: true });
         } catch (error) {
-          return reply.status(400).send({ error: 'Erreur lors de la résiliation de l\'abonnement' });
+            return reply
+                .status(400)
+                .send({
+                    error: "Erreur lors de la résiliation de l'abonnement",
+                });
         }
-      }
+    }
 
     // Webhook pour gérer les événements Stripe
     static async handleWebhook(req: FastifyRequest, reply: FastifyReply) {
@@ -177,7 +196,7 @@ export class PaymentController {
 
             return reply.send({ received: true });
         } catch (error) {
-          return reply.status(400).send({ error: 'Erreur webhook' });
+            return reply.status(400).send({ error: "Erreur webhook" });
         }
     }
 

@@ -2,14 +2,21 @@ import { FastifyInstance } from "fastify";
 import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
 import z from "zod";
-import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
+import { authorize } from "../middleware/auth.js";
+import { defaultErrors } from "../utils/responseSchemas.js";
 
 export default async (fastify: FastifyInstance) => {
     // Create a new Category
     fastify.post<{ Body: m.InputCategory }>(
         "/categories",
         {
-            schema: { body: m.ZInputCategory },
+            schema: {
+                body: m.ZInputCategory,
+                response: {
+                    ...defaultErrors,
+                    201: m.ZCategory,
+                },
+            },
             onRequest: [authorize(["employee"])],
         },
         ctrl.createCategory,
@@ -22,6 +29,10 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
+                response: {
+                    ...defaultErrors,
+                    201: m.ZCategory,
+                },
             },
             onRequest: [authorize(["employee"])],
         },
@@ -29,10 +40,21 @@ export default async (fastify: FastifyInstance) => {
     );
 
     // All categories
-    fastify.get("/categories", ctrl.getAllCategories);
+    fastify.get(
+        "/categories",
+        {
+            schema: {
+                response: {
+                    ...defaultErrors,
+                    200: m.ZCategory,
+                },
+            },
+        },
+        ctrl.getAllCategories,
+    );
 
     // Category details
-    fastify.get<{ Params: { id: string } }>(
+    fastify.get(
         "/categories/:id",
         {
             schema: { params: z.object({ id: z.string() }) },

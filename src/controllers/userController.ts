@@ -22,14 +22,18 @@ import SResetPassword from "../models/ResetPassword.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
 import * as r from "../models/Registration.js";
 import SPayment from "../models/Payment.js";
+import {
+    getAllUserWithRoles,
+    getUserWithRoles,
+} from "../service/auth_service.js";
 
 // Create User
-export const createUser: RouteHandler<{
-    Body: {
-        createUser: CreateUser;
-        roles: number[];
-    };
-}> = async (request, reply) => {
+export const createUser = async (
+    request: FastifyRequest<{
+        Body: { createUser: CreateUser; roles: number[] };
+    }>,
+    reply: FastifyReply,
+) => {
     try {
         const userData = ZCreateUser.parse(request.body.createUser);
 
@@ -49,17 +53,7 @@ export const createUser: RouteHandler<{
             });
         }
 
-        const userWithRoles = await SUser.findByPk(user.getDataValue("id"), {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
+        const userWithRoles = await getUserWithRoles(user.getDataValue("id"));
 
         if (!userWithRoles) throw new RecyclotronApiErr("User", "NotFound");
 
@@ -72,23 +66,17 @@ export const createUser: RouteHandler<{
 };
 
 // Get All Users
-export const getAllUsers: RouteHandler = async (request, reply) => {
+export const getAllUsers = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+) => {
     try {
-        const users = await SUser.findAll({
-            include: [
-                {
-                    model: SRole,
-                    as: "roles", // Match the alias in setupAssociations
-                    attributes: ["id", "name"], // Select specific fields
-                },
-            ],
-            attributes: { exclude: ["password"] }, // Exclude sensitive fields
-        });
+        const users = await getAllUserWithRoles();
 
         if (users.length === 0)
             throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        return reply.send(users);
+        return reply.status(200).send(users.map((user) => user.dataValues));
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -97,25 +85,20 @@ export const getAllUsers: RouteHandler = async (request, reply) => {
 };
 
 // Get User by ID
-export const getUserById: RouteHandler<{
-    Params: { id: string };
-}> = async (request, reply) => {
+export const getUserById = async (
+    request: FastifyRequest<{
+        Params: { id: string };
+    }>,
+    reply: FastifyReply,
+) => {
     try {
-        const user = await SUser.findByPk(request.params.id, {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
+        const user = await getUserWithRoles(
+            stringToInt(request.params.id, "User"),
+        );
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        return reply.send(user);
+        return reply.status(200).send(user.dataValues);
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -126,10 +109,13 @@ export const getUserById: RouteHandler<{
 };
 
 // Update User
-export const updateUser: RouteHandler<{
-    Params: { id: string };
-    Body: UpdateUser;
-}> = async (request, reply) => {
+export const updateUser = async (
+    request: FastifyRequest<{
+        Body: UpdateUser;
+        Params: { id: string };
+    }>,
+    reply: FastifyReply,
+) => {
     try {
         const user = await SUser.findByPk(request.params.id);
         const userData: UpdateUser = request.body;
@@ -146,19 +132,13 @@ export const updateUser: RouteHandler<{
 
         await user.update(userData);
 
-        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
+        const updatedUser = await getUserWithRoles(
+            stringToInt(request.params.id, "User"),
+        );
 
-        return reply.send(updatedUser);
+        if (!updatedUser) throw new RecyclotronApiErr("User", "NotFound", 404);
+
+        return reply.status(200).send(updatedUser.dataValues);
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -167,16 +147,21 @@ export const updateUser: RouteHandler<{
 };
 
 // Delete User
-export const deleteUser: RouteHandler<{
-    Params: { id: string };
-}> = async (request, reply) => {
+export const deleteUser = async (
+    request: FastifyRequest<{
+        Params: { id: string };
+    }>,
+    reply: FastifyReply,
+) => {
     try {
         const user = await SUser.findByPk(request.params.id);
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         await user.destroy();
-        return reply.status(204).send();
+        return reply.status(200).send({
+            message: `User No ${request.params.id} deleted successfully`,
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -185,13 +170,20 @@ export const deleteUser: RouteHandler<{
 };
 
 // Add User Roles COHéRENCE A IMPLEMENTER --> ADMIN = TOUT, CLIENT
-export const addUserRoles: RouteHandler<{
-    Params: { id: string };
-    Body: { roles: number[] };
-}> = async (request, reply) => {
+export const addUserRoles = async (
+    request: FastifyRequest<{
+        Params: { id: string };
+        Body: { roles: number[] };
+    }>,
+    reply: FastifyReply,
+) => {
     try {
         const user = await SUser.findByPk(request.params.id);
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
+
+        if ((await user.getRoleString()).includes("client")) {
+            throw new RecyclotronApiErr("User", "PermissionDenied", 401);
+        }
 
         const roles = await SRole.findAll({
             where: {

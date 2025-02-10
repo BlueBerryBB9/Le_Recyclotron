@@ -1,5 +1,9 @@
-import { generateToken } from "../service/auth_service.js";
-import SUser, { CreateUser, ZCreateUser } from "../models/User.js";
+import { generateToken, getUserWithRoles } from "../service/auth_service.js";
+import SUser, {
+    CreateUser,
+    UserWithRole,
+    ZCreateUser,
+} from "../models/User.js";
 import SUserRoles from "../models/UserRoles.js";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { stringToInt } from "../service/stringToInt.js";
@@ -57,10 +61,7 @@ export const login = async (
             `Your OTP code is: ${otpPassword}`,
         );
 
-        // const { password: _, ...userWithoutPassword } = user.toJSON();
-
-        return reply.send({
-            statusCode: 200,
+        return reply.status(200).send({
             message: "Check your email for the OTP code",
         });
     } catch (error) {
@@ -101,11 +102,10 @@ export const register = async (
             roleId: 6,
         });
 
-        return reply.send({
+        return reply.status(201).send({
             data: {
                 id: newUser.getDataValue("id"),
             },
-            statusCode: 201,
             message: "User registered successfully. Please log in.",
         });
     } catch (error) {
@@ -138,14 +138,15 @@ export const verifyOTP = async (
             },
         });
 
-        return reply.send({
-            statusCode: 200,
+        return reply.status(200).send({
+            data: {
+                jwt: generateToken(
+                    stringToInt(request.body.id, "Auth"),
+                    user.getDataValue("email"),
+                    await user.getRoleString(),
+                ),
+            },
             message: "Authentication successful",
-            jwt: generateToken(
-                stringToInt(request.body.id, "Auth"),
-                user.getDataValue("email"),
-                await user.getRoleString(),
-            ),
         });
     } catch (error) {
         if (error instanceof BaseError) {
@@ -164,21 +165,14 @@ export const getCurrentUser = async (
     try {
         request.jwtVerify();
         const id = request.user.id;
-        const user = await SUser.findByPk(id, {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
+        const user = await getUserWithRoles(id);
 
         if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
 
-        return reply.send(user);
+        return reply.status(200).send({
+            message: "Authentication successful",
+            user: user.dataValues,
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("Auth", error);

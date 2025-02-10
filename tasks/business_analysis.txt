@@ -1,0 +1,63 @@
+1. LOGIQUE MÉTIER PRINCIPALE
+
+A. Gestion des Items et du Recyclage
+- Un item ne devrait avoir qu'une seule catégorie principale
+- Les statuts d'items doivent suivre un workflow précis : 
+  DEPOSITED -> VALIDATED -> IN_PROCESSING -> RECYCLED/REJECTED
+- Traçabilité complète du parcours de l'item
+
+B. Gestion des Événements et Inscriptions
+- Limite de participants par événement
+- Gestion des listes d'attente
+- Notifications automatiques aux inscrits
+
+C. Système de Paiements et Dons
+- Abonnements mensuels avec différents niveaux
+- Dons ponctuels
+- Système de récompenses/points
+
+D. Gestion des Utilisateurs et Rôles
+- Hiérarchie des rôles claire (ADMIN > MANAGER > USER)
+- Système de points de fidélité
+- Historique des actions
+
+2. MODIFICATIONS NÉCESSAIRES PAR ROUTE
+
+A. itemController.ts
+
+// Gestion des inscriptions avec limite
+export const registerToEvent = async (eventId: string, userId: string) => {
+    // Vérifier la limite de participants
+    // Gérer la liste d'attente si nécessaire
+    // Envoyer confirmation
+}
+
+// Notifications automatiques
+export const notifyEventParticipants = async (eventId: string, message: string) => {
+    // Envoyer à tous les participants
+}
+
+// Système de points
+export const processPaymentWithRewards = async (payment: Payment) => {
+    // Calculer les points gagnés
+    // Mettre à jour le solde de points de l'utilisateur
+}
+
+// Gestion des niveaux d'abonnement
+export const upgradeSubscription = async (userId: string, newLevel: string) => {
+    // Vérifier l'éligibilité
+    // Mettre à jour Stripe
+    // Mettre à jour les privilèges
+}
+
+// Système de points de fidélité
+export const updateUserPoints = async (userId: string, points: number) => {
+    // Mettre à jour le solde
+    // Vérifier les paliers de récompense
+}
+
+// Historique des actions
+export const logUserAction = async (userId: string, action: UserAction) => {
+    // Enregistrer l'action
+    // Mettre à jour les statistiques
+}

@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
-import SRole from "./Role.js";
+import SRole, { ZRole } from "./Role.js";
 import SUserRole from "./UserRoles.js";
 import { getRole, getRoleString } from "../service/getRole.js";
 
@@ -70,6 +70,7 @@ SUser.init(
     {
         sequelize,
         modelName: "User",
+        timestamps: true,
     },
 );
 
@@ -102,6 +103,10 @@ export const ZUserBase = z.object({
     is_adherent: z.boolean().default(false),
 
     sub_type: z.string().nullable().optional(),
+
+    createdAt: z.date(),
+
+    updatedAt: z.date(),
 });
 
 // Complete user schema with ID
@@ -144,6 +149,17 @@ export const ZResetPassword = z.object({
     tempCode: z.string().min(6).max(6),
     newPassword: z.string().min(6),
 });
+
+export const ZUserWithRole = ZPublicUser.extend({
+    roles: z.array(ZRole),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+});
+
+export const ZUserListOutput = z.array(ZUserWithRole);
+
+export type UserWithRole = z.infer<typeof ZUserWithRole>;
+export type UserListOutput = z.infer<typeof ZUserListOutput>;
 
 export type ResetPasswordRequest = z.infer<typeof ZResetPasswordRequest>;
 export type ResetPassword = z.infer<typeof ZResetPassword>;

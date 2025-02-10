@@ -7,9 +7,11 @@ import {
     DonationBody,
     PaymentMethodBody,
     SubscriptionBody,
+    ZSubscription as pm,
 } from "../models/Payment.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
+import { defaultErrors, singleResponse } from "../utils/responseSchemas.js";
 
 export default async (fastify: FastifyInstance) => {
     // Register raw body parser for Stripe webhook
@@ -23,7 +25,13 @@ export default async (fastify: FastifyInstance) => {
     fastify.post<{ Body: SubscriptionBody }>(
         "/subscription",
         {
-            schema: { body: subscriptionSchema },
+            schema: { 
+                body: subscriptionSchema,
+                response: {
+                    ...defaultErrors,
+                    200: singleResponse(pm.ZSubscription)
+                }
+            },
             onRequest: [authorize(["client"])],
         },
         PaymentController.createSubscription,

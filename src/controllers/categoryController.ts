@@ -14,7 +14,7 @@ export const createCategory = async (
     try {
         const newCategory = await i.default.create(request.body);
         reply.code(201).send({
-            data: newCategory,
+            data: newCategory.dataValues,
             message: "New Category created successfully",
         });
     } catch (error) {
@@ -45,7 +45,7 @@ export const createChildCategory = async (
             parent_category_id,
         });
         reply.code(201).send({
-            data: newCategory,
+            data: newCategory.dataValues,
             message: "New Child Category created successfully",
         });
     } catch (error) {
@@ -67,9 +67,8 @@ export const getAllCategories = async (
             where: { parentCategoryId: null },
         });
 
-        if (categories.length === 0) {
+        if (categories.length === 0)
             throw new RecyclotronApiErr("Category", "NotFound", 404);
-        }
 
         let allCategories: any[] = [];
 
@@ -176,12 +175,10 @@ export const deleteCategoryById = async (
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
         await category.destroy();
-        reply
-            .code(200)
-            .send({
-                statuscode: 200,
-                message: "Category deleted successfully.",
-            });
+        reply.code(200).send({
+            statuscode: 200,
+            message: "Category deleted successfully.",
+        });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;
@@ -189,6 +186,32 @@ export const deleteCategoryById = async (
             throw new SequelizeApiErr("Category", error);
         } else throw new RecyclotronApiErr("Category", "DeletionFailed");
     }
+};
+
+const getCategories = async (parentId: number): Promise<any> => {
+    console.log(`Fetching categories for parentId: ${parentId}`);
+
+    const subCategories = await i.default.findAll({
+        where: { parentCategoryId: parentId },
+    });
+
+    if (subCategories.length === 0) return;
+
+    const categoriesWithChildren = await Promise.all(
+        subCategories.map(async (category) => {
+            const categoryId = category.getDataValue("id");
+
+            const children = await getCategories(categoryId);
+
+            return {
+                ...category.dataValues, // Include category info
+                children, // Add child categories if they exist
+            };
+        }),
+    );
+
+    // Add the current level categories with their children
+    return categoriesWithChildren;
 };
 
 // Get all childCategories of category
@@ -202,39 +225,7 @@ export const getAllCategoriesOfCategory = async (
             "Category",
         );
 
-        // Stores the final structure (parent category and its children)
         let allCategories: any[] = [];
-
-        // Recursive function to get categories and their children
-        const getCategories = async (parentId: number): Promise<any> => {
-            console.log(`Fetching categories for parentId: ${parentId}`); // Debugging line
-
-            // Fetch categories whose parent matches the current parentId
-            const subCategories = await i.default.findAll({
-                where: { parentCategoryId: parentId },
-            });
-
-            if (subCategories.length === 0) return;
-
-            // For each subcategory, recursively fetch its child categories
-            const categoriesWithChildren = await Promise.all(
-                subCategories.map(async (category) => {
-                    const categoryId = category.getDataValue("id");
-
-                    // Recursively fetch children for each subcategory
-                    const children = await getCategories(categoryId);
-
-                    // Return the category along with its children
-                    return {
-                        ...category.dataValues, // Include category info
-                        children, // Add child categories if they exist
-                    };
-                }),
-            );
-
-            // Add the current level categories with their children
-            return categoriesWithChildren;
-        };
 
         // Start the recursion with the given parent category
         const categoriesWithParent = await getCategories(parent_category_id);

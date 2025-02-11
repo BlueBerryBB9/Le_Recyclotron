@@ -105,20 +105,28 @@ export const startServer = async () => {
             const responseSchemas = request.routeOptions?.schema?.response as
                 | Record<string, any>
                 | undefined;
+            console.log(responseSchemas);
             const responseSchema = responseSchemas?.[String(reply.statusCode)];
+            console.log(responseSchema);
 
-            if (responseSchema && "parse" in responseSchema) {
+            if (responseSchema) {
+                console.log("AAAAAAAAAAAAAAAAAAA");
+                console.log(reply);
                 const parseResult = responseSchema.safeParse(payload);
+                console.log("2222222222222222222222222222");
                 if (!parseResult.success) {
-                    request.log.error(
-                        "Invalid response format:",
-                        parseResult.error,
+                    console.log("AAAAAAAAAAAAAAAAAAA");
+                    throw new RecyclotronApiErr(
+                        "MiddleWare",
+                        "OperationFailed",
+                        500,
                     );
-                    throw new Error("Response validation failed");
                 }
+                console.log(reply);
                 return parseResult.data;
             }
 
+            console.log("1111111111111111111111111AAAAAAAAAAAAAAAAAAA");
             return payload;
         });
 

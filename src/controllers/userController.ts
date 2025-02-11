@@ -22,10 +22,9 @@ import SResetPassword from "../models/ResetPassword.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
 import * as r from "../models/Registration.js";
 import SPayment from "../models/Payment.js";
-import {
-    getAllUserWithRoles,
-    getUserWithRoles,
-} from "../service/auth_service.js";
+import { getUserWithRoles } from "../service/userService.js"
+import { getAllUserWithRoles } from "../service/userService.js";
+import SEvent from "../models/Event.js";
 
 // Create User
 export const createUser = async (
@@ -138,7 +137,10 @@ export const updateUser = async (
 
         if (!updatedUser) throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        return reply.status(200).send(updatedUser.dataValues);
+        return reply.status(200).send({
+            data: updatedUser.dataValues,
+            message: `User No ${request.params.id} updated successfully`,
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -207,19 +209,14 @@ export const addUserRoles = async (
             });
         }
 
-        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
+        const updatedUser = await getUserWithRoles(
+            stringToInt(request.params.id, "User"),
+        );
 
-        return reply.send(updatedUser);
+        return reply.status(200).send({
+            data: updatedUser?.dataValues,
+            message: "Roles added successfully",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -228,9 +225,12 @@ export const addUserRoles = async (
 };
 
 // Remove User Roles
-export const removeUserRoles: RouteHandler<{
-    Params: { userId: string; roleId: string };
-}> = async (request, reply) => {
+export const removeUserRoles = async (
+    request: FastifyRequest<{
+        Params: { userId: string; roleId: string };
+    }>,
+    reply: FastifyReply,
+) => {
     try {
         const userId: number = stringToInt(request.params.userId, "User");
         const user = await SUser.findByPk(userId);
@@ -246,26 +246,87 @@ export const removeUserRoles: RouteHandler<{
                 userId: userId,
             },
         });
+
         if (!userRole) throw new RecyclotronApiErr("UserRole", "NotFound", 404);
+
         await SUserRole.destroy({ where: { userId: userId, roleId: roleId } });
 
-        const updatedUser = await SUser.findByPk(user.getDataValue("id"), {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
+        const updatedUser = await getUserWithRoles(
+            stringToInt(request.params.userId, "User"),
+        );
 
-        return reply.send(updatedUser);
+        return reply.status(200).send({
+            data: updatedUser?.dataValues,
+            message: "Role removed successfully",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
         } else throw new RecyclotronApiErr("User", "DeletionFailed");
+    }
+};
+
+export const getRegistrationsByUserId = async (
+    req: FastifyRequest<{ Params: { id: string } }>,
+    rep: FastifyReply,
+) => {
+    try {
+        const id: number = stringToInt(req.params.id, "Registration");
+        const registration = await r.default.findAll({
+            where: {
+                userId: id,
+            },
+            include: [
+                {
+                    model: SEvent,
+                    as: "event",
+                },
+            ],
+        });
+
+        if (!registration)
+            throw new RecyclotronApiErr("Registration", "NotFound", 404);
+
+        return rep.status(200).send({
+            data: registration.map((reg) => {
+                return reg.dataValues;
+            }),
+            message: `Registrations fetched successfully for user No ${req.params.id}`,
+        });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Registration", error);
+        } else throw new RecyclotronApiErr("Registration", "FetchFailed");
+    }
+};
+
+export const getPaymentsByUserId = async (
+    req: FastifyRequest<{ Params: { id: string } }>,
+    rep: FastifyReply,
+) => {
+    try {
+        const id: number = stringToInt(req.params.id, "Payment");
+        const payments = await SPayment.findAll({
+            where: {
+                userId: id,
+            },
+        });
+        if (!payments) throw new RecyclotronApiErr("Payment", "NotFound", 404);
+
+        return rep.status(200).send({
+            data: payments.map((pay) => {
+                return pay.dataValues;
+            }),
+            message: `Payments fetched successfully for user No ${req.params.id}`,
+        });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Payment", error);
+        } else throw new RecyclotronApiErr("Payment", "FetchFailed");
     }
 };
 
@@ -319,9 +380,7 @@ export const resetPassword: RouteHandler<{
         const { email, tempCode, newPassword } = request.body;
 
         const user = await SUser.findOne({ where: { email } });
-        if (!user) {
-            throw new RecyclotronApiErr("User", "NotFound", 404);
-        }
+        if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         const resetRequest = await SResetPassword.findOne({
             where: {
@@ -345,7 +404,6 @@ export const resetPassword: RouteHandler<{
         );
         await user.update({ password: hashedPassword });
 
-        // Marquer le code comme utilisé
         await resetRequest.update({ used: true });
 
         return reply
@@ -356,62 +414,5 @@ export const resetPassword: RouteHandler<{
             throw new SequelizeApiErr("User", error);
         }
         throw new RecyclotronApiErr("User", "ResetFailed");
-    }
-};
-
-export const getRegistrationsByUserId = async (
-    req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
-) => {
-    try {
-        const id: number = stringToInt(req.params.id, "Registration");
-        const registration = await r.default.findAll({
-            where: {
-                userId: id,
-            },
-        });
-        if (!registration)
-            throw new RecyclotronApiErr("Registration", "NotFound", 404);
-
-        return rep.status(200).send({
-            data: registration.map((reg) => {
-                return reg.dataValues;
-            }),
-            message: `Registrations fetched successfully for user No ${req.params.id}`,
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Registration", error);
-        } else throw new RecyclotronApiErr("Registration", "FetchFailed");
-    }
-};
-
-export const getPaymentsByUserId = async (
-    req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
-) => {
-    try {
-        const id: number = stringToInt(req.params.id, "Payment");
-        const payments = await SPayment.findAll({
-            where: {
-                userId: id,
-            },
-        });
-        if (!payments) throw new RecyclotronApiErr("Payment", "NotFound", 404);
-
-        return rep.status(200).send({
-            data: payments.map((pay) => {
-                return pay.dataValues;
-            }),
-            message: `Payments fetched successfully for user No ${req.params.id}`,
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Payment", error);
-        } else throw new RecyclotronApiErr("Payment", "FetchFailed");
     }
 };

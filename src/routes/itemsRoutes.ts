@@ -3,19 +3,20 @@ import * as ctrl from "../controllers/itemController.js";
 import * as m from "./../models/Item.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
-import { defaultErrors, singleResponse, listResponse } from "../utils/responseSchemas.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     // Create a new item
     fastify.post<{ Body: m.InputItem }>(
         "/item",
         {
-            schema: { 
+            schema: {
                 body: m.ZInputItem,
                 response: {
-                    ...defaultErrors,
-                    201: singleResponse(m.ZItem)
-                }
+                    201: zodToJsonSchema(
+                        z.object({ data: m.ZItemOutput, message: z.string() }),
+                    ),
+                },
             },
             onRequest: [authorize(["employee"])],
         },
@@ -28,24 +29,32 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 response: {
-                    ...defaultErrors,
-                    200: listResponse(m.ZItem)
-                }
-            }
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZItemAndCategoriesListOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
+            },
         },
-        ctrl.getAllItems
+        ctrl.getAllItems,
     );
 
     // Item details
     fastify.get<{ Params: { id: string } }>(
         "/item/:id",
         {
-            schema: { 
+            schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    ...defaultErrors,
-                    200: singleResponse(m.ZItem)
-                }
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [authorize(["employee"])],
         },
@@ -56,12 +65,16 @@ export default async (fastify: FastifyInstance) => {
     fastify.get<{ Params: { status: string } }>(
         "/item/:status/",
         {
-            schema: { 
+            schema: {
                 params: z.object({ status: z.string() }),
                 response: {
-                    ...defaultErrors,
-                    200: listResponse(m.ZItem)
-                }
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [authorize(["repairer", "client"])],
         },
@@ -76,9 +89,13 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialItem,
                 response: {
-                    ...defaultErrors,
-                    200: singleResponse(m.ZItem)
-                }
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [authorize(["employee"])],
         },
@@ -89,12 +106,11 @@ export default async (fastify: FastifyInstance) => {
     fastify.delete<{ Params: { id: string } }>(
         "/item/:id",
         {
-            schema: { 
+            schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    ...defaultErrors,
-                    204: { type: 'null' }
-                }
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
             },
             onRequest: [authorize(["employee"])],
         },
@@ -111,29 +127,17 @@ export default async (fastify: FastifyInstance) => {
                     categoryId: z.string(),
                 }),
                 response: {
-                    ...defaultErrors,
-                    201: singleResponse(m.ZItem)
-                }
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [authorize(["employee"])],
         },
         ctrl.addCategoryToItem,
-    );
-
-    // All categories of an item
-    fastify.get<{ Params: { id: string } }>(
-        "/item/:id/categories",
-        {
-            schema: { 
-                params: z.object({ itemId: z.string() }),
-                response: {
-                    ...defaultErrors,
-                    200: listResponse(m.ZItem)
-                }
-            },
-            onRequest: [authorize(["employee"])],
-        },
-        ctrl.getAllCategoriesOfItem,
     );
 
     // Delete category of an item
@@ -146,9 +150,8 @@ export default async (fastify: FastifyInstance) => {
                     categoryId: z.string(),
                 }),
                 response: {
-                    ...defaultErrors,
-                    204: { type: 'null' }
-                }
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
             },
             onRequest: [authorize(["employee"])],
         },

@@ -10,15 +10,13 @@ import { stringToInt } from "../service/stringToInt.js";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
-    rep: FastifyReply<{
-        Body: {
-            data: e.Event;
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const event = await e.default.create(req.body);
+
+        // ADD COHERENCE CHECKS
+
         return rep.status(201).send({
             data: event.dataValues,
             message: "Event Created",
@@ -30,17 +28,16 @@ export const createEvent = async (
     }
 };
 
-export const getAllEvents = async (
-    req: FastifyRequest,
-    rep: FastifyReply<{
-        Body: {
-            data: e.Event[];
-            message: string;
-        };
-    }>,
-) => {
+export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
     try {
-        const events = await e.default.findAll();
+        const events = await e.default.findAll({
+            include: [
+                {
+                    attributes: [],
+                    through: { attributes: [], as: "registrations" },
+                },
+            ],
+        });
         if (events.length === 0)
             throw new RecyclotronApiErr("Event", "NotFound", 404);
 
@@ -61,12 +58,7 @@ export const getAllEvents = async (
 
 export const getEvent = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply<{
-        Body: {
-            data: e.Event;
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Event");
@@ -88,16 +80,14 @@ export const getEvent = async (
 
 export const updateEvent = async (
     req: FastifyRequest<{ Params: { id: string }; Body: e.PartialEvent }>,
-    rep: FastifyReply<{
-        Body: {
-            data: e.Event;
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Event");
         const data = req.body;
+
+        // COHERENCE CHECKS
+
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
@@ -117,11 +107,7 @@ export const updateEvent = async (
 
 export const deleteEvent = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply<{
-        Body: {
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Event");
@@ -130,7 +116,7 @@ export const deleteEvent = async (
 
         await event.destroy();
         return rep.status(200).send({
-            message: "Event deleted successfully",
+            message: "Event deleted successfully.",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
@@ -143,15 +129,14 @@ export const deleteEvent = async (
 
 export const getAllEventRegistrations = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    response: FastifyReply<{
-        Body: {
-            data: SRegistration[];
-            message: string;
-        };
-    }>,
+    response: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Event");
+
+        const event = await e.default.findByPk(id);
+        if (!event) throw new RecyclotronApiErr("Event", "NotFound", 404);
+
         const registrations = await SRegistration.findAll({
             where: { EventId: id },
         });
@@ -159,8 +144,8 @@ export const getAllEventRegistrations = async (
             throw new RecyclotronApiErr("RegistrationInEvent", "NotFound", 404);
 
         return response.status(200).send({
-            data: registrations,
-            message: "Fetched all event registrations",
+            data: { ...event?.dataValues, registrations: registrations },
+            message: "Fetched all event registrations.",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {

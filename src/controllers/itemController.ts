@@ -8,21 +8,18 @@ import {
 import SCategory from "../models/Category.js";
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
+import { getWithCategories } from "../service/itemService.js";
 
 // Create new item
 export const createItem = async (
     request: FastifyRequest<{ Body: i.InputItem }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            data: i.Item; 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const newItem = await i.default.create(request.body);
+
         reply.code(201).send({
-            data: newItem,
+            data: newItem.dataValues,
             message: "newItem created successfully",
         });
     } catch (error) {
@@ -35,20 +32,22 @@ export const createItem = async (
 // Get all items
 export const getAllItems = async (
     request: FastifyRequest,
-    reply: FastifyReply<{ 
-        Body: { 
-            data: i.Item[]; 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
-        const items = await i.default.findAll();
-        if (!items) {
-            return new RecyclotronApiErr("Item", "NotFound", 404);
-        }
+        const items = await i.default.findAll({
+            include: [
+                {
+                    model: SCategory,
+                    as: "categories",
+                    through: { attributes: [] },
+                },
+            ],
+        });
+        if (!items) return new RecyclotronApiErr("Item", "NotFound", 404);
+
         reply.code(200).send({
-            data: items,
+            data: items.map((item) => item.dataValues),
             message: "All items fetched successfully",
         });
     } catch (error) {
@@ -63,19 +62,13 @@ export const getAllItems = async (
 // Get item by ID
 export const getItemById = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            data: i.Item; 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
-        const item = await i.default.findByPk(id);
-        if (!item) {
-            return new RecyclotronApiErr("Item", "NotFound", 404);
-        }
+        const item = await getWithCategories(id);
+        if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
+
         reply.code(200).send({
             data: item,
             message: "Item fetched by id successfully",
@@ -92,16 +85,20 @@ export const getItemById = async (
 // Get items by status
 export const getItemByStatus = async (
     request: FastifyRequest<{ Params: { status: string } }>, // Status is an enum
-    reply: FastifyReply<{ 
-        Body: { 
-            data: i.Item[], 
-            message: string, 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const status = request.params.status;
-        const items = await i.default.findAll({ where: { status } });
+        const items = await i.default.findAll({
+            where: { status },
+            include: [
+                {
+                    model: SCategory,
+                    as: "categories",
+                    through: { attributes: [] },
+                },
+            ],
+        });
         if (items.length === 0)
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
@@ -123,12 +120,7 @@ export const updateItemById = async (
         Params: { id: string };
         Body: i.PartialItem;
     }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            data: i.Item; 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
@@ -137,8 +129,10 @@ export const updateItemById = async (
 
         await item.update(request.body);
 
+        const updatedItem = await getWithCategories(id);
+
         reply.code(200).send({
-            data: item,
+            data: updatedItem?.dataValues,
             message: "Item updated successfully",
         });
     } catch (error) {
@@ -153,11 +147,7 @@ export const updateItemById = async (
 // Delete item by ID
 export const deleteItemById = async (
     request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
@@ -166,7 +156,7 @@ export const deleteItemById = async (
 
         await item.destroy();
 
-        reply.code(204).send({ message: "Item deleted successfully." });
+        reply.code(200).send({ message: "Item deleted successfully." });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;
@@ -181,21 +171,18 @@ export const deleteItemById = async (
 // Add category to item
 export const addCategoryToItem = async (
     request: FastifyRequest<{ Params: { itemId: string; categoryId: string } }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            data: SItemCategory; 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const itemId: number = stringToInt(request.params.itemId, "Item");
-        if (!i.default.findByPk(itemId))
+        if (!(await i.default.findByPk(itemId)))
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
         const categoryId = stringToInt(request.params.categoryId, "Category");
-        if (!SCategory.findByPk(categoryId))
+        if (!(await SCategory.findByPk(categoryId)))
             return new RecyclotronApiErr("Category", "NotFound", 404);
+
+        // ADD COHERENCE CHECK
 
         const itemcategory = await SItemCategory.findOne({
             where: { categoryid: categoryId, itemId: itemId },
@@ -208,8 +195,18 @@ export const addCategoryToItem = async (
             categoryId,
         });
 
+        const updatedItem = await i.default.findByPk(itemId, {
+            include: [
+                {
+                    model: SCategory,
+                    as: "categories",
+                    through: { attributes: [] },
+                },
+            ],
+        });
+
         reply.code(200).send({
-            data: itemcategories,
+            data: updatedItem?.dataValues,
             message: "All category of item fetch successfully",
         });
     } catch (error) {
@@ -221,45 +218,10 @@ export const addCategoryToItem = async (
     }
 };
 
-// Get all categories of an item
-export const getAllCategoriesOfItem = async (
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            data: SItemCategory[]; 
-            message: string; 
-        } 
-    }>,
-) => {
-    try {
-        const id: number = stringToInt(request.params.id, "Item");
-        const categories = await SItemCategory.findAll({
-            where: { itemId: id },
-        });
-        if (categories.length === 0)
-            return new RecyclotronApiErr("Item", "NotFound", 404);
-
-        reply.code(200).send({
-            data: categories,
-            message: "All category of item fetch successfully",
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Item", error);
-        } else throw new RecyclotronApiErr("Item", "FetchFailed");
-    }
-};
-
 // Delete category of an item
 export const deleteCategoryOfItem = async (
     request: FastifyRequest<{ Params: { itemId: string; categoryId: string } }>,
-    reply: FastifyReply<{ 
-        Body: { 
-            message: string; 
-        } 
-    }>,
+    reply: FastifyReply,
 ) => {
     try {
         const itemId = stringToInt(request.params.itemId, "Item");
@@ -273,7 +235,8 @@ export const deleteCategoryOfItem = async (
         await SItemCategory.destroy({
             where: { itemId: itemId, categoryId: categoryId },
         });
-        reply.code(204).send({
+
+        reply.code(200).send({
             message: "Category removed from item successfully",
         });
     } catch (error) {

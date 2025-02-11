@@ -1,6 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
+import { ZCategory } from "./Category.js";
 
 enum ItemStatus {
     SALABLE = 0,
@@ -38,6 +39,7 @@ SItem.init(
     {
         tableName: "Items",
         sequelize,
+        timestamps: true,
     },
 );
 
@@ -53,12 +55,18 @@ export const ZPartialItem = ZItem.partial().omit({ id: true }); // tous les cham
 export const ZInputItem = ZItem.omit({ id: true }); // le même objet sans l'id
 
 export const ZItemOutput = ZItem.extend({
-    categories: z.array(z.lazy(() => ZCategory)),
     createdAt: z.date(),
-    updatedAt: z.date()
+    updatedAt: z.date(),
+});
+
+export const ZItemAndCategoriesOutput = ZItem.extend({
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    categories: z.array(z.lazy(() => ZCategory)),
 });
 
 export const ZItemListOutput = z.array(ZItemOutput);
+export const ZItemAndCategoriesListOutput = z.array(ZItemAndCategoriesOutput);
 
 export type ItemOutput = z.infer<typeof ZItemOutput>;
 export type ItemListOutput = z.infer<typeof ZItemListOutput>;

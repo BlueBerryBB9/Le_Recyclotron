@@ -10,11 +10,9 @@ import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import * as z from "zod";
 import { IncomingMessage, request, ServerResponse } from "http";
 import { where } from "sequelize";
-import {
-    defaultErrors,
-    singleResponse,
-    listResponse,
-} from "../utils/responseSchemas.js";
+import { ZPayment, ZPaymentOutput } from "../models/Payment.js";
+import { ZRegistrationOutput } from "../models/Registration.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     // Protected routes
@@ -27,11 +25,15 @@ export default async (fastify: FastifyInstance) => {
                     roles: z.array(z.number()),
                 }),
                 response: {
-                    ...defaultErrors,
-                    201: u.ZUserWithRole,
+                    201: zodToJsonSchema(
+                        z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
-            onRequest: [authorize(["rh"])],
+            onRequest: [await authorize(["rh"])],
         },
         userController.createUser,
     );
@@ -41,11 +43,15 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 response: {
-                    ...defaultErrors,
-                    200: u.ZUserWithRole,
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
-            onRequest: [authorize(["rh"])],
+            onRequest: [await authorize(["rh"])],
         },
         userController.getAllUsers,
     );
@@ -56,8 +62,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    ...defaultErrors,
-                    200: u.ZUserWithRole,
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
             onRequest: [await isSelfOrAdminOr(["rh"])],
@@ -73,8 +83,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: u.ZUpdateUser,
                 response: {
-                    ...defaultErrors,
-                    200: u.ZUserWithRole,
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
         },
@@ -84,14 +98,13 @@ export default async (fastify: FastifyInstance) => {
     fastify.delete<{ Params: { id: string } }>(
         "/users/:id",
         {
-            onRequest: [authorize(["rh"])],
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    ...defaultErrors,
-                    200: z.object({ message: z.string() }),
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
                 },
             },
+            onRequest: [await authorize(["rh"])],
         },
         userController.deleteUser,
     );
@@ -103,8 +116,16 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 body: z.object({ roles: z.array(z.number()) }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
-            onRequest: [authorize(["rh"])],
+            onRequest: [await authorize(["rh"])],
         },
         userController.addUserRoles,
     );
@@ -114,8 +135,11 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 params: z.object({ userId: z.string(), roleId: z.string() }),
+                response: {
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
             },
-            onRequest: [authorize(["rh"])],
+            onRequest: [await authorize(["rh"])],
         },
         userController.removeUserRoles,
     );
@@ -125,6 +149,14 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: ZPaymentOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [await isSelfOrAdminOr(["rh"])],
         },
@@ -136,6 +168,14 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: ZRegistrationOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [await isSelfOrAdminOr(["rh"])],
         },
@@ -148,8 +188,11 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 body: z.object({ email: z.string().email() }),
+                response: {
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
             },
-            onRequest: [authorize(["client"])],
+            onRequest: [await authorize(["client"])],
         },
         userController.forgotPassword,
     );
@@ -165,8 +208,11 @@ export default async (fastify: FastifyInstance) => {
                     tempCode: z.string(),
                     newPassword: z.string(),
                 }),
+                response: {
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
             },
-            onRequest: [authorize(["client"])],
+            onRequest: [await authorize(["client"])],
         },
         userController.resetPassword,
     );

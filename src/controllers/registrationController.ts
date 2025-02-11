@@ -4,18 +4,13 @@ import {
     RecyclotronApiErr,
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
-import { BaseError } from "sequelize";
+import { BaseError, where } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
 
 // Wrap each controller method with try/catch for error handling
 export const createRegistration = async (
     req: FastifyRequest<{ Body: r.InputRegistration }>,
-    rep: FastifyReply<{
-        Body: {
-            data: r.Registration;
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const createdRegistration = await r.default.create(req.body);
@@ -31,44 +26,9 @@ export const createRegistration = async (
     }
 };
 
-// UPGRADE TO DO : REGROUP THEM BY EVENT
-export const getAllRegistrations = async (
-    req: FastifyRequest,
-    rep: FastifyReply<{
-        Body: {
-            data: r.Registration[];
-            message: string;
-        };
-    }>,
-) => {
-    try {
-        const registrations = await r.default.findAll();
-        if (registrations.length === 0)
-            throw new RecyclotronApiErr("Registration", "NotFound", 404);
-
-        return rep.status(200).send({
-            data: registrations.map((reg) => {
-                return reg.dataValues;
-            }),
-            message: "Fetched all Registrations",
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Registration", error);
-        } else throw new RecyclotronApiErr("Registration", "FetchAllFailed");
-    }
-};
-
 export const getRegistration = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply<{
-        Body: {
-            data: r.Registration;
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");
@@ -77,7 +37,7 @@ export const getRegistration = async (
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
         return rep.status(200).send({
-            data: registration,
+            data: registration.dataValues,
             message: "Registration fetched successfully",
         });
     } catch (error) {
@@ -94,12 +54,7 @@ export const updateRegistration = async (
         Params: { id: string };
         Body: r.PartialRegistration;
     }>,
-    rep: FastifyReply<{
-        Body: {
-            data: r.Registration;
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");
@@ -111,8 +66,12 @@ export const updateRegistration = async (
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
         await registration.update(data);
+
+        const updatedRegistration = await r.default.findByPk(id, {
+            include: r.default.associations.event,
+        });
         return rep.status(200).send({
-            data: registration.dataValues,
+            data: updatedRegistration?.dataValues,
             message: "Registration updated successfully",
         });
     } catch (error) {
@@ -126,11 +85,7 @@ export const updateRegistration = async (
 
 export const deleteRegistration = async (
     req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply<{
-        Body: {
-            message: string;
-        };
-    }>,
+    rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");
@@ -140,7 +95,7 @@ export const deleteRegistration = async (
 
         await registration.destroy();
 
-        return rep.status(204).send({
+        return rep.status(200).send({
             message: "Registration deleted successfully",
         });
     } catch (error) {

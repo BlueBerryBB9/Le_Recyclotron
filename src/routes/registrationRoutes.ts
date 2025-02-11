@@ -3,8 +3,7 @@ import * as rc from "../controllers/registrationController.js";
 import * as rm from "../models/Registration.js";
 import z from "zod";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
-import { where } from "sequelize";
-import { defaultErrors, singleResponse, listResponse } from "../utils/responseSchemas.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: rm.InputRegistration }>(
@@ -13,33 +12,33 @@ export default async (fastify: f.FastifyInstance) => {
             schema: {
                 body: rm.ZInputRegistration,
                 response: {
-                    ...defaultErrors,
-                    201: singleResponse(rm.ZRegistration)
-                }
+                    201: zodToJsonSchema(
+                        z.object({
+                            data: rm.ZRegistration,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [authorize(["client"])],
         },
         rc.createRegistration,
     );
 
-    fastify.get(
-        "/registration",
-        {
-            schema: {
-                response: {
-                    ...defaultErrors,
-                    200: listResponse(rm.ZRegistration)
-                }
-            },
-            onRequest: [authorize(["cm"])],
-        },
-        rc.getAllRegistrations,
-    );
-
     fastify.get<{ Params: { id: string } }>(
         "/registration/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: rm.ZRegistration,
+                            message: z.string(),
+                        }),
+                    ),
+                },
+            },
             onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.getRegistration,
@@ -51,6 +50,14 @@ export default async (fastify: f.FastifyInstance) => {
             schema: {
                 body: rm.ZPartialRegistration,
                 params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: rm.ZRegistrationOutput,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [await isSelfOrAdminOr([], "registration")],
         },
@@ -60,7 +67,16 @@ export default async (fastify: f.FastifyInstance) => {
     fastify.delete<{ Params: { id: string } }>(
         "/registration/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            message: z.string(),
+                        }),
+                    ),
+                },
+            },
             onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.deleteRegistration,

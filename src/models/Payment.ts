@@ -22,7 +22,7 @@ SPayment.init(
         type: { type: DataTypes.INTEGER }, // donation = 0, subscription = 1 ?
         status: { type: DataTypes.STRING, allowNull: true },
     },
-    { sequelize, modelName: "Payment" },
+    { sequelize, modelName: "Payment", timestamps: true },
 );
 
 export default SPayment;
@@ -51,6 +51,11 @@ export const ZPayment = z.object({
     amount: z.number(),
     type: z.number(),
     status: z.string().nullable(),
+});
+
+export const ZPaymentOutput = ZPayment.extend({
+    createdAt: z.date(),
+    updatedAt: z.date(),
 });
 
 export type Payment = z.infer<typeof ZPayment>;

@@ -6,6 +6,7 @@ import {
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
+import { getCategories } from "../service/categoryService.js";
 
 export const createCategory = async (
     request: FastifyRequest<{ Body: i.InputCategory }>,
@@ -72,22 +73,6 @@ export const getAllCategories = async (
 
         let allCategories: any[] = [];
 
-        // Recursive function to get categories and their children
-        const getCategories = async (parentId: number): Promise<any[]> => {
-            const subCategories = await i.default.findAll({
-                where: { parentCategoryId: parentId },
-            });
-
-            if (subCategories.length === 0) return [];
-
-            return await Promise.all(
-                subCategories.map(async (category) => ({
-                    ...category.dataValues,
-                    children: await getCategories(category.getDataValue("id")),
-                })),
-            );
-        };
-
         for (const cate of categories) {
             const categoriesWithChildren = await getCategories(
                 cate.getDataValue("id"),
@@ -123,8 +108,13 @@ export const getCategoryById = async (
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
+        const updatedCategories = {
+            ...category,
+            children: await getCategories(id),
+        };
+
         reply.code(200).send({
-            data: category,
+            data: category.dataValues,
             message: "category fetched by id successfully",
         });
     } catch (error) {
@@ -146,12 +136,18 @@ export const updateCategoryById = async (
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Category");
-        const Category = await i.default.findByPk(id);
-        if (!Category)
+        const category = await i.default.findByPk(id);
+        if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
-        await Category.update(request.body);
+        await category.update(request.body);
+
+        const updatedCategories = {
+            ...category,
+            children: await getCategories(id),
+        };
         reply.code(200).send({
+            data: updatedCategories,
             message: "Category updated successfully",
         });
     } catch (error) {
@@ -176,7 +172,6 @@ export const deleteCategoryById = async (
 
         await category.destroy();
         reply.code(200).send({
-            statuscode: 200,
             message: "Category deleted successfully.",
         });
     } catch (error) {
@@ -185,73 +180,5 @@ export const deleteCategoryById = async (
         } else if (error instanceof BaseError) {
             throw new SequelizeApiErr("Category", error);
         } else throw new RecyclotronApiErr("Category", "DeletionFailed");
-    }
-};
-
-const getCategories = async (parentId: number): Promise<any> => {
-    console.log(`Fetching categories for parentId: ${parentId}`);
-
-    const subCategories = await i.default.findAll({
-        where: { parentCategoryId: parentId },
-    });
-
-    if (subCategories.length === 0) return;
-
-    const categoriesWithChildren = await Promise.all(
-        subCategories.map(async (category) => {
-            const categoryId = category.getDataValue("id");
-
-            const children = await getCategories(categoryId);
-
-            return {
-                ...category.dataValues, // Include category info
-                children, // Add child categories if they exist
-            };
-        }),
-    );
-
-    // Add the current level categories with their children
-    return categoriesWithChildren;
-};
-
-// Get all childCategories of category
-export const getAllCategoriesOfCategory = async (
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
-) => {
-    try {
-        const parent_category_id: number = stringToInt(
-            request.params.id,
-            "Category",
-        );
-
-        let allCategories: any[] = [];
-
-        // Start the recursion with the given parent category
-        const categoriesWithParent = await getCategories(parent_category_id);
-
-        // Add the parent category itself to the result
-        const parentCategory = await i.default.findByPk(parent_category_id);
-        if (parentCategory) {
-            allCategories = [
-                {
-                    ...parentCategory.dataValues,
-                    children: categoriesWithParent, // Attach the fetched children to the parent category
-                },
-            ];
-        }
-
-        // Send response
-        reply.code(200).send({
-            data: allCategories,
-            message:
-                "All categories including parent and children fetched successfully",
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Category", error);
-        } else throw new RecyclotronApiErr("Category", "FetchAllFailed");
     }
 };

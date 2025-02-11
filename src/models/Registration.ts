@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import SUser from "./User.js";
-import SEvent from "./Event.js";
+import SUser, { ZPublicUser } from "./User.js";
+import SEvent, { ZEvent } from "./Event.js";
 import { z } from "zod";
 
 class SRegistration extends Model {}
@@ -52,9 +52,22 @@ export const ZRegistration = z.object({
 export const ZRegistrationOutput = z.object({
     id: z.number(),
     seats: z.number(),
-    user: ZPublicUser,
+    userId: z.number(),
+    eventId: z.number(),
     event: ZEvent,
 });
+
+export const ZRegistrationListOutput = z.array(
+    ZRegistration.extend({
+        event: ZEvent,
+    }),
+);
+
+export const ZEventWithRegistrations = ZEvent.extend({
+    registrations: z.array(ZRegistration),
+});
+
+export const ZEventListOutput = z.array(ZEventWithRegistrations);
 
 export const ZPartialRegistration = ZRegistration.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputRegistration = ZRegistration.omit({ id: true }); // le même objet sans l'id

@@ -12,16 +12,17 @@ import {
     SubscriptionBody,
 } from "../models/Payment.js";
 import * as env from "../config/env.js";
+import { BaseError } from "sequelize";
+import {
+    RecyclotronApiErr,
+    SequelizeApiErr,
+} from "../error/recyclotronApiErr.js";
 
 export class PaymentController {
     // Créer un abonnement mensuel
     static async createSubscription(
         request: FastifyRequest<{ Body: SubscriptionBody }>,
-        reply: FastifyReply<{ 
-            Body: { 
-                subscriptionId: string;
-            } 
-        }>,
+        reply: FastifyReply,
     ) {
         try {
             const validateData = subscriptionSchema.parse(request.body);
@@ -44,27 +45,23 @@ export class PaymentController {
                 id_stripe_payment: subscription.id,
             });
 
-            return { subscriptionId: subscription.id };
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                return reply
-                    .status(400)
-                    .send({ error: "Validation Error", details: error.errors });
-            }
             return reply
-                .status(400)
-                .send({ error: "Erreur lors de la création de l'abonnement" });
+                .status(200)
+                .send({
+                    subscriptionId: subscription.id,
+                    message: "Abonnement créé",
+                });
+        } catch (error) {
+            if (error instanceof BaseError) {
+                throw new SequelizeApiErr("Payment", error);
+            } else throw new RecyclotronApiErr("Payment", "OperationFailed");
         }
     }
 
     // Créer un don unique
     static async createDonation(
         request: FastifyRequest<{ Body: DonationBody }>,
-        reply: FastifyReply<{ 
-            Body: { 
-                clientSecret: string;
-            } 
-        }>,
+        reply: FastifyReply,
     ) {
         try {
             const validateData = donationSchema.parse(request.body);
@@ -87,27 +84,23 @@ export class PaymentController {
                 id_user: userId,
                 id_stripe_payment: paymentIntent.id,
             });
-            return reply.send({ clientSecret: paymentIntent.client_secret });
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                return reply
-                    .status(400)
-                    .send({ error: "Validation Error", details: error.errors });
-            }
             return reply
-                .status(400)
-                .send({ error: "Erreur lors du traitement du don" });
+                .status(200)
+                .send({
+                    clientSecret: paymentIntent.client_secret,
+                    message: "Don créé",
+                });
+        } catch (error) {
+            if (error instanceof BaseError) {
+                throw new SequelizeApiErr("Payment", error);
+            } else throw new RecyclotronApiErr("Payment", "CreationFailed");
         }
     }
 
     // Mettre à jour les coordonnées bancaires
     static async updatePaymentMethod(
         request: FastifyRequest<{ Body: PaymentMethodBody }>,
-        reply: FastifyReply<{ 
-            Body: { 
-                success: boolean;
-            } 
-        }>,
+        reply: FastifyReply,
     ) {
         try {
             const validateData = paymentMethodSchema.parse(request.body);
@@ -124,27 +117,18 @@ export class PaymentController {
                     default_payment_method: paymentMethodId,
                 },
             });
-            return reply.send({ success: true });
+            return reply
+                .status(200)
+                .send({ message: "Moyen de paiement mis à jour" });
         } catch (error) {
-            if (error instanceof z.ZodError) {
-                return reply
-                    .status(400)
-                    .send({ error: "Validation Error", details: error.errors });
-            }
-            return reply.status(400).send({
-                error: "Erreur lors de la mise à jour du moyen de paiement",
-            });
+            throw new RecyclotronApiErr("Payment", "CreationFailed");
         }
     }
 
     // Résilier un abonnement
     static async cancelSubscription(
         request: FastifyRequest<{ Params: { subscriptionId: string } }>,
-        reply: FastifyReply<{ 
-            Body: { 
-                success: boolean;
-            } 
-        }>,
+        reply: FastifyReply,
     ) {
         try {
             const { subscriptionId } = request.params;
@@ -157,13 +141,11 @@ export class PaymentController {
                 { where: { stripeSubscriptionId: subscriptionId } },
             );
 
-            return reply.send({ success: true });
+            return reply.status(200).send({ message: "Abonnement résilié" });
         } catch (error) {
-            return reply
-                .status(400)
-                .send({
-                    error: "Erreur lors de la résiliation de l'abonnement",
-                });
+            return reply.status(400).send({
+                error: "Erreur lors de la résiliation de l'abonnement",
+            });
         }
     }
 

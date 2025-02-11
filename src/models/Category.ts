@@ -33,13 +33,15 @@ SCategory.belongsTo(SCategory, {
     foreignKey: "parentCategoryId",
 });
 
-export const ZCategory = z.object({
-    id: z.number(),
-    name: z.string(),
-    parent_category_id: z.number(),
-});
+export const ZCategory = z
+    .object({
+        id: z.number(),
+        name: z.string(),
+        parent_category_id: z.number(),
+    })
+    .strict();
 
-export const ZPartialCategory = ZCategory.partial().omit({ id: true }); // tous les champs sont devenus optionels
+export const ZPartialCategory = ZCategory.omit({ id: true }).partial(); // tous les champs sont devenus optionels
 export const ZInputCategory = ZCategory.omit({
     id: true,
     parent_category_id: true,
@@ -49,6 +51,12 @@ export const ZInputChildCategory = ZCategory.omit({
 });
 
 export const ZParentCategory = ZCategory.omit({ parent_category_id: true });
+
+export const ZCategoryWithChildren: z.ZodSchema = z.lazy(() =>
+    ZCategory.extend({
+        children: z.array(ZCategoryWithChildren),
+    }),
+);
 
 export type Category = z.infer<typeof ZCategory>;
 export type PartialCategory = z.infer<typeof ZPartialCategory>;

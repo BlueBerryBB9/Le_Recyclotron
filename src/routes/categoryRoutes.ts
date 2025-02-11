@@ -3,18 +3,21 @@ import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
-import { defaultErrors } from "../utils/responseSchemas.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
-    // Create a new Category
     fastify.post<{ Body: m.InputCategory }>(
         "/categories",
         {
             schema: {
                 body: m.ZInputCategory,
                 response: {
-                    ...defaultErrors,
-                    201: m.ZCategory,
+                    201: zodToJsonSchema(
+                        z.object({
+                            data: m.ZCategory,
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -30,8 +33,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
                 response: {
-                    ...defaultErrors,
-                    201: m.ZCategory,
+                    201: zodToJsonSchema(
+                        z.object({
+                            data: m.ZCategory,
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -45,8 +52,12 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 response: {
-                    ...defaultErrors,
-                    200: m.ZCategory,
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: z.array(m.ZCategoryWithChildren),
+                            message: z.string(),
+                        }),
+                    ),
                 },
             },
         },
@@ -57,7 +68,17 @@ export default async (fastify: FastifyInstance) => {
     fastify.get(
         "/categories/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZCategory,
+                            message: z.string(),
+                        }),
+                    ),
+                },
+            },
         },
         ctrl.getCategoryById,
     );
@@ -69,6 +90,14 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialCategory,
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            data: m.ZCategoryWithChildren,
+                            message: z.string(),
+                        }),
+                    ),
+                },
             },
             onRequest: [authorize(["employee"])],
         },
@@ -79,20 +108,18 @@ export default async (fastify: FastifyInstance) => {
     fastify.delete<{ Params: { id: string } }>(
         "/categories/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: zodToJsonSchema(
+                        z.object({
+                            message: z.string(),
+                        }),
+                    ),
+                },
+            },
             onRequest: [authorize(["employee"])],
         },
         ctrl.deleteCategoryById,
-    );
-
-    // MAYBE USELESS WITH GET ALL ROUTE
-    // All categories of an Category
-    fastify.get<{ Params: { id: string } }>(
-        "/categories/:id/categories",
-        {
-            schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(["employee"])],
-        },
-        ctrl.getAllCategoriesOfCategory,
     );
 };

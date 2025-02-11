@@ -7,11 +7,10 @@ import {
     DonationBody,
     PaymentMethodBody,
     SubscriptionBody,
-    ZSubscription as pm,
 } from "../models/Payment.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
-import { defaultErrors, singleResponse } from "../utils/responseSchemas.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     // Register raw body parser for Stripe webhook
@@ -25,12 +24,11 @@ export default async (fastify: FastifyInstance) => {
     fastify.post<{ Body: SubscriptionBody }>(
         "/subscription",
         {
-            schema: { 
+            schema: {
                 body: subscriptionSchema,
                 response: {
-                    ...defaultErrors,
-                    200: singleResponse(pm.ZSubscription)
-                }
+                    200: zodToJsonSchema(z.object({ subscriptionId: z.any() })),
+                },
             },
             onRequest: [authorize(["client"])],
         },
@@ -39,7 +37,12 @@ export default async (fastify: FastifyInstance) => {
     fastify.delete<{ Params: { subscriptionId: string } }>(
         "/subscription/:id",
         {
-            schema: { params: z.object({ subscriptionId: z.string() }) },
+            schema: {
+                params: z.object({ subscriptionId: z.string() }),
+                response: {
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
+            },
             onRequest: [authorize(["client"])],
         },
         PaymentController.cancelSubscription,
@@ -47,7 +50,12 @@ export default async (fastify: FastifyInstance) => {
     fastify.post<{ Body: DonationBody }>(
         "/donation",
         {
-            schema: { body: donationSchema },
+            schema: {
+                body: donationSchema,
+                response: {
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
+            },
             onRequest: [authorize(["client"])],
         },
         PaymentController.createDonation,
@@ -55,7 +63,12 @@ export default async (fastify: FastifyInstance) => {
     fastify.put<{ Body: PaymentMethodBody }>(
         "/payment-method",
         {
-            schema: { body: paymentMethodSchema },
+            schema: {
+                body: paymentMethodSchema,
+                response: {
+                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                },
+            },
             onRequest: [authorize(["client"])],
         },
         PaymentController.updatePaymentMethod,

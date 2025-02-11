@@ -1,7 +1,6 @@
-import { generateToken, getUserWithRoles } from "../service/auth_service.js";
+import { generateToken } from "../service/authService.js";
 import SUser, {
     CreateUser,
-    UserWithRole,
     ZCreateUser,
 } from "../models/User.js";
 import SUserRoles from "../models/UserRoles.js";
@@ -20,6 +19,7 @@ import SRole from "../models/Role.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
 import OTP from "../models/OTP.js";
 import { BaseError } from "sequelize";
+import { getUserWithRoles } from "../service/userService.js";
 
 //* login
 export const login = async (

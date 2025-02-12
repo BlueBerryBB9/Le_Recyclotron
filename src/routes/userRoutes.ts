@@ -12,7 +12,6 @@ import { IncomingMessage, request, ServerResponse } from "http";
 import { where } from "sequelize";
 import { ZPayment, ZPaymentOutput } from "../models/Payment.js";
 import { ZRegistrationOutput } from "../models/Registration.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     // Protected routes
@@ -25,12 +24,12 @@ export default async (fastify: FastifyInstance) => {
                     roles: z.array(z.number()),
                 }),
                 response: {
-                    201: zodToJsonSchema(
-                        z.object({
+                    201: {
+                        zodSchema: z.object({
                             data: u.ZUserWithRole,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await authorize(["rh"])],
@@ -43,12 +42,12 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: u.ZUserWithRole,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await authorize(["rh"])],
@@ -62,12 +61,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: u.ZUserWithRole,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await isSelfOrAdminOr(["rh"])],
@@ -83,12 +82,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: u.ZUpdateUser,
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: u.ZUserWithRole,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -101,7 +100,9 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
                 },
             },
             onRequest: [await authorize(["rh"])],
@@ -117,12 +118,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: z.object({ roles: z.array(z.number()) }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: u.ZUserWithRole,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await authorize(["rh"])],
@@ -136,7 +137,9 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ userId: z.string(), roleId: z.string() }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
                 },
             },
             onRequest: [await authorize(["rh"])],
@@ -150,12 +153,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: ZPaymentOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await isSelfOrAdminOr(["rh"])],
@@ -169,12 +172,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: ZRegistrationOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await isSelfOrAdminOr(["rh"])],
@@ -189,7 +192,9 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: z.object({ email: z.string().email() }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
                 },
             },
             onRequest: [await authorize(["client"])],
@@ -209,7 +214,9 @@ export default async (fastify: FastifyInstance) => {
                     newPassword: z.string(),
                 }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
                 },
             },
             onRequest: [await authorize(["client"])],

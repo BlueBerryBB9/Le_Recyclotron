@@ -1,8 +1,5 @@
 import { generateToken } from "../service/authService.js";
-import SUser, {
-    CreateUser,
-    ZCreateUser,
-} from "../models/User.js";
+import SUser, { CreateUser, ZCreateUser } from "../models/User.js";
 import SUserRoles from "../models/UserRoles.js";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { stringToInt } from "../service/stringToInt.js";
@@ -27,7 +24,6 @@ export const login = async (
     reply: FastifyReply,
 ) => {
     try {
-        console.log("WAWAWAWAWAWAWA");
         const { email, password } = request.body;
 
         const user = await SUser.findOne({
@@ -61,10 +57,9 @@ export const login = async (
             "Your OTP Code",
             `Your OTP code is: ${otpPassword}`,
         );
-        console.log("WAWAWAWAWAWAWA");
 
         return reply.status(200).send({
-            meage: "Check your email for the OTP code",
+            message: "Check your email for the OTP code",
         });
     } catch (error) {
         console.log(error);

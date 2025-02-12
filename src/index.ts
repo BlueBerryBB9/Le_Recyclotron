@@ -101,33 +101,73 @@ export const startServer = async () => {
                 console.log(reply.statusCode);
             },
         );
+        // app.addHook("preSerialization", async (request, reply, payload) => {
+        //     try {
+        //         const responseSchemas = request.routeOptions?.schema
+        //             ?.response as Record<string, any> | undefined;
+        //         console.log(responseSchemas);
+        //         const responseSchema =
+        //             responseSchemas?.[String(reply.statusCode)];
+        //         console.log(responseSchema);
+
+        //         if (responseSchema) {
+        //             console.log("AAAAAAAAAAAAAAAAAAA");
+        //             const parseResult = responseSchema.safeParse(payload);
+        //             console.log("2222222222222222222222222222");
+        //             if (!parseResult.success) {
+        //                 console.log("AAAAAAAAAAAAAAAAAAA");
+        //                 throw new RecyclotronApiErr(
+        //                     "MiddleWare",
+        //                     "OperationFailed",
+        //                     500,
+        //                 );
+        //             }
+        //             console.log(reply);
+        //             return parseResult.data;
+        //         }
+        //         return payload;
+        //     } catch (error) {
+        //         console.log(error);
+        //         if (error instanceof RecyclotronApiErr) {
+        //             reply.code(error.statusCode || 500);
+        //             return error.Error();
+        //         }
+        //         throw error;
+        //     }
+        // });
+
         app.addHook("preSerialization", async (request, reply, payload) => {
-            const responseSchemas = request.routeOptions?.schema?.response as
-                | Record<string, any>
-                | undefined;
-            console.log(responseSchemas);
-            const responseSchema = responseSchemas?.[String(reply.statusCode)];
-            console.log(responseSchema);
+            try {
+                const responseSchemas = request.routeOptions?.schema
+                    ?.response as Record<string, any> | undefined;
 
-            if (responseSchema) {
-                console.log("AAAAAAAAAAAAAAAAAAA");
-                console.log(reply);
-                const parseResult = responseSchema.safeParse(payload);
-                console.log("2222222222222222222222222222");
-                if (!parseResult.success) {
-                    console.log("AAAAAAAAAAAAAAAAAAA");
-                    throw new RecyclotronApiErr(
-                        "MiddleWare",
-                        "OperationFailed",
-                        500,
-                    );
+                const responseSchemaObj =
+                    responseSchemas?.[String(reply.statusCode)];
+
+                if (responseSchemaObj?.zodSchema) {
+                    const parseResult =
+                        responseSchemaObj.zodSchema.safeParse(payload);
+
+                    if (!parseResult.success) {
+                        console.log("Response validation failed");
+                        throw new RecyclotronApiErr(
+                            "MiddleWare",
+                            "OutPutValidationFailed",
+                            500,
+                        );
+                    }
+                    return parseResult.data;
                 }
-                console.log(reply);
-                return parseResult.data;
-            }
 
-            console.log("1111111111111111111111111AAAAAAAAAAAAAAAAAAA");
-            return payload;
+                return payload;
+            } catch (error) {
+                console.error(error);
+                if (error instanceof RecyclotronApiErr) {
+                    reply.code(error.statusCode || 500);
+                    return error.Error();
+                }
+                throw error;
+            }
         });
 
         await app.listen({ port: 3000 });

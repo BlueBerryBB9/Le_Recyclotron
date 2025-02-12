@@ -3,7 +3,6 @@ import * as ctrl from "../controllers/itemController.js";
 import * as m from "./../models/Item.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     // Create a new item
@@ -13,9 +12,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: m.ZInputItem,
                 response: {
-                    201: zodToJsonSchema(
-                        z.object({ data: m.ZItemOutput, message: z.string() }),
-                    ),
+                    201: {
+                        zodSchema: z.object({
+                            data: m.ZItemOutput,
+                            message: z.string(),
+                        }),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -29,12 +31,12 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZItemAndCategoriesListOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -48,12 +50,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZItemAndCategoriesOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -68,12 +70,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ status: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZItemAndCategoriesOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["repairer", "client"])],
@@ -89,12 +91,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialItem,
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZItemAndCategoriesOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -109,7 +111,9 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -127,12 +131,12 @@ export default async (fastify: FastifyInstance) => {
                     categoryId: z.string(),
                 }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZItemAndCategoriesOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -150,7 +154,9 @@ export default async (fastify: FastifyInstance) => {
                     categoryId: z.string(),
                 }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],

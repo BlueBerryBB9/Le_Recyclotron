@@ -10,7 +10,6 @@ import {
 } from "../models/Payment.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     // Register raw body parser for Stripe webhook
@@ -27,7 +26,7 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: subscriptionSchema,
                 response: {
-                    200: zodToJsonSchema(z.object({ subscriptionId: z.any() })),
+                    200: { zodSchema: z.object({ subscriptionId: z.any() }) },
                 },
             },
             onRequest: [authorize(["client"])],
@@ -40,7 +39,7 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ subscriptionId: z.string() }),
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: { zodSchema: z.object({ message: z.string() }) },
                 },
             },
             onRequest: [authorize(["client"])],
@@ -53,7 +52,7 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: donationSchema,
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: { zodSchema: z.object({ message: z.string() }) },
                 },
             },
             onRequest: [authorize(["client"])],
@@ -66,7 +65,7 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: paymentMethodSchema,
                 response: {
-                    200: zodToJsonSchema(z.object({ message: z.string() })),
+                    200: { zodSchema: z.object({ message: z.string() }) },
                 },
             },
             onRequest: [authorize(["client"])],

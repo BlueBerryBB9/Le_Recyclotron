@@ -4,7 +4,6 @@ import * as authController from "../controllers/authController.js";
 import { ZCreateUser } from "../models/User.js";
 import { FastifyInstance, RawServerDefault, RouteHandlerMethod } from "fastify";
 import * as z from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async function authRoutes(fastify: FastifyInstance) {
     // Routes publiques
@@ -17,11 +16,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     password: z.string(),
                 }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -34,12 +33,12 @@ export default async function authRoutes(fastify: FastifyInstance) {
             schema: {
                 body: ZCreateUser,
                 response: {
-                    201: zodToJsonSchema(
-                        z.object({
+                    201: {
+                        zodSchema: z.object({
                             data: z.object({ id: z.string() }),
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -55,12 +54,12 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     otp: z.string(),
                 }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: z.object({ jwt: z.string() }),
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -73,12 +72,12 @@ export default async function authRoutes(fastify: FastifyInstance) {
         {
             schema: {
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: ZUserWithRole,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["client", "employee"])],
@@ -93,11 +92,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
             onRequest: [authorize(["admin"])],
             schema: {
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -115,11 +114,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
                 }),
 
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },

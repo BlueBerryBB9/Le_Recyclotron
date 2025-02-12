@@ -3,7 +3,6 @@ import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
 import z from "zod";
 import { authorize } from "../middleware/auth.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: FastifyInstance) => {
     fastify.post<{ Body: m.InputCategory }>(
@@ -12,12 +11,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 body: m.ZInputCategory,
                 response: {
-                    201: zodToJsonSchema(
-                        z.object({
+                    201: {
+                        zodSchema: z.object({
                             data: m.ZCategory,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -33,12 +32,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZInputCategory,
                 response: {
-                    201: zodToJsonSchema(
-                        z.object({
+                    201: {
+                        zodSchema: z.object({
                             data: m.ZCategory,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -52,12 +51,12 @@ export default async (fastify: FastifyInstance) => {
         {
             schema: {
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: z.array(m.ZCategoryWithChildren),
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -71,12 +70,12 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZCategory,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
         },
@@ -91,12 +90,12 @@ export default async (fastify: FastifyInstance) => {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialCategory,
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: m.ZCategoryWithChildren,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],
@@ -111,11 +110,11 @@ export default async (fastify: FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["employee"])],

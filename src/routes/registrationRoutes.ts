@@ -3,7 +3,6 @@ import * as rc from "../controllers/registrationController.js";
 import * as rm from "../models/Registration.js";
 import z from "zod";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: rm.InputRegistration }>(
@@ -12,12 +11,12 @@ export default async (fastify: f.FastifyInstance) => {
             schema: {
                 body: rm.ZInputRegistration,
                 response: {
-                    201: zodToJsonSchema(
-                        z.object({
+                    201: {
+                        zodSchema: z.object({
                             data: rm.ZRegistration,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [authorize(["client"])],
@@ -31,12 +30,12 @@ export default async (fastify: f.FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: rm.ZRegistration,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await isSelfOrAdminOr([], "registration")],
@@ -51,12 +50,12 @@ export default async (fastify: f.FastifyInstance) => {
                 body: rm.ZPartialRegistration,
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             data: rm.ZRegistrationOutput,
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await isSelfOrAdminOr([], "registration")],
@@ -70,11 +69,11 @@ export default async (fastify: f.FastifyInstance) => {
             schema: {
                 params: z.object({ id: z.string() }),
                 response: {
-                    200: zodToJsonSchema(
-                        z.object({
+                    200: {
+                        zodSchema: z.object({
                             message: z.string(),
                         }),
-                    ),
+                    },
                 },
             },
             onRequest: [await isSelfOrAdminOr([], "registration")],

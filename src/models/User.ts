@@ -104,10 +104,6 @@ export const ZUserBase = z.object({
     is_adherent: z.boolean().default(false),
 
     sub_type: z.string().nullable().optional(),
-
-    createdAt: z.date(),
-
-    updatedAt: z.date(),
 });
 
 // Complete user schema with ID

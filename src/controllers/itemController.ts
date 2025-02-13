@@ -221,7 +221,7 @@ export const addCategoryToItem = async (
                 {
                     model: SCategory,
                     as: "categories",
-                    attributes: ["id", "name"],
+                    attributes: ["id", "name", "parentCategoryId"],
                     through: { attributes: [] },
                 },
             ],

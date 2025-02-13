@@ -44,8 +44,3 @@ Category
 (employee) category/id + méthode GET : récupérer une catégorie par id
 (employee) category/:id + méthode PUT : mettre à jour une catégorie
 (employee) category/:id + méthode DELETE : supprimer une catégorie
-
-inject close : contourne la règle du SQL
-
-Appel de l' API à elle même
-1 seule couche : l'api ne fait pas appel à elle même

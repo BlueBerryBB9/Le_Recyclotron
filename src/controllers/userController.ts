@@ -46,6 +46,10 @@ export const createUser = async (
         });
 
         for (let role of request.body.roles) {
+            if (role === 6)
+                // 6 = client and employee =/= client
+                throw new RecyclotronApiErr("User", "InvalidInput", 400);
+
             await SUserRole.create({
                 roleId: role,
                 userId: user.getDataValue("id"),

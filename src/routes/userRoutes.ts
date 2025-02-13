@@ -32,7 +32,7 @@ export default async (fastify: FastifyInstance) => {
                     },
                 },
             },
-            onRequest: [await authorize(["rh"])],
+            onRequest: [authorize(["rh"])],
         },
         userController.createUser,
     );
@@ -50,7 +50,7 @@ export default async (fastify: FastifyInstance) => {
                     },
                 },
             },
-            onRequest: [await authorize(["rh"])],
+            onRequest: [authorize(["rh"])],
         },
         userController.getAllUsers,
     );

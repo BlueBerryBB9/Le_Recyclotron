@@ -17,7 +17,6 @@ C. Système de Paiements et Dons
 
 D. Gestion des Utilisateurs et Rôles-
 - Plusieurs OTPs par utilisateurs
-- Hiérarchie des rôles claire (ADMIN > MANAGER > USER)
 - RH sans accès aux données des utilisateurs clients / ne peut les modifier
 - RH peuvent seulement créer des user sans rôle client
 - Client passent par route register

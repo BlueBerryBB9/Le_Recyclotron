@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import * as r from "../models/Registration.js";
+import SRegistration, * as r from "../models/Registration.js";
 import {
     RecyclotronApiErr,
     SequelizeApiErr,
@@ -14,6 +14,15 @@ export const createRegistration = async (
 ) => {
     try {
         const createdRegistration = await r.default.create(req.body);
+        if (
+            await SRegistration.findOne({
+                where: {
+                    userId: createdRegistration.getDataValue("userId"),
+                    eventId: createdRegistration.getDataValue("eventId"),
+                },
+            })
+        )
+            throw new RecyclotronApiErr("Registration", "AlreadyExists", 409);
 
         return rep.status(201).send({
             data: createdRegistration.dataValues,
@@ -52,13 +61,16 @@ export const getRegistration = async (
 export const updateRegistration = async (
     req: FastifyRequest<{
         Params: { id: string };
-        Body: r.PartialRegistration;
+        Body: r.UpdateRegistration;
     }>,
     rep: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(req.params.id, "Registration");
         const data = req.body;
+
+        if (data.seats !== undefined && data.seats <= 0)
+            throw new RecyclotronApiErr("Registration", "InvalidInput", 400);
 
         const registration = await r.default.findByPk(id);
 
@@ -70,6 +82,7 @@ export const updateRegistration = async (
         const updatedRegistration = await r.default.findByPk(id, {
             include: r.default.associations.event,
         });
+
         return rep.status(200).send({
             data: updatedRegistration?.dataValues,
             message: "Registration updated successfully",

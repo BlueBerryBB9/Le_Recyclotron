@@ -11,15 +11,15 @@ import SPayment from "../models/Payment.js";
 import SRegistration from "../models/Registration.js";
 
 export async function seedDatabase(sequelize: any) {
-    const userCount = await SUser.count();
-    const userRoleCount = await UserRole.count();
-    const roleCount = await SRole.count();
-    const eventCount = await SEvent.count();
-    const registrationCount = await SRegistration.count();
-    const categoryCount = await SCategory.count();
-    const itemCount = await SItem.count();
-    const itemCategoriesCount = await SItemCategory.count();
-    const paymentCount = await SPayment.count();
+    // const userCount = await SUser.count();
+    // const userRoleCount = await UserRole.count();
+    // const roleCount = await SRole.count();
+    // const eventCount = await SEvent.count();
+    // const registrationCount = await SRegistration.count();
+    // const categoryCount = await SCategory.count();
+    // const itemCount = await SItem.count();
+    // const itemCategoriesCount = await SItemCategory.count();
+    // const paymentCount = await SPayment.count();
 
     // Allows to truncate without checking foreign key constraints
     // on joint table with foreign keys like userRole.

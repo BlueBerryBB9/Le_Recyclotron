@@ -129,12 +129,6 @@ export const verifyOTP = async (
         let user = await SUser.findByPk(request.body.id);
         if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
 
-        await OTP.destroy({
-            where: {
-                userId: request.body.id,
-            },
-        });
-
         return reply.status(200).send({
             data: {
                 jwt: generateToken(

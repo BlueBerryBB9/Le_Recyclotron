@@ -19,6 +19,7 @@ SCategory.init(
     {
         modelName: "Category",
         sequelize,
+        timestamps: false,
     },
 );
 
@@ -37,20 +38,23 @@ export const ZCategory = z
     .object({
         id: z.number(),
         name: z.string(),
-        parent_category_id: z.number(),
+        parentCategoryId: z.number().optional().nullable(),
     })
     .strict();
 
-export const ZPartialCategory = ZCategory.omit({ id: true }).partial(); // tous les champs sont devenus optionels
+export const ZPartialCategory = ZCategory.omit({
+    id: true,
+    parentCategoryId: true,
+});
 export const ZInputCategory = ZCategory.omit({
     id: true,
-    parent_category_id: true,
+    parentCategoryId: true,
 });
 export const ZInputChildCategory = ZCategory.omit({
     id: true,
 });
 
-export const ZParentCategory = ZCategory.omit({ parent_category_id: true });
+export const ZParentCategory = ZCategory.omit({ parentCategoryId: true });
 
 export const ZCategoryWithChildren: z.ZodSchema = z.lazy(() =>
     ZCategory.extend({

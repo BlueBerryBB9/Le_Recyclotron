@@ -2,22 +2,22 @@
 
 A. Gestion des Items et du Recyclage
 - Un item ne devrait avoir qu'une seule catégorie principale
-- Les statuts d'items doivent suivre un workflow précis : 
-  DEPOSITED -> VALIDATED -> IN_PROCESSING -> RECYCLED/REJECTED
-- Traçabilité complète du parcours de l'item
+- Les statuts d'items doivent suivre un workflow précis :
+  SALABLE -> UNSALABLE -> MATERIAL -> REPARABLE
+- Supprimer une catégorie supprime tous ses enfants
+- Un Item doit être relié à la catégorie parent de la catégorie à laquelle il veut se lié
+- Un Item doit être supprimé des catégories enfant de la cétégorie de laquelle il se dé-lie
 
 B. Gestion des Événements et Inscriptions
-- Limite de participants par événement
-- Gestion des listes d'attente
-- Notifications automatiques aux inscrits
+- Evènement non-créable/updatable dans le passé
+- 1 inscription max
 
 C. Système de Paiements et Dons
-- Abonnements mensuels avec différents niveaux
-- Dons ponctuels
-- Système de récompenses/points
+- Don unique ou abonnement sous forme d'énumération : 1 (abonnement) ou 2 (don)
 
-D. Gestion des Utilisateurs et Rôles
+D. Gestion des Utilisateurs et Rôles-
+- Plusieurs OTPs par utilisateurs
 - Hiérarchie des rôles claire (ADMIN > MANAGER > USER)
-- Système de points de fidélité
-- Historique des actions
-
+- RH sans accès aux données des utilisateurs clients / ne peut les modifier
+- RH peuvent seulement créer des user sans rôle client
+- Client passent par route register

@@ -16,6 +16,9 @@ export const createItem = async (
     reply: FastifyReply,
 ) => {
     try {
+        if (request.body.status != 0 && request.body.status != 1)
+            return new RecyclotronApiErr("Item", "InvalidInput", 400);
+
         const newItem = await i.default.create(request.body);
 
         reply.code(201).send({
@@ -30,10 +33,7 @@ export const createItem = async (
 };
 
 // Get all items
-export const getAllItems = async (
-    request: FastifyRequest,
-    reply: FastifyReply,
-) => {
+export const getAllItems = async (_: FastifyRequest, reply: FastifyReply) => {
     try {
         const items = await i.default.findAll({
             include: [
@@ -44,6 +44,7 @@ export const getAllItems = async (
                 },
             ],
         });
+        console.log(items);
         if (!items) return new RecyclotronApiErr("Item", "NotFound", 404);
 
         reply.code(200).send({
@@ -70,7 +71,7 @@ export const getItemById = async (
         if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
 
         reply.code(200).send({
-            data: item,
+            data: item.dataValues,
             message: "Item fetched by id successfully",
         });
     } catch (error) {
@@ -103,7 +104,7 @@ export const getItemByStatus = async (
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
         reply.code(200).send({
-            data: items,
+            data: items.map((item) => item.dataValues),
             message: "Items fetched by status successfully",
         });
     } catch (error) {
@@ -166,9 +167,6 @@ export const deleteItemById = async (
     }
 };
 
-// MAYBE USELESS, why dont use update instead of add category to item?
-// ITEMS SHOULD HAVE ONLY ONE CATEGORY
-// Add category to item
 export const addCategoryToItem = async (
     request: FastifyRequest<{ Params: { itemId: string; categoryId: string } }>,
     reply: FastifyReply,
@@ -179,35 +177,61 @@ export const addCategoryToItem = async (
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
         const categoryId = stringToInt(request.params.categoryId, "Category");
-        if (!(await SCategory.findByPk(categoryId)))
+        const category = await SCategory.findByPk(categoryId);
+        if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
-        // ADD COHERENCE CHECK
+        // Check if all parent categories are linked to the item
+        let currentCategory = category;
+        while (currentCategory.getDataValue("parentCategoryId")) {
+            const parentCategoryId =
+                currentCategory.getDataValue("parentCategoryId");
+            const parentCategory = await SCategory.findByPk(parentCategoryId);
+            if (parentCategory) {
+                const parentCategoryLink = await SItemCategory.findOne({
+                    where: {
+                        categoryId: parentCategoryId,
+                        itemId: itemId,
+                    },
+                });
+                if (!parentCategoryLink) {
+                    return new RecyclotronApiErr(
+                        "Category",
+                        "CreationFailed",
+                        400,
+                        "Parent category is not linked to the item",
+                    );
+                }
+                currentCategory = parentCategory;
+            } else {
+                break;
+            }
+        }
 
-        const itemcategory = await SItemCategory.findOne({
-            where: { categoryid: categoryId, itemId: itemId },
+        const itemCategory = await SItemCategory.findOne({
+            where: { categoryId: categoryId, itemId: itemId },
         });
-        if (itemcategory)
+        if (itemCategory)
             throw new RecyclotronApiErr("Item", "AlreadyExists", 409);
 
-        const itemcategories = await SItemCategory.create({
-            itemId,
-            categoryId,
-        });
+        await SItemCategory.create({ itemId: itemId, categoryId: categoryId });
 
         const updatedItem = await i.default.findByPk(itemId, {
             include: [
                 {
                     model: SCategory,
                     as: "categories",
+                    attributes: ["id", "name"],
                     through: { attributes: [] },
                 },
             ],
         });
 
+        if (!updatedItem) return new RecyclotronApiErr("Item", "NotFound", 404);
+
         reply.code(200).send({
-            data: updatedItem?.dataValues,
-            message: "All category of item fetch successfully",
+            data: updatedItem.toJSON(),
+            message: "Category added to item successfully",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
@@ -226,6 +250,20 @@ export const deleteCategoryOfItem = async (
     try {
         const itemId = stringToInt(request.params.itemId, "Item");
         const categoryId = stringToInt(request.params.categoryId, "Category");
+
+        // Check if the category has any child categories
+        const childCategories = await SCategory.findAll({
+            where: { parentCategoryId: categoryId },
+        });
+        if (childCategories.length > 0) {
+            return new RecyclotronApiErr(
+                "Category",
+                "DeletionFailed",
+                400,
+                "Category has child categories and cannot be removed",
+            );
+        }
+
         const itemCategory = await SItemCategory.findOne({
             where: { itemId: itemId, categoryId: categoryId },
         });

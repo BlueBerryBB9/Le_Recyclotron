@@ -14,10 +14,8 @@ interface MyCustomPayload {
 export function authorize(allowedRoles: string[]) {
     return async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            console.log(request.headers.authorization);
             await request.jwtVerify();
             const decodedToken = await request.jwtDecode<MyCustomPayload>();
-            console.log(decodedToken);
 
             if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
                 throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);

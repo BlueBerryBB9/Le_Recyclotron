@@ -94,18 +94,19 @@ export class RecyclotronApiErr extends Error {
             | "EnvKeyMissing"
             | "ResetRequestFailed"
             | "OutPutValidationFailed"
+            | "Expired"
             | "InvalidLocation",
         statusCode?: number,
-        sequelizeMessage?: string,
+        detailMessage?: string,
     ) {
         let functionLine = getFunctionLine(Error());
-        if (sequelizeMessage) {
+        if (detailMessage) {
             super(
                 subject +
                     " : " +
                     msg +
                     " : " +
-                    sequelizeMessage +
+                    detailMessage +
                     " in " +
                     functionLine,
             );
@@ -114,7 +115,7 @@ export class RecyclotronApiErr extends Error {
                 " : " +
                 msg +
                 " " +
-                sequelizeMessage +
+                detailMessage +
                 " in " +
                 functionLine;
         } else {

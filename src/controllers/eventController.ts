@@ -7,15 +7,25 @@ import {
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
+import SUser from "../models/User.js";
+import z from "zod";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
     rep: FastifyReply,
 ) => {
     try {
-        const event = await e.default.create(req.body);
+        const date = req.body.date;
 
-        // ADD COHERENCE CHECKS
+        if (new Date(date) < new Date())
+            throw new RecyclotronApiErr(
+                "Event",
+                "InvalidInput",
+                400,
+                "Event date cannot be in the past",
+            );
+
+        const event = await e.default.create(req.body);
 
         return rep.status(201).send({
             data: event.dataValues,
@@ -30,14 +40,7 @@ export const createEvent = async (
 
 export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
     try {
-        const events = await e.default.findAll({
-            include: [
-                {
-                    attributes: [],
-                    through: { attributes: [], as: "registrations" },
-                },
-            ],
-        });
+        const events = await e.default.findAll();
         if (events.length === 0)
             throw new RecyclotronApiErr("Event", "NotFound", 404);
 
@@ -86,7 +89,14 @@ export const updateEvent = async (
         const id: number = stringToInt(req.params.id, "Event");
         const data = req.body;
 
-        // COHERENCE CHECKS
+        if (data.date && new Date(data.date) < new Date()) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "InvalidInput",
+                400,
+                "Event date cannot be in the past",
+            );
+        }
 
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);

@@ -27,9 +27,7 @@ export const startServer = async () => {
     }).withTypeProvider<ZodTypeProvider>();
     try {
         // Creating fastify instance with Zodtype to allow schemas and Zodvalidator on routes
-        // Set Zod validator
         app.setValidatorCompiler(validatorCompiler);
-        // Set custom fastify error handler function
         app.setErrorHandler(async function (error, _, reply) {
             if (error instanceof z.ZodError) {
                 // Customizes Zoderror fastify response
@@ -49,8 +47,13 @@ export const startServer = async () => {
         setupAssociations();
         await sequelize.authenticate();
         console.log("Connected to the database.");
-        await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though. // add node env check
-        await seedDatabase(sequelize);
+        console.log("NODE_ENV :" + NODE_ENV);
+        if (NODE_ENV === "dev") {
+            await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though. // add node env check
+            await seedDatabase(sequelize);
+        } else {
+            await sequelize.sync();
+        }
 
         if (!JWT_SECRET) {
             throw new RecyclotronApiErr("JWT", "EnvKeyMissing");
@@ -61,7 +64,6 @@ export const startServer = async () => {
         }
 
         // Register CORS
-        console.log("NODE_ENV :" + NODE_ENV);
         if (NODE_ENV === "dev") {
             await app.register(cors, corsConfig);
         } else {
@@ -90,7 +92,7 @@ export const startServer = async () => {
                     console.log(request.url);
                 } catch (error) {
                     console.error("Error in onRequest hook:", error);
-                    throw error; // Re-throw to let Fastify handle it
+                    throw error;
                 }
             },
         );
@@ -101,41 +103,6 @@ export const startServer = async () => {
                 console.log(reply.statusCode);
             },
         );
-        // app.addHook("preSerialization", async (request, reply, payload) => {
-        //     try {
-        //         const responseSchemas = request.routeOptions?.schema
-        //             ?.response as Record<string, any> | undefined;
-        //         console.log(responseSchemas);
-        //         const responseSchema =
-        //             responseSchemas?.[String(reply.statusCode)];
-        //         console.log(responseSchema);
-
-        //         if (responseSchema) {
-        //             console.log("AAAAAAAAAAAAAAAAAAA");
-        //             const parseResult = responseSchema.safeParse(payload);
-        //             console.log("2222222222222222222222222222");
-        //             if (!parseResult.success) {
-        //                 console.log("AAAAAAAAAAAAAAAAAAA");
-        //                 throw new RecyclotronApiErr(
-        //                     "MiddleWare",
-        //                     "OperationFailed",
-        //                     500,
-        //                 );
-        //             }
-        //             console.log(reply);
-        //             return parseResult.data;
-        //         }
-        //         return payload;
-        //     } catch (error) {
-        //         console.log(error);
-        //         if (error instanceof RecyclotronApiErr) {
-        //             reply.code(error.statusCode || 500);
-        //             return error.Error();
-        //         }
-        //         throw error;
-        //     }
-        // });
-
         app.addHook("preSerialization", async (request, reply, payload) => {
             try {
                 const responseSchemas = request.routeOptions?.schema
@@ -149,6 +116,7 @@ export const startServer = async () => {
                         responseSchemaObj.zodSchema.safeParse(payload);
 
                     if (!parseResult.success) {
+                        console.log(parseResult.error);
                         console.log("Response validation failed");
                         throw new RecyclotronApiErr(
                             "MiddleWare",

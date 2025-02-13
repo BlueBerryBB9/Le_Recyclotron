@@ -123,7 +123,7 @@ export default async (fastify: FastifyInstance) => {
 
     // Add category to item
     fastify.post<{ Params: { itemId: string; categoryId: string } }>(
-        "/item/:id/categories",
+        "/item/:itemId/categories/:categoryId",
         {
             schema: {
                 params: z.object({

@@ -43,11 +43,11 @@ export default async (fastify: f.FastifyInstance) => {
         rc.getRegistration,
     );
 
-    fastify.put<{ Params: { id: string }; Body: rm.PartialRegistration }>(
+    fastify.put<{ Params: { id: string }; Body: rm.UpdateRegistration }>(
         "/registration/:id",
         {
             schema: {
-                body: rm.ZPartialRegistration,
+                body: rm.ZUpdateRegistration,
                 params: z.object({ id: z.string() }),
                 response: {
                     200: {

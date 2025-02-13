@@ -22,7 +22,7 @@ import SResetPassword from "../models/ResetPassword.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
 import * as r from "../models/Registration.js";
 import SPayment from "../models/Payment.js";
-import { getUserWithRoles } from "../service/userService.js"
+import { getUserWithRoles } from "../service/userService.js";
 import { getAllUserWithRoles } from "../service/userService.js";
 import SEvent from "../models/Event.js";
 
@@ -56,7 +56,10 @@ export const createUser = async (
 
         if (!userWithRoles) throw new RecyclotronApiErr("User", "NotFound");
 
-        return reply.status(201).send(userWithRoles.dataValues);
+        return reply.status(201).send({
+            data: userWithRoles.dataValues,
+            message: "User created successfully",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -65,17 +68,28 @@ export const createUser = async (
 };
 
 // Get All Users
-export const getAllUsers = async (
-    request: FastifyRequest,
-    reply: FastifyReply,
-) => {
+export const getAllUsers = async (_: FastifyRequest, reply: FastifyReply) => {
     try {
-        const users = await getAllUserWithRoles();
+        let users = await getAllUserWithRoles();
 
         if (users.length === 0)
             throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        return reply.status(200).send(users.map((user) => user.dataValues));
+        users = (
+            await Promise.all(
+                users.map(async (user) => {
+                    const roles = await user.getRoleString();
+                    return roles.includes("client") && !roles.includes("admin")
+                        ? null
+                        : user;
+                }),
+            )
+        ).filter((user) => user !== null);
+
+        return reply.status(200).send({
+            data: await Promise.all(users.map(async (user) => user.dataValues)),
+            message: "Users fetched successfully",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -97,7 +111,10 @@ export const getUserById = async (
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
-        return reply.status(200).send(user.dataValues);
+        return reply.status(200).send({
+            data: user.dataValues,
+            message: "User fetched successfully",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -120,6 +137,13 @@ export const updateUser = async (
         const userData: UpdateUser = request.body;
 
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
+
+        const roles = await user.getRoleString();
+        if (
+            (request.user.roles.includes("rh") && roles.includes("client")) ||
+            roles.includes("admin")
+        )
+            throw new RecyclotronApiErr("User", "PermissionDenied", 401);
 
         user.setDataValue(
             "password",
@@ -361,9 +385,9 @@ export const forgotPassword: RouteHandler<{
         let mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
         await mailService.sendPasswordResetEmail(email, resetLink);
 
-        return reply
-            .status(200)
-            .send({ message: "Email de réinitialisation envoyé" });
+        return reply.status(200).send({
+            message: "Email de réinitialisation envoyé",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);
@@ -406,9 +430,9 @@ export const resetPassword: RouteHandler<{
 
         await resetRequest.update({ used: true });
 
-        return reply
-            .status(200)
-            .send({ message: "Mot de passe réinitialisé avec succès" });
+        return reply.status(200).send({
+            message: "Mot de passe réinitialisé avec succès",
+        });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("User", error);

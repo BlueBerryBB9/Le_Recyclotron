@@ -32,7 +32,7 @@ export default async (fastify: f.FastifyInstance) => {
                 response: {
                     200: {
                         zodSchema: z.object({
-                            data: z.array(r.ZEventWithRegistrations),
+                            data: z.array(em.ZEvent),
                             message: z.string(),
                         }),
                     },

@@ -44,7 +44,7 @@ export default async (fastify: FastifyInstance) => {
                 response: {
                     200: {
                         zodSchema: z.object({
-                            data: u.ZUserWithRole,
+                            data: z.array(u.ZUserWithRole),
                             message: z.string(),
                         }),
                     },

@@ -23,6 +23,7 @@ SRole.init(
     {
         sequelize,
         modelName: "Role",
+        timestamps: false,
     },
 );
 
@@ -31,11 +32,13 @@ export const ZRole = z.object({
     name: z.string(),
 });
 
-export const ZPartialCategory = ZRole.partial(); // tous les champs sont devenus optionels
-export const ZInputCategory = ZRole.omit({ id: true }); // le même objet sans l'id
+export const ZPartialRole = ZRole.partial().omit({ id: true }); // tous les champs sont devenus optionels
+export const ZInputRole = ZRole.omit({ id: true }); // le même objet sans l'id
+export const ZRoleList = z.array(ZRole);
 
-export type Category = z.infer<typeof ZRole>; // Le type typescript qui correspond à l'objet
-export type PartialCategory = z.infer<typeof ZPartialCategory>; // Le type typescript avec toutes les props optionelles
-export type InputCategory = z.infer<typeof ZInputCategory>; // Le type typescript sans l'id
+export type RoleList = z.infer<typeof ZRoleList>;
+export type Role = z.infer<typeof ZRole>; // Le type typescript qui correspond à l'objet
+export type PartialRole = z.infer<typeof ZPartialRole>; // Le type typescript avec toutes les props optionelles
+export type InputRole = z.infer<typeof ZInputRole>; // Le type typescript sans l'id
 
 export default SRole;

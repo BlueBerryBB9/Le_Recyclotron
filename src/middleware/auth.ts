@@ -18,7 +18,7 @@ export function authorize(allowedRoles: string[]) {
             const decodedToken = await request.jwtDecode<MyCustomPayload>();
 
             if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
-                throw new RecyclotronApiErr("Auth", "PermissionDenied");
+                throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
 
             const userRoles = request.user.roles;
 
@@ -34,14 +34,18 @@ export function authorize(allowedRoles: string[]) {
                 );
             }
         } catch (error) {
-            throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
+            if (error instanceof RecyclotronApiErr) {
+                throw error;
+            } else {
+                throw new RecyclotronApiErr("Auth", "PermissionDenied", 401);
+            }
         }
     };
 }
 
 export async function isSelfOrAdminOr(
     roles: string[] | null = null,
-    where: string = "user",
+    entity: string = "user",
 ) {
     return async (
         request: FastifyRequest<{ Params: { id: string } }>,
@@ -50,6 +54,7 @@ export async function isSelfOrAdminOr(
         await request.jwtVerify();
 
         const decodedToken = await request.jwtDecode<MyCustomPayload>();
+        console.log(decodedToken);
 
         if (isTokenRevoked(request.user.id, Number(decodedToken.iat)))
             throw new RecyclotronApiErr("Auth", "PermissionDenied");
@@ -58,9 +63,9 @@ export async function isSelfOrAdminOr(
         const requestingUserRoles = request.user.roles;
         let targetUserId: number;
 
-        if (where === "user") {
+        if (entity === "user") {
             targetUserId = parseInt(request.params.id);
-        } else if (where === "registration") {
+        } else if (entity === "registration") {
             const targetRegistrationId = parseInt(request.params.id);
             const targetRegistration =
                 await SRegistration.findByPk(targetRegistrationId);
@@ -83,6 +88,16 @@ export async function isSelfOrAdminOr(
         if (!roles)
             throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
 
+        const targetUser = await SUser.findByPk(targetUserId);
+        if (!targetUser)
+            throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
+
+        if (
+            requestingUserRoles.includes("rh") &&
+            (await targetUser.getRoleString()).includes("client")
+        ) {
+            throw new RecyclotronApiErr("MiddleWare", "PermissionDenied", 401);
+        }
         const hasRolePermission = roles.some((role) =>
             requestingUserRoles.includes(role),
         );

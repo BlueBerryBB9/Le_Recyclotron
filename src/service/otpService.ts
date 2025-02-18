@@ -30,23 +30,40 @@ export const verifyOTPservice = async (
     plainPassword: string,
 ): Promise<boolean> => {
     try {
-        const otp = await OTP.findOne({
+        const otps = await OTP.findAll({
             where: {
                 userId: userId,
             },
-            order: [["createdAt", "DESC"]], // Get the latest OTP
+            order: [["createdAt", "DESC"]],
         });
 
-        if (!otp) return false;
+        if (otps.length === 0) return false;
 
-        const isValid = await argon.verify(
-            otp.getDataValue("password"),
-            plainPassword,
-        );
+        const now = new Date();
+        const expiryTime = 15 * 60 * 1000;
+
+        let isValid: boolean = false;
+        for (const element of otps) {
+            const createdAt = new Date(element.getDataValue("createdAt"));
+            if (now.getTime() - createdAt.getTime() > expiryTime)
+                throw new RecyclotronApiErr("OTP", "Expired", 400);
+
+            if (
+                await argon.verify(
+                    element.getDataValue("password"),
+                    plainPassword,
+                )
+            ) {
+                isValid = true;
+                element.destroy();
+                break;
+            }
+        }
+
         return isValid;
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("OTP", error);
-        } else throw new RecyclotronApiErr("OTP", "CreationFailed", 500);
+        } else throw new RecyclotronApiErr("OTP", "OperationFailed", 500);
     }
 };

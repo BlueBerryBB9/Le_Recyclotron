@@ -14,14 +14,24 @@ SItemCategory.init(
 );
 
 SItem.belongsToMany(SCategory, {
-    as: "category",
-    foreignKey: "categoryId",
+    as: "categories",
+    foreignKey: "itemId",
     through: SItemCategory,
 });
 SCategory.belongsToMany(SItem, {
-    as: "item",
-    foreignKey: "itemId",
+    as: "items",
+    foreignKey: "categoryId",
     through: SItemCategory,
+});
+
+SItem.beforeDestroy(async (item) => {
+    await SItemCategory.destroy({ where: { itemId: item.getDataValue("id") } });
+});
+
+SCategory.beforeDestroy(async (category) => {
+    await SItemCategory.destroy({
+        where: { categoryId: category.getDataValue("id") },
+    });
 });
 
 export default SItemCategory;

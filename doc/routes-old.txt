@@ -16,7 +16,6 @@ Item
 (employee)item/ + méthode PUT : update status
 (employee) item/ + méthode DELETE : delete items
 
-
 Event
 (cm) event/ + méthode POST : ajouter un évènement
 (client, cm) event/ + méthode GET : récupérer les évènements
@@ -39,16 +38,9 @@ Payment
 (admin) payment/:id + méthode PUT : mettre à jour un payment
 (admin) payment/:id + méthode DELETE : supprimer un payment
 
-
 Category
 (employee) category/ + méthode POST : ajouter une catégorie
 (employee) category/ + méthode GET : récupérer les catégories
 (employee) category/id + méthode GET : récupérer une catégorie par id
 (employee) category/:id + méthode PUT : mettre à jour une catégorie
 (employee) category/:id + méthode DELETE : supprimer une catégorie
-
-
-inject close : contourne la règle du SQL
-
-Appel de l' API à elle même
-1 seule couche : l'api ne fait pas appel à elle même

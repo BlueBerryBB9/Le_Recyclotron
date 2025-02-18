@@ -7,96 +7,159 @@ import { authorize } from "../middleware/auth.js";
 export default async (fastify: FastifyInstance) => {
     // Create a new item
     fastify.post<{ Body: m.InputItem }>(
-        "/items",
+        "/item",
         {
-            schema: { body: m.ZInputItem },
-            onRequest: [authorize(['employee'])],
+            schema: {
+                body: m.ZInputItem,
+                response: {
+                    201: {
+                        zodSchema: z.object({
+                            data: m.ZItemOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [authorize(["employee"])],
         },
         ctrl.createItem,
     );
 
     // All items
-    fastify.get("/items", { onRequest: [authorize(['employee'])] }, ctrl.getAllItems);
+    fastify.get(
+        "/item",
+        {
+            schema: {
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: m.ZItemAndCategoriesListOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+        },
+        ctrl.getAllItems,
+    );
 
     // Item details
     fastify.get<{ Params: { id: string } }>(
-        "/items/:id",
+        "/item/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(['employee'])],
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [authorize(["employee"])],
         },
         ctrl.getItemById,
     );
 
     // Items by status
     fastify.get<{ Params: { status: string } }>(
-        "/items/:status/",
+        "/item/:status/",
         {
-            schema: { params: z.object({ status: z.string() }) },
-            onRequest: [authorize(['repairer'])],
+            schema: {
+                params: z.object({ status: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [authorize(["repairer", "client"])],
         },
         ctrl.getItemByStatus,
     );
 
     // Update item
     fastify.put<{ Params: { id: string }; Body: m.PartialItem }>(
-        "/items/:id",
+        "/item/:id",
         {
             schema: {
                 params: z.object({ id: z.string() }),
                 body: m.ZPartialItem,
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
             },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.updateItemById,
     );
 
     // Delete item
     fastify.delete<{ Params: { id: string } }>(
-        "/items/:id",
+        "/item/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
-            onRequest: [authorize(['employee'])],
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
+                },
+            },
+            onRequest: [authorize(["employee"])],
         },
         ctrl.deleteItemById,
     );
 
     // Add category to item
     fastify.post<{ Params: { itemId: string; categoryId: string } }>(
-        "/items/:id/categories",
+        "/item/:itemId/categories/:categoryId",
         {
             schema: {
                 params: z.object({
                     itemId: z.string(),
                     categoryId: z.string(),
                 }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: m.ZItemAndCategoriesOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
             },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.addCategoryToItem,
     );
 
-    // All categories of an item
-    fastify.get<{ Params: { id: string } }>(
-        "/items/:id/categories",
-        {
-            schema: { params: z.object({ itemId: z.string() }) },
-            onRequest: [authorize(['employee'])],
-        },
-        ctrl.getAllCategoriesOfItem,
-    );
-
     // Delete category of an item
     fastify.delete<{ Params: { itemId: string; categoryId: string } }>(
-        "/items/:id/categories/:id",
+        "/item/:id/categories/:id",
         {
             schema: {
                 params: z.object({
                     itemId: z.string(),
                     categoryId: z.string(),
                 }),
+                response: {
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
+                },
             },
-            onRequest: [authorize(['employee'])],
+            onRequest: [authorize(["employee"])],
         },
         ctrl.deleteCategoryOfItem,
     );

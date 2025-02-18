@@ -3,9 +3,9 @@ import sequelize from "../config/database.js";
 import User from "./User.js";
 import Role from "./Role.js";
 
-class UserRole extends Model {}
+class SUserRole extends Model {}
 
-UserRole.init(
+SUserRole.init(
     {
         userId: {
             type: DataTypes.INTEGER,
@@ -28,4 +28,4 @@ UserRole.init(
     },
 );
 
-export default UserRole;
+export default SUserRole;

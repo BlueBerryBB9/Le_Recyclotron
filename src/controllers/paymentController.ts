@@ -12,6 +12,11 @@ import {
     SubscriptionBody,
 } from "../models/Payment.js";
 import * as env from "../config/env.js";
+import { BaseError } from "sequelize";
+import {
+    RecyclotronApiErr,
+    SequelizeApiErr,
+} from "../error/recyclotronApiErr.js";
 
 export class PaymentController {
     // Créer un abonnement mensuel
@@ -40,16 +45,16 @@ export class PaymentController {
                 id_stripe_payment: subscription.id,
             });
 
-            return { subscriptionId: subscription.id };
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                return reply
-                    .status(400)
-                    .send({ error: "Validation Error", details: error.errors });
-            }
             return reply
-                .status(400)
-                .send({ error: "Erreur lors de la création de l'abonnement" });
+                .status(200)
+                .send({
+                    subscriptionId: subscription.id,
+                    message: "Abonnement créé",
+                });
+        } catch (error) {
+            if (error instanceof BaseError) {
+                throw new SequelizeApiErr("Payment", error);
+            } else throw new RecyclotronApiErr("Payment", "OperationFailed");
         }
     }
 
@@ -79,16 +84,16 @@ export class PaymentController {
                 id_user: userId,
                 id_stripe_payment: paymentIntent.id,
             });
-            return reply.send({ clientSecret: paymentIntent.client_secret });
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                return reply
-                    .status(400)
-                    .send({ error: "Validation Error", details: error.errors });
-            }
             return reply
-                .status(400)
-                .send({ error: "Erreur lors du traitement du don" });
+                .status(200)
+                .send({
+                    clientSecret: paymentIntent.client_secret,
+                    message: "Don créé",
+                });
+        } catch (error) {
+            if (error instanceof BaseError) {
+                throw new SequelizeApiErr("Payment", error);
+            } else throw new RecyclotronApiErr("Payment", "CreationFailed");
         }
     }
 
@@ -112,41 +117,37 @@ export class PaymentController {
                     default_payment_method: paymentMethodId,
                 },
             });
-            return reply.send({ success: true });
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                return reply
-                    .status(400)
-                    .send({ error: "Validation Error", details: error.errors });
-            }
             return reply
-                .status(400)
-                .send({
-                    error: "Erreur lors de la mise à jour du moyen de paiement",
-                });
+                .status(200)
+                .send({ message: "Moyen de paiement mis à jour" });
+        } catch (error) {
+            throw new RecyclotronApiErr("Payment", "CreationFailed");
         }
     }
 
     // Résilier un abonnement
     static async cancelSubscription(
         request: FastifyRequest<{ Params: { subscriptionId: string } }>,
-        reply: FastifyReply
-      ) {
+        reply: FastifyReply,
+    ) {
         try {
-          const { subscriptionId } = request.params;
-    
-          const subscription = await stripe.subscriptions.cancel(subscriptionId);
-    
-          await SPayment.update(
-            { status: 'cancelled' },
-            { where: { stripeSubscriptionId: subscriptionId } }
-          );
-    
-          return reply.send({ success: true });
+            const { subscriptionId } = request.params;
+
+            const subscription =
+                await stripe.subscriptions.cancel(subscriptionId);
+
+            await SPayment.update(
+                { status: "cancelled" },
+                { where: { stripeSubscriptionId: subscriptionId } },
+            );
+
+            return reply.status(200).send({ message: "Abonnement résilié" });
         } catch (error) {
-          return reply.status(400).send({ error: 'Erreur lors de la résiliation de l\'abonnement' });
+            return reply.status(400).send({
+                error: "Erreur lors de la résiliation de l'abonnement",
+            });
         }
-      }
+    }
 
     // Webhook pour gérer les événements Stripe
     static async handleWebhook(req: FastifyRequest, reply: FastifyReply) {
@@ -177,7 +178,7 @@ export class PaymentController {
 
             return reply.send({ received: true });
         } catch (error) {
-          return reply.status(400).send({ error: 'Erreur webhook' });
+            return reply.status(400).send({ error: "Erreur webhook" });
         }
     }
 

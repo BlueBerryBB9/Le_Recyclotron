@@ -1,4 +1,4 @@
-graph TD
+graph TB
     style CategoryRoutes fill:#672d2d
     style A fill:#FF6B6B
     style B fill:#FF6B6B
@@ -12,41 +12,60 @@ graph TD
     style J fill:#FF6B6B
     style K fill:#FF6B6B
     style L fill:#FF6B6B
+    style M1 fill:#FF6B6B
+    style N1 fill:#FF6B6B
 
     subgraph CategoryRoutes
         subgraph POST /categories
+            direction LR
             A[InputCategory :
-            - name : string
-            - parent_category_id: number] -->|Route| B[SCategory :
+            - name : string] -->|createCategory| B[Category :
             - id : number 
             - name : string]
+        end
+        subgraph POST/categories/:id/categories
+            direction LR
+            M1[ id : string,
+            InputCategory :
+            - name : string] -->|createChildCategory| N1[Category :
+            - id : number 
+            - name : string
+            - parent_category_id: number]
         end
         subgraph GET /categories
-            C[None] -->|Route| D[SCategory :
+            direction LR
+            C[None] -->|getAllCategories| D[Array of Category :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
         end
         subgraph GET /categories/:id
-            E[id: string] -->|Route| F[SCategory :
+            direction LR
+            E[id: string] -->|getCategoryById| F[Category :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
         end
         subgraph PUT /categories/:id
+            direction LR
             G[id: string, 
             PartialCategory :
-            - id : number
-            - name : string
-            - parent_category_id : number] -->|Route| H[SCategory :
+            - name?: string
+            - parent_category_id?: number] -->|updateCategoryById| H[Category :
             - id : number 
-            - name : string]
+            - name : string
+            - parent_category_id?: number]
         end
         subgraph DELETE /categories/:id
-            I[id: string] -->|Route| J[None]
+            direction LR
+            I[id: string] -->|deleteCategoryById| J[None]
         end
-        subgraph GET /categories/:id/categories
-            K[id: string] -->|Route| L[SCategory :
-            - id : int 
-            - name : string]
+        subgraph GET/categories/:id/categories
+            direction LR
+            K[id: string] -->|getAllCategoriesOfCategory| L[Array of Category :
+            - id : number 
+            - name : string
+            - parent_category_id: number]
         end
     end
 
@@ -66,11 +85,12 @@ graph TD
 
     subgraph EventRoutes
         subgraph POST /event
+            direction LR
             M[InputEvent :
             - title: string
             - image: string
             - desc: string
-            - date: date] -->|Route| N[SEvent :
+            - date: date] -->|createEvent| N[Event :
             - id: number
             - title: string
             - image: string
@@ -78,7 +98,8 @@ graph TD
             - date: date]
         end
         subgraph GET /event
-            O[None] -->|Route| P[SEvent :
+            direction LR
+            O[None] -->|getAllEvents| P[Array of Event :
             - id: number
             - title: string
             - image: string
@@ -86,7 +107,8 @@ graph TD
             - date: date]
         end
         subgraph GET /event/:id
-            Q[id: string] -->|Route| R[SEvent :
+            direction LR
+            Q[id: string] -->|getEventById| R[Event :
             - id: number
             - title: string
             - image: string
@@ -94,13 +116,14 @@ graph TD
             - date: date]
         end
         subgraph PUT /event/:id
+            direction LR
             S[id: string, 
             PartialEvent :
             - id: number
             - title: string
             - image: string
             - desc: string
-            - date: date] -->|Route| T[SEvent :
+            - date: date] -->|updateEvent| T[Event :
             - id: number
             - title: string
             - image: string
@@ -108,10 +131,12 @@ graph TD
             - date: date]
         end
         subgraph DELETE /event/:id
-            U[id: string] -->|Route| V[None]
+            direction LR
+            U[id: string] -->|deleteEvent| V[None]
         end
-        subgraph GET /event/:id/registration
-            W[id: string] -->|Route| X[SRegistration :
+        subgraph GET/event/:id/registration
+            direction LR
+            W[id: string] -->|getEventRegistrations| X[Array of Registration :
             - id: number
             - date: date
             - seats: number]
@@ -132,7 +157,7 @@ graph TD
     style AI fill:#2A9D8F
     style AJ fill:#2A9D8F
     style AK fill:#2A9D8F
-    style AL fill:#2A9D8F
+    style AL fill:#02b7c9
     style AM fill:#2A9D8F
     style AN fill:#FF6B6B
     style AO fill:#2A9D8F
@@ -140,12 +165,13 @@ graph TD
 
     subgraph ItemsRoutes
         subgraph POST /items
+            direction LR
             Y[InputItem :
             - name: string
             - status: ItemStatus
             - material: string
             - image: string
-            - date: Date] -->|Route| Z[SItem :
+            - date: Date] -->|createItem| Z[Item :
             - id: number
             - name: string
             - status: ItemStatus
@@ -154,7 +180,8 @@ graph TD
             - date: Date]
         end
         subgraph GET /items
-            AA[None] -->|Route| AB[SItem :
+            direction LR
+            AA[None] -->|getAllItems| AB[Array of Item :
             - id: number
             - name: string
             - status: ItemStatus
@@ -163,7 +190,8 @@ graph TD
             - date: Date]
         end
         subgraph GET /items/:id
-            AC[id: string] -->|Route| AD[SItem :
+            direction LR
+            AC[id: string] -->|getItemById| AD[Item :
             - id: number
             - name: string
             - status: ItemStatus
@@ -172,7 +200,8 @@ graph TD
             - date: Date]
         end
         subgraph GET /items/:status
-            AE[status: string] -->|Route| AF[SItem :
+            direction LR
+            AE[status: string] -->|getItemsByStatus| AF[Item :
             - id: number
             - name: string
             - status: ItemStatus
@@ -181,6 +210,7 @@ graph TD
             - date: Date]
         end
         subgraph PUT /items/:id
+            direction LR
             AG[id: string, 
             PartialItem :
             - id: number
@@ -188,7 +218,7 @@ graph TD
             - status: ItemStatus
             - material: string
             - image: string
-            - date: Date] -->|Route| AH[SItem :
+            - date: Date] -->|updateItemById| AH[Item :
             - id: number
             - name: string
             - status: ItemStatus
@@ -197,16 +227,26 @@ graph TD
             - date: Date]
         end
         subgraph DELETE /items/:id
-            AI[id: string] -->|Route| AJ[None]
+            direction LR
+            AI[id: string] -->|deleteItemById| AJ[None]
         end
         subgraph POST /items/:id/categories
-            AK[itemId: string, categoryId: string] -->|Route| AL[None]
+            direction LR
+            AK[itemId: string, categoryId: string] -->|addCategoryToItem| AL[ItemCategory :
+            - itemId : number
+            - categoryId : number]
         end
         subgraph GET /items/:id/categories
-            AM[id: string] -->|Route| AN[number]
+            direction LR
+            AM[id: string] -->|getAllCategoriesOfItem| AN[Array of Category :
+            - id : number 
+            - name : string
+            - parent_category_id?: number]
         end
-        subgraph DELETE /items/:id/categories/:id
-            AO[itemId: string, categoryId: string] -->|Route| AP[None]
+        subgraph DELETE/items/:id/categories/:id
+            direction LR
+            AO[itemId: string, 
+            categoryId: string] -->|deleteCategoryOfItem| AP[None]
         end
     end
 
@@ -224,40 +264,33 @@ graph TD
 
     subgraph PaymentRoutes
         subgraph POST /subscription
+            direction LR
             AQ[SubscriptionBody :
             - customerId: string
             - priceId: string
-            - userId: number] -->|Route| AR[SPayment :
-            - id : number
-            - id_stripe_payment : string
-            - amount : float
-            - type : number
-            - date : date
-            - status : string]
+            - userId: number] -->|createSubscription| AR[subscriptionId : string]
         end
         subgraph DELETE /subscription/:id
-            AS[subscriptionId: string] -->|Route| AT[None]
+            direction LR
+            AS[subscriptionId: string] -->|cancelSubscription| AT[None]
         end
         subgraph POST /donation
+            direction LR
             AU[DonationBody :
             - amount: number,
             - paymentMethodId: string,
             - userId: number,
-            ] -->|Route| AV[SPayment :
-            - id : number
-            - id_stripe_payment : string
-            - amount : float
-            - type : number
-            - date : date
-            - status : string]
+            ] -->|createDonation| AV[clientSecret: string]
         end
-        subgraph POST /payment-method
+        subgraph PUT /payment-method
+            direction LR
             AW[PaymentMethodBody :
             - customerId: string
-            - paymentMethodId: string] -->|Route| AX[None]
+            - paymentMethodId: string] -->|updatePaymentMethod| AX[success : boolean]
         end
         subgraph POST /webhook
-            AY[rawBody: string] -->|Route| AZ[None]
+            direction LR
+            AY[None] -->|handleWebhook| AZ[received : boolean]
         end
     end
 
@@ -275,37 +308,51 @@ graph TD
 
     subgraph RegistrationRoutes
         subgraph POST /registration
+            direction LR
             BA[InputRegistration :
-            - date : date
-            - seats : number] -->|Route| BB[SRegistration :
+            - userId: number
+            - eventId: number
+            - seats : number] -->|createRegistration| BB[Registration :
             - id : number
+            - userId: number
+            - eventId: number
             - date : date
             - seats : number]
         end
         subgraph GET /registration
-            BC[None] -->|Route| BD[SRegistration :
+            direction LR
+            BC[None] -->|getAllRegistrations| BD[Array of Registration :
             - id : number
+            - userId: number
+            - eventId: number
             - date : date
             - seats : number]
         end
         subgraph GET /registration/:id
-            BE[id: string] -->|Route| BF[SRegistration :
+            direction LR
+            BE[id: string] -->|getRegistration| BF[Registration :
             - id : number
+            - userId: number
+            - eventId: number
             - date : date
             - seats : number]
         end
         subgraph PUT /registration/:id
+            direction LR
             BG[id: string, 
             PartialRegistration :
+            - userId: number
+            - eventId: number
+            - seats : number] -->|updateRegistration| BH[Registration :
             - id : number
-            - date : date
-            - seats : number] -->|Route| BH[SRegistration :
-            - id : number
+            - userId: number
+            - eventId: number
             - date : date
             - seats : number]
         end
         subgraph DELETE /registration/:id
-            BI[id: string] -->|Route| BJ[None]
+            direction LR
+            BI[id: string] -->|deleteRegistration| BJ[None]
         end
     end
 
@@ -324,63 +371,84 @@ graph TD
     style BV fill:#ae00ae
     style BW fill:#ae00ae
     style BX fill:#ae00ae
+    style BW1 fill:#ae00ae
+    style BX1 fill:#5c77b0
+    style BW2 fill:#ae00ae
+    style BX2 fill:#FF7F3F
+    style BW3 fill:#ae00ae
+    style BX3 fill:#ae00ae
+    style BW4 fill:#ae00ae
+    style BX4 fill:#ae00ae
     subgraph UserRoutes
         subgraph POST /users
+            direction LR
             BK[CreateUser :
             - first_name: string
             - last_name: string
             - email: string
-            - phone: string
             - password: string
             - is_adherent: boolean
-            - sub_type: string] -->|Route| BL[SUser :
+            - phone?: string
+            - sub_type?: string] -->|createUser| BL[User :
             - id: number
             - first_name: string
             - last_name: string
             - email: string
-            - phone: string
-            - password: string
+            - phone?: string
             - is_adherent: boolean
-            - sub_type: string]
+            - sub_type?: string
+            - roles : Array of Object : id : number, name : string]
         end
         subgraph GET /users
-            BM[None] -->|Route| BN[SUser :
+            direction LR
+            BM[None] -->|getAllUsers| BN[Array of User :
             - id: number
             - first_name: string
             - last_name: string
             - email: string
-            - phone: string
-            - password: string
+            - phone?: string
             - is_adherent: boolean
-            - sub_type: string]
+            - sub_type?: string
+            - roles : Array of Object : id : number, name : string]
         end
         subgraph GET /users/:id
-            BO[id: string] -->|Route| BP[SUser :
+            direction LR
+            BO[id: string] -->|getUserById| BP[User :
             - id: number
             - first_name: string
             - last_name: string
             - email: string
-            - phone: string
-            - password: string
+            - phone?: string
             - is_adherent: boolean
-            - sub_type: string]
+            - sub_type?: string
+            - roles : Array of Object : id : number, name : string]
         end
         subgraph PUT /users/:id
-            BQ[id: string, UpdateUser] -->|Route| BR[SUser :
+            direction LR
+            BQ[id: string, UpdateUser :
+            - first_name?: string
+            - last_name?: string
+            - email?: string
+            - phone?: string
+            - password?: string
+            - is_adherent?: boolean
+            - sub_type?: string] -->|updateUser| BR[User :
             - id: number
             - first_name: string
             - last_name: string
             - email: string
-            - phone: string
-            - password: string
+            - phone?: string
             - is_adherent: boolean
-            - sub_type: string]
+            - sub_type?: string
+            - roles : Array of Object : id : number, name : string]
         end
         subgraph DELETE /users/:id
-            BS[id: string] -->|Route| BT[None]
+            direction LR
+            BS[id: string] -->|deleteUser| BT[None]
         end
         subgraph POST /users/:id/roles
-            BU[id: string, roles: number] -->|Route| BV[SUser :
+            direction LR
+            BU[id: string, roles: Array of number] -->|addUserRoles| BV[User :
             - id: number
             - first_name: string
             - last_name: string
@@ -388,10 +456,13 @@ graph TD
             - phone: string
             - password: string
             - is_adherent: boolean
-            - sub_type: string]
+            - sub_type: string
+            - roles : Array of Object : id : number, name : string]
         end
-        subgraph DELETE /users/:id/roles
-            BW[id: string, roles: number] -->|Route| BX[SUser :
+        subgraph DELETE/users/:userId/roles/:roleId
+            direction LR
+            BW[userId: string, 
+            roleId: string] -->|removeUserRoles| BX[User :
             - id: number
             - first_name: string
             - last_name: string
@@ -399,6 +470,91 @@ graph TD
             - phone: string
             - password: string
             - is_adherent: boolean
-            - sub_type: string]
+            - sub_type: string
+            - roles : Array of Object : id : number, name : string]
+        end
+        subgraph GET /users/:id/payments
+            direction LR
+            BW1[id: string] -->|getPaymentsByUserId| BX1[Array of Payment :
+            - id : number
+            - userId: number
+            - id_stripe_payment: string
+            - amount: float
+            - type: number
+            - status: string]
+        end
+        subgraph GET/users/:id/registrations
+            direction LR
+            BW2[id: string] -->|getRegistrationsByUserId| BX2[Array of Registration :
+            - id : number
+            - userId: number
+            - eventId: number
+            - date : date
+            - seats : number]
+        end
+        subgraph POST /users/forgot-password
+            direction LR
+            BW3[ResetPasswordRequest
+            ] -->|forgotPassword| BX3[None]
+        end
+        subgraph POST /users/reset-password
+            direction LR
+            BW4[ResetPassword
+            ] -->|resetPassword| BX4[None]
+        end
+    end
+
+    style AuthRoutes fill:#4a6741
+    style BY fill:#6B8E23
+    style BZ fill:#6B8E23
+    style CA fill:#6B8E23
+    style CB fill:#6B8E23
+    style CE fill:#6B8E23
+    style CF fill:#6B8E23
+    style CG fill:#6B8E23
+    style CH fill:#ae00ae
+    style CI fill:#6B8E23
+    style CJ fill:#6B8E23
+    style CK fill:#6B8E23
+    style CL fill:#6B8E23
+    
+    subgraph AuthRoutes
+        subgraph POST /auth/login
+            direction LR
+            BY[email: string,
+            password: string] -->|login| BZ[None]
+        end
+        subgraph POST /auth/register
+            direction LR
+            CA[CreateUser :
+            - email: string
+            - password: string
+            - first_name: string
+            - last_name: string
+            - phone?: string] -->|register| CB[None]
+        end
+        subgraph POST /auth/verify_otp
+            direction LR
+            CE[id: string,
+            otp: string] -->|verifyOTP| CF[JWT]
+        end
+        subgraph GET /auth/me
+            direction LR
+            CG[None] -->|getCurrentUser| CH[User : 
+            - id: number
+            - first_name: string
+            - last_name: string
+            - email: string
+            - phone?: string
+            - is_adherent: boolean
+            - sub_type?: string]
+        end
+        subgraph POST /auth/revoke-all
+            direction LR
+            CI[None] -->|revokeAllTokens| CJ[None]
+        end
+        subgraph POST /auth/revoke-user/:id
+            direction LR
+            CK[id: string] -->|revokeUserTokens| CL[None]
         end
     end

@@ -1,6 +1,6 @@
 import request from "supertest";
 import { describe, expect, it, beforeAll, afterAll } from "@jest/globals";
-import { startServerTest } from "../src/index.js";
+import { startServer, startServerTest } from "../src/index.js";
 import sequelize from "../src/config/database.js";
 import { InputEvent } from "../src/models/Event.js";
 
@@ -24,13 +24,7 @@ beforeAll(async () => {
     await sequelize.sync({ force: true });
 });
 
-afterAll(async () => {
-    // Fermez le serveur
-    await app.close();
 
-    // Fermez la base de données
-    await sequelize.close();
-});
 
 describe("event Routes", async () => {
     let eventId: number;
@@ -41,14 +35,14 @@ describe("event Routes", async () => {
             .send({
                 title: "Perils of Pauline",
                 desc: "perils",
-                date: new Date("2024-12-12T10:00:00Z"),
+                date: new Date("2025-12-12T10:00:00Z"),
             } as InputEvent);
 
         expect(response.status).toBe(201);
         expect(response.body).toStrictEqual({
             title: "Perils of Pauline",
             desc: "perils",
-            date: "2024-12-12T10:00:00Z",
+            date: "2025-12-12T10:00:00Z",
         });
         eventId = response.body.id;
     });
@@ -88,4 +82,12 @@ describe("event Routes", async () => {
     //     expect(response.status).toBe(404);
     // });
     app.close();
+});
+
+afterAll(async () => {
+    // Fermez le serveur
+    await app.close();
+
+    // Fermez la base de données
+    await sequelize.close();
 });

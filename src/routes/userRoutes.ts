@@ -10,176 +10,217 @@ import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import * as z from "zod";
 import { IncomingMessage, request, ServerResponse } from "http";
 import { where } from "sequelize";
+import { ZPayment, ZPaymentOutput } from "../models/Payment.js";
+import { ZRegistrationOutput } from "../models/Registration.js";
 
 export default async (fastify: FastifyInstance) => {
     // Protected routes
-    fastify.post("/users", {
-        schema: {
-            body: z.object({
-                createUser: u.ZCreateUser,
-                roles: z.array(z.number()),
-            }),
+    fastify.post<{ Body: { createUser: u.CreateUser; roles: number[] } }>(
+        "/users",
+        {
+            schema: {
+                body: z.object({
+                    createUser: u.ZCreateUser,
+                    roles: z.array(z.number()),
+                }),
+                response: {
+                    201: {
+                        zodSchema: z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [authorize(["rh"])],
         },
-        preHandler: [authorize(["rh"])],
-        handler: userController.createUser as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Body: {
-                    createUser: u.CreateUser;
-                    roles: number[];
-                };
-            }
-        >,
-    });
+        userController.createUser,
+    );
 
-    try {
-        fastify.get("/users", {
-            preHandler: [authorize(["rh"])],
-            handler: userController.getAllUsers as RouteHandlerMethod,
-        });
-    } catch (error) {
-        console.log(error);
-    }
-
-    fastify.get("/users/:id", {
-        schema: { params: z.object({ id: z.string() }) },
-        preHandler: [await isSelfOrAdminOr()],
-        handler: userController.getUserById as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Params: { id: string };
-            }
-        >,
-    });
-
-    fastify.put("/users/:id", {
-        // preHandler: [isSelfOrAdminOr()],
-        schema: {
-            params: z.object({ id: z.string() }),
-            body: u.ZUpdateUser,
+    fastify.get(
+        "/users",
+        {
+            schema: {
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: z.array(u.ZUserWithRole),
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [authorize(["rh"])],
         },
-        handler: userController.updateUser as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Params: { id: string };
-                Body: u.UpdateUser;
-            }
-        >,
-    });
+        userController.getAllUsers,
+    );
 
-    fastify.delete("/users/:id", {
-        preHandler: [authorize(["rh"])],
-        schema: { params: z.object({ id: z.string() }) },
-        handler: userController.deleteUser as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Params: { id: string };
-            }
-        >,
-    });
-
-    // Role management routes (Admin only)
-    fastify.post("/users/:id/roles", {
-        preHandler: [authorize(["rh"])],
-        schema: {
-            params: z.object({ userId: z.string() }),
+    fastify.get(
+        "/users/:id",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [await isSelfOrAdminOr(["rh"])],
         },
-        handler: userController.addUserRoles as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Params: { id: string };
-                Body: { roles: number[] };
-            }
-        >,
-    });
+        userController.getUserById,
+    );
 
-    fastify.delete("/users/:userId/roles/:roleId", {
-        preHandler: [authorize(["rh"])],
-        schema: {
-            params: z.object({ userId: z.string(), roleId: z.string() }),
+    fastify.put(
+        "/users/:id",
+        {
+            onRequest: [await isSelfOrAdminOr(["rh"])],
+            schema: {
+                params: z.object({ id: z.string() }),
+                body: u.ZUpdateUser,
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
         },
-        handler: userController.removeUserRoles as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Params: { userId: string; roleId: string };
-            }
-        >,
-    });
+        userController.updateUser,
+    );
 
-    // fastify.get("/users/:id/payment", {
-    //     preHandler: [isSelfOrAdminOr()],
-    //     schema: {
-    //         params: z.object({ userId: z.string(), roleId: z.string() }),
-    //     },
-    //     handler: userController.getPaymentsByUserId as RouteHandlerMethod<
-    //         RawServerDefault,
-    //         IncomingMessage,
-    //         ServerResponse,
-    //         {
-    //             Params: { userId: string; roleId: string };
-    //         }
-    //     >,
-    // });
+    fastify.delete<{ Params: { id: string } }>(
+        "/users/:id",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
+                },
+            },
+            onRequest: [await authorize(["rh"])],
+        },
+        userController.deleteUser,
+    );
 
-    // fastify.get("/users/:id/registrations", {
-    //     preHandler: [authorize(["admin"])],
-    //     schema: {
-    //         params: z.object({ userId: z.string(), roleId: z.string() }),
-    //     },
-    //     handler: userController.getRegistrationsByUserId as RouteHandlerMethod<
-    //         RawServerDefault,
-    //         IncomingMessage,
-    //         ServerResponse,
-    //         {
-    //             Params: { userId: string; roleId: string };
-    //         }
-    //     >,
-    // });
+    // Role management routes
+    fastify.post<{ Params: { id: string }; Body: { roles: number[] } }>(
+        "/users/:id/roles",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                body: z.object({ roles: z.array(z.number()) }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: u.ZUserWithRole,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [await authorize(["rh"])],
+        },
+        userController.addUserRoles,
+    );
+
+    fastify.delete<{ Params: { userId: string; roleId: string } }>(
+        "/users/:userId/roles/:roleId",
+        {
+            schema: {
+                params: z.object({ userId: z.string(), roleId: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
+                },
+            },
+            onRequest: [await authorize(["rh"])],
+        },
+        userController.removeUserRoles,
+    );
+
+    fastify.get<{ Params: { id: string } }>(
+        "/users/:id/payments",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: ZPaymentOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [await isSelfOrAdminOr(["rh"])],
+        },
+        userController.getPaymentsByUserId,
+    );
+
+    fastify.get<{ Params: { id: string } }>(
+        "/users/:id/registrations",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: ZRegistrationOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [await isSelfOrAdminOr(["rh"])],
+        },
+        userController.getRegistrationsByUserId,
+    );
 
     // Password reset routes
-    fastify.post("/users/forgot-password", {
-        schema: {
-            body: z.object({ email: z.string().email() }),
+    fastify.post<{ Body: { email: string } }>(
+        "/users/forgot-password",
+        {
+            schema: {
+                body: z.object({ email: z.string().email() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
+                },
+            },
+            onRequest: [await authorize(["client"])],
         },
-        preHandler: [authorize(["client"])],
-        handler: userController.forgotPassword as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Body: u.ResetPasswordRequest;
-            }
-        >,
-    });
+        userController.forgotPassword,
+    );
 
-    fastify.post("/users/reset-password", {
-        schema: {
-            body: z.object({
-                email: z.string().email(),
-                tempCode: z.string(),
-                newPassword: z.string(),
-            }),
+    fastify.post<{
+        Body: { email: string; tempCode: string; newPassword: string };
+    }>(
+        "/users/reset-password",
+        {
+            schema: {
+                body: z.object({
+                    email: z.string().email(),
+                    tempCode: z.string(),
+                    newPassword: z.string(),
+                }),
+                response: {
+                    200: {
+                        zodSchema: z.object({ message: z.string() }),
+                    },
+                },
+            },
+            onRequest: [await authorize(["client"])],
         },
-        preHandler: [authorize(["client"])],
-        handler: userController.resetPassword as RouteHandlerMethod<
-            RawServerDefault,
-            IncomingMessage,
-            ServerResponse,
-            {
-                Body: u.ResetPassword;
-            }
-        >,
-    });
+        userController.resetPassword,
+    );
 };

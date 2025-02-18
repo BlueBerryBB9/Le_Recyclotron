@@ -1,17 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import * as r from "../models/Registration.js";
+import SRegistration, * as r from "../models/Registration.js";
 import {
     RecyclotronApiErr,
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
-import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
-
-// Error handling middleware
-const errorHandler = (rep: FastifyReply, error: any) => {
-    console.error(error);
-    return rep.status(500).send({ error: "Internal Server Error" });
-};
+import { BaseError, where } from "sequelize";
+import { stringToInt } from "../service/stringToInt.js";
 
 // Wrap each controller method with try/catch for error handling
 export const createRegistration = async (
@@ -20,9 +14,18 @@ export const createRegistration = async (
 ) => {
     try {
         const createdRegistration = await r.default.create(req.body);
+        if (
+            await SRegistration.findOne({
+                where: {
+                    userId: createdRegistration.getDataValue("userId"),
+                    eventId: createdRegistration.getDataValue("eventId"),
+                },
+            })
+        )
+            throw new RecyclotronApiErr("Registration", "AlreadyExists", 409);
 
         return rep.status(201).send({
-            data: createdRegistration,
+            data: createdRegistration.dataValues,
             message: "Registration Created",
         });
     } catch (error) {
@@ -32,40 +35,18 @@ export const createRegistration = async (
     }
 };
 
-export const getAllRegistrations = async (
-    req: FastifyRequest,
-    rep: FastifyReply,
-) => {
-    try {
-        const registrations = await r.default.findAll();
-        if (registrations.length === 0)
-            throw new RecyclotronApiErr("Registration", "NotFound", 404);
-
-        return rep.status(200).send({
-            data: registrations,
-            message: "Fetched all Registrations",
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Registration", error);
-        } else throw new RecyclotronApiErr("Registration", "FetchAllFailed");
-    }
-};
-
 export const getRegistration = async (
     req: FastifyRequest<{ Params: { id: string } }>,
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const registration = await r.default.findByPk(id);
         if (!registration)
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
         return rep.status(200).send({
-            data: registration,
+            data: registration.dataValues,
             message: "Registration fetched successfully",
         });
     } catch (error) {
@@ -80,13 +61,16 @@ export const getRegistration = async (
 export const updateRegistration = async (
     req: FastifyRequest<{
         Params: { id: string };
-        Body: r.PartialRegistration;
+        Body: r.UpdateRegistration;
     }>,
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const data = req.body;
+
+        if (data.seats !== undefined && data.seats <= 0)
+            throw new RecyclotronApiErr("Registration", "InvalidInput", 400);
 
         const registration = await r.default.findByPk(id);
 
@@ -94,8 +78,13 @@ export const updateRegistration = async (
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
         await registration.update(data);
+
+        const updatedRegistration = await r.default.findByPk(id, {
+            include: r.default.associations.event,
+        });
+
         return rep.status(200).send({
-            data: registration,
+            data: updatedRegistration?.dataValues,
             message: "Registration updated successfully",
         });
     } catch (error) {
@@ -112,15 +101,14 @@ export const deleteRegistration = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Registration");
+        const id: number = stringToInt(req.params.id, "Registration");
         const registration = await r.default.findByPk(id);
         if (!registration)
             return new RecyclotronApiErr("Registration", "NotFound", 404);
 
-        await r.default.destroy({
-            where: { id },
-        });
-        return rep.status(204).send({
+        await registration.destroy();
+
+        return rep.status(200).send({
             message: "Registration deleted successfully",
         });
     } catch (error) {

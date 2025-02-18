@@ -15,14 +15,14 @@ SPayment.init(
                 model: "Users",
                 key: "id",
             },
+            onDelete: "CASCADE",
         },
         id_stripe_payment: { type: DataTypes.STRING, allowNull: true },
         amount: { type: DataTypes.FLOAT, allowNull: false },
-        type: { type: DataTypes.INTEGER },
-        date: { type: DataTypes.DATE, allowNull: false },
+        type: { type: DataTypes.INTEGER }, // donation = 0, subscription = 1 ?
         status: { type: DataTypes.STRING, allowNull: true },
     },
-    { sequelize, modelName: "Payment" },
+    { sequelize, modelName: "Payment", timestamps: true },
 );
 
 export default SPayment;
@@ -44,6 +44,21 @@ export const paymentMethodSchema = z.object({
     paymentMethodId: z.string(),
 });
 
+export const ZPayment = z.object({
+    id: z.number(),
+    userId: z.number(),
+    id_stripe_payment: z.string().nullable(),
+    amount: z.number(),
+    type: z.number(),
+    status: z.string().nullable(),
+});
+
+export const ZPaymentOutput = ZPayment.extend({
+    createdAt: z.date(),
+    updatedAt: z.date(),
+});
+
+export type Payment = z.infer<typeof ZPayment>;
 export type SubscriptionBody = z.infer<typeof subscriptionSchema>;
 export type DonationBody = z.infer<typeof donationSchema>;
 export type PaymentMethodBody = z.infer<typeof paymentMethodSchema>;

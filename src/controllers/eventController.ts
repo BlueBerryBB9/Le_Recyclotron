@@ -6,16 +6,29 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
+import SUser from "../models/User.js";
+import z from "zod";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,
     rep: FastifyReply,
 ) => {
     try {
+        const date = req.body.date;
+
+        if (new Date(date) < new Date())
+            throw new RecyclotronApiErr(
+                "Event",
+                "InvalidInput",
+                400,
+                "Event date cannot be in the past",
+            );
+
         const event = await e.default.create(req.body);
+
         return rep.status(201).send({
-            data: event,
+            data: event.dataValues,
             message: "Event Created",
         });
     } catch (error) {
@@ -32,7 +45,9 @@ export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
             throw new RecyclotronApiErr("Event", "NotFound", 404);
 
         return rep.status(200).send({
-            data: events,
+            data: events.map((event) => {
+                return event.dataValues;
+            }),
             message: "Fetched all events",
         });
     } catch (error) {
@@ -49,12 +64,12 @@ export const getEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(req.params.id, "Event");
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
         return rep.status(200).send({
-            data: event,
+            data: event.dataValues,
             message: "Event fetched successfully",
         });
     } catch (error) {
@@ -71,14 +86,24 @@ export const updateEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(req.params.id, "Event");
         const data = req.body;
+
+        if (data.date && new Date(data.date) < new Date()) {
+            throw new RecyclotronApiErr(
+                "Event",
+                "InvalidInput",
+                400,
+                "Event date cannot be in the past",
+            );
+        }
+
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
         await event.update(data);
         return rep.status(200).send({
-            data: event,
+            data: event.dataValues,
             message: "Event updated successfully",
         });
     } catch (error) {
@@ -95,15 +120,13 @@ export const deleteEvent = async (
     rep: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(req.params.id, "Event");
         const event = await e.default.findByPk(id);
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
-        await e.default.destroy({
-            where: { id },
-        });
-        return rep.status(204).send({
-            message: "Event deleted successfully",
+        await event.destroy();
+        return rep.status(200).send({
+            message: "Event deleted successfully.",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
@@ -115,20 +138,24 @@ export const deleteEvent = async (
 };
 
 export const getAllEventRegistrations = async (
-    req: FastifyRequest<{ Params: { id: string } }>,
-    rep: FastifyReply,
+    request: FastifyRequest<{ Params: { id: string } }>,
+    response: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(req.params.id, "Event");
+        const id: number = stringToInt(request.params.id, "Event");
+
+        const event = await e.default.findByPk(id);
+        if (!event) throw new RecyclotronApiErr("Event", "NotFound", 404);
+
         const registrations = await SRegistration.findAll({
             where: { EventId: id },
         });
         if (registrations.length === 0)
             throw new RecyclotronApiErr("RegistrationInEvent", "NotFound", 404);
 
-        return rep.status(200).send({
-            data: registrations,
-            message: "Fetched all event registrations",
+        return response.status(200).send({
+            data: { ...event?.dataValues, registrations: registrations },
+            message: "Fetched all event registrations.",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {

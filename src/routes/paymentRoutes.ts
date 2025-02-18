@@ -23,32 +23,52 @@ export default async (fastify: FastifyInstance) => {
     fastify.post<{ Body: SubscriptionBody }>(
         "/subscription",
         {
-            schema: { body: subscriptionSchema },
-            // onRequest: [authorize],
+            schema: {
+                body: subscriptionSchema,
+                response: {
+                    200: { zodSchema: z.object({ subscriptionId: z.any() }) },
+                },
+            },
+            onRequest: [authorize(["client"])],
         },
         PaymentController.createSubscription,
     );
     fastify.delete<{ Params: { subscriptionId: string } }>(
         "/subscription/:id",
         {
-            schema: { params: z.object({ subscriptionId: z.string() }) },
-            // onRequest: [authorize],
+            schema: {
+                params: z.object({ subscriptionId: z.string() }),
+                response: {
+                    200: { zodSchema: z.object({ message: z.string() }) },
+                },
+            },
+            onRequest: [authorize(["client"])],
         },
         PaymentController.cancelSubscription,
     );
     fastify.post<{ Body: DonationBody }>(
         "/donation",
         {
-            schema: { body: donationSchema },
-            // onRequest: [authorize],
+            schema: {
+                body: donationSchema,
+                response: {
+                    200: { zodSchema: z.object({ message: z.string() }) },
+                },
+            },
+            onRequest: [authorize(["client"])],
         },
         PaymentController.createDonation,
     );
     fastify.put<{ Body: PaymentMethodBody }>(
         "/payment-method",
         {
-            schema: { body: paymentMethodSchema },
-            // onRequest: [authorize],
+            schema: {
+                body: paymentMethodSchema,
+                response: {
+                    200: { zodSchema: z.object({ message: z.string() }) },
+                },
+            },
+            onRequest: [authorize(["client"])],
         },
         PaymentController.updatePaymentMethod,
     );
@@ -56,7 +76,7 @@ export default async (fastify: FastifyInstance) => {
         "/webhook",
         {
             config: { rawBody: true },
-            // onRequest: [authorize],
+            onRequest: [authorize(["admin"])],
         },
         PaymentController.handleWebhook,
     );

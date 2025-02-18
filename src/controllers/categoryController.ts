@@ -5,7 +5,8 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
+import { getCategories } from "../service/categoryService.js";
 
 export const createCategory = async (
     request: FastifyRequest<{ Body: i.InputCategory }>,
@@ -14,8 +15,8 @@ export const createCategory = async (
     try {
         const newCategory = await i.default.create(request.body);
         reply.code(201).send({
-            data: newCategory,
-            message: "new Category created successfully",
+            data: newCategory.dataValues,
+            message: "New Category created successfully",
         });
     } catch (error) {
         if (error instanceof BaseError) {
@@ -29,7 +30,7 @@ export const createChildCategory = async (
     reply: FastifyReply,
 ) => {
     try {
-        const parent_category_id: number = intToString(
+        const parent_category_id: number = stringToInt(
             request.params.id,
             "Category",
         );
@@ -45,8 +46,8 @@ export const createChildCategory = async (
             parent_category_id,
         });
         reply.code(201).send({
-            data: newCategory,
-            message: "newCategory created successfully",
+            data: newCategory.dataValues,
+            message: "New Child Category created successfully",
         });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
@@ -57,25 +58,42 @@ export const createChildCategory = async (
     }
 };
 
-// Get all Categorys
+// Get all Categories
 export const getAllCategories = async (
     request: FastifyRequest,
     reply: FastifyReply,
 ) => {
     try {
-        console.log("HERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRREEEEEEEEEEEEEEE");
-        const categories = await i.default.findAll();
+        const categories = await i.default.findAll({
+            where: { parentCategoryId: null },
+        });
+
         if (categories.length === 0)
-            return new RecyclotronApiErr("Category", "NotFound", 404);
+            throw new RecyclotronApiErr("Category", "NotFound", 404);
+
+        let allCategories: any[] = [];
+
+        for (const cate of categories) {
+            const categoriesWithChildren = await getCategories(
+                cate.getDataValue("id"),
+            );
+
+            allCategories.push({
+                ...cate.dataValues,
+                children: categoriesWithChildren,
+            });
+        }
 
         reply.code(200).send({
-            data: categories,
+            data: allCategories,
             message: "All categories fetched successfully",
         });
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("Category", error);
-        } else throw new RecyclotronApiErr("Category", "FetchAllFailed");
+        } else {
+            throw new RecyclotronApiErr("Category", "FetchAllFailed");
+        }
     }
 };
 
@@ -85,13 +103,18 @@ export const getCategoryById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Category");
+        const id: number = stringToInt(request.params.id, "Category");
         const category = await i.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
+        const updatedCategories = {
+            ...category,
+            children: await getCategories(id),
+        };
+
         reply.code(200).send({
-            data: category,
+            data: category.dataValues,
             message: "category fetched by id successfully",
         });
     } catch (error) {
@@ -112,13 +135,19 @@ export const updateCategoryById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Category");
-        const Category = await i.default.findByPk(id);
-        if (!Category)
+        const id: number = stringToInt(request.params.id, "Category");
+        const category = await i.default.findByPk(id);
+        if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
-        await Category.update(request.body);
+        await category.update(request.body);
+
+        const updatedCategories = {
+            ...category,
+            children: await getCategories(id),
+        };
         reply.code(200).send({
+            data: updatedCategories,
             message: "Category updated successfully",
         });
     } catch (error) {
@@ -136,47 +165,20 @@ export const deleteCategoryById = async (
     reply: FastifyReply,
 ) => {
     try {
-        const id: number = intToString(request.params.id, "Category");
+        const id: number = stringToInt(request.params.id, "Category");
         const category = await i.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
         await category.destroy();
-        reply.code(204).send({ message: "category deleted successfully." });
+        reply.code(200).send({
+            message: "Category deleted successfully.",
+        });
     } catch (error) {
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else if (error instanceof BaseError) {
             throw new SequelizeApiErr("Category", error);
         } else throw new RecyclotronApiErr("Category", "DeletionFailed");
-    }
-};
-
-// Get all childCategories of category
-export const getAllCategoriesOfCategory = async (
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply,
-) => {
-    try {
-        const parent_category_id: number = intToString(
-            request.params.id,
-            "Category",
-        );
-        const categories = await i.default.findAll({
-            where: { parent_category_id: parent_category_id },
-        });
-        if (categories.length === 0)
-            throw new RecyclotronApiErr("Category", "NotFound", 404);
-
-        reply.code(200).send({
-            data: categories,
-            message: "All childCategory of category fetch successfully",
-        });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else if (error instanceof BaseError) {
-            throw new SequelizeApiErr("Category", error);
-        } else throw new RecyclotronApiErr("Category", "FetchAllFailed");
     }
 };

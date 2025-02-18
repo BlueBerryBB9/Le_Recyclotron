@@ -1,8 +1,8 @@
-import { generateToken } from "../service/auth_service.js";
-import SUser, { CreateUser } from "../models/User.js";
+import { generateToken } from "../service/authService.js";
+import SUser, { CreateUser, ZCreateUser } from "../models/User.js";
 import SUserRoles from "../models/UserRoles.js";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { intToString } from "../service/intToString.js";
+import { stringToInt } from "../service/stringToInt.js";
 import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
 import { createOTP, verifyOTPservice } from "../service/otpService.js";
@@ -16,7 +16,9 @@ import SRole from "../models/Role.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
 import OTP from "../models/OTP.js";
 import { BaseError } from "sequelize";
+import { getUserWithRoles } from "../service/userService.js";
 
+//* login
 export const login = async (
     request: FastifyRequest<{ Body: { email: string; password: string } }>,
     reply: FastifyReply,
@@ -56,10 +58,7 @@ export const login = async (
             `Your OTP code is: ${otpPassword}`,
         );
 
-        // const { password: _, ...userWithoutPassword } = user.toJSON();
-
-        return reply.send({
-            statusCode: 200,
+        return reply.status(200).send({
             message: "Check your email for the OTP code",
         });
     } catch (error) {
@@ -70,6 +69,7 @@ export const login = async (
     }
 };
 
+//* register
 export const register = async (
     request: FastifyRequest<{
         Body: CreateUser;
@@ -77,94 +77,34 @@ export const register = async (
     reply: FastifyReply,
 ) => {
     try {
-        const { email, password, first_name, last_name } = request.body;
+        const userData = ZCreateUser.parse(request.body);
 
-        const existingUser = await SUser.findOne({ where: { email } });
-        if (existingUser) {
+        const existingUser = await SUser.findOne({
+            where: { email: userData.email },
+        });
+        if (existingUser)
             throw new RecyclotronApiErr("Auth", "AlreadyExists", 409);
-        }
 
-        const hashedPassword = await argon.hash(
-            password,
+        userData.password = await argon.hash(
+            userData.password,
             hashConfig.argon2Options,
         );
 
         const newUser = await SUser.create({
-            email,
-            password: hashedPassword,
-            first_name,
-            last_name,
+            ...userData,
         });
 
-        const userRole = await SUserRoles.create({
-            user_id: newUser.getDataValue("id"),
-            role_id: 6,
+        await SUserRoles.create({
+            userId: newUser.getDataValue("id"),
+            roleId: 6,
         });
 
-        return reply.send({
-            statusCode: 201,
+        return reply.status(201).send({
+            data: {
+                id: newUser.getDataValue("id"),
+            },
             message: "User registered successfully. Please log in.",
         });
-    } catch (error) {
-        if (error instanceof RecyclotronApiErr) {
-            throw error;
-        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
-    }
-};
-
-export const verifyOTP = async (
-    request: FastifyRequest<{ Body: { id: string; otp: string } }>,
-    reply: FastifyReply,
-) => {
-    let isValid = await verifyOTPservice(
-        intToString(request.body.id, "Auth"),
-        request.body.otp,
-    );
-
-    let user = await SUser.findByPk(request.body.id);
-    if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 500);
-
-    OTP.destroy({
-        where: {
-            userId: request.body.id,
-        },
-    });
-
-    if (!isValid) throw new RecyclotronApiErr("Auth", "InvalidInput", 400);
-
-    return reply.send({
-        statusCode: 200,
-        message: "Authentication successful",
-        jwt: generateToken(
-            intToString(request.body.id, "Auth"),
-            user.getDataValue("email"),
-            await user.getRoleString(),
-        ),
-    });
-};
-
-export const getCurrentUser = async (
-    request: FastifyRequest,
-    reply: FastifyReply,
-) => {
-    try {
-        request.jwtVerify();
-        const id = request.user.id;
-        const user = await SUser.findByPk(id, {
-            include: [
-                {
-                    model: SRole,
-                    attributes: ["id", "name"],
-                    as: "roles",
-                    through: { attributes: [] },
-                },
-            ],
-            attributes: { exclude: ["password"] },
-        });
-
-        if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
-
-        return reply.send(user);
     } catch (error) {
         if (error instanceof BaseError) {
             throw new SequelizeApiErr("Auth", error);
@@ -174,11 +114,85 @@ export const getCurrentUser = async (
     }
 };
 
-export const tokenRevocations = {
-    global: null as number | null,
-    users: new Map<string, number>(),
+//* verifOTP
+export const verifyOTP = async (
+    request: FastifyRequest<{ Body: { id: string; otp: string } }>,
+    reply: FastifyReply,
+) => {
+    try {
+        let isValid = await verifyOTPservice(
+            stringToInt(request.body.id, "Auth"),
+            request.body.otp,
+        );
+        if (!isValid) throw new RecyclotronApiErr("Auth", "InvalidInput", 400);
+
+        let user = await SUser.findByPk(request.body.id);
+        if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
+
+        return reply.status(200).send({
+            data: {
+                jwt: generateToken(
+                    stringToInt(request.body.id, "Auth"),
+                    user.getDataValue("email"),
+                    await user.getRoleString(),
+                ),
+            },
+            message: "Authentication successful",
+        });
+    } catch (error) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Auth", error);
+        } else if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
+    }
 };
 
+//* getCurrentUser
+export const getCurrentUser = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+) => {
+    try {
+        request.jwtVerify();
+        const id = request.user.id;
+        const user = await getUserWithRoles(id);
+
+        if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
+
+        return reply.status(200).send({
+            message: "Authentication successful",
+            user: user.dataValues,
+        });
+    } catch (error) {
+        if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Auth", error);
+        } else if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else throw new RecyclotronApiErr("Auth", "OperationFailed");
+    }
+};
+
+//* revokeToken
+
+export let tokenRevocations: {
+    global: number | null;
+    users: Map<string, number>;
+};
+
+if (env.NODE_ENV === "dev") {
+    tokenRevocations = {
+        global: null as number | null,
+        users: new Map<string, number>(),
+    };
+} else {
+    tokenRevocations = {
+        global: Date.now() as number | null,
+        users: new Map<string, number>(),
+    };
+}
+
+//* revokeAllTokens
 export const revokeAllTokens = async (
     request: FastifyRequest,
     reply: FastifyReply,
@@ -193,6 +207,7 @@ export const revokeAllTokens = async (
     }
 };
 
+//* revokeUserTokens
 export const revokeUserTokens = async (
     request: FastifyRequest<{
         Params: {
@@ -203,11 +218,8 @@ export const revokeUserTokens = async (
 ) => {
     try {
         const userId = request.params.id;
-        console.log(tokenRevocations.users);
         tokenRevocations.users.delete(userId);
-        console.log(tokenRevocations.users);
         tokenRevocations.users.set(userId, Date.now());
-        console.log(tokenRevocations.users);
         return reply.send({
             message: "User token was revoked successfully",
         });
@@ -216,6 +228,7 @@ export const revokeUserTokens = async (
     }
 };
 
+//* isTokenRevoked
 export const isTokenRevoked = (userId: number, tokenIat: number): boolean => {
     const tokenCreationDate = tokenIat * 1000;
     if (tokenRevocations.global && tokenCreationDate < tokenRevocations.global)

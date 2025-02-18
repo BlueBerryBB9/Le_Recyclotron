@@ -8,37 +8,57 @@ export default async (fastify: f.FastifyInstance) => {
     fastify.post<{ Body: rm.InputRegistration }>(
         "/registration",
         {
-            schema: { body: rm.ZInputRegistration },
+            schema: {
+                body: rm.ZInputRegistration,
+                response: {
+                    201: {
+                        zodSchema: z.object({
+                            data: rm.ZRegistration,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
             onRequest: [authorize(["client"])],
         },
         rc.createRegistration,
     );
 
-    fastify.get(
-        "/registration",
-        {
-            onRequest: [authorize(["cm"])],
-        },
-        rc.getAllRegistrations,
-    );
-
     fastify.get<{ Params: { id: string } }>(
         "/registration/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [isSelfOrAdminOr(["cm"])],
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: rm.ZRegistration,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.getRegistration,
     );
 
-    fastify.put<{ Params: { id: string }; Body: rm.PartialRegistration }>(
+    fastify.put<{ Params: { id: string }; Body: rm.UpdateRegistration }>(
         "/registration/:id",
         {
             schema: {
-                body: rm.ZPartialRegistration,
+                body: rm.ZUpdateRegistration,
                 params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: rm.ZRegistrationOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
             },
-            // onRequest: [isSelfOrAdminOr()],
+            onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.updateRegistration,
     );
@@ -46,8 +66,17 @@ export default async (fastify: f.FastifyInstance) => {
     fastify.delete<{ Params: { id: string } }>(
         "/registration/:id",
         {
-            schema: { params: z.object({ id: z.string() }) },
-            // onRequest: [isSelfOrAdminOr()],
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+            onRequest: [await isSelfOrAdminOr([], "registration")],
         },
         rc.deleteRegistration,
     );

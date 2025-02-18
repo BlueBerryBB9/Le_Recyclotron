@@ -1,0 +1,34 @@
+userController.ts:
+- addUserRoles (rh): Ajoute des rôles à un utilisateur
+- removeUserRoles (rh): Supprime un rôle spécifique d'un utilisateur
+- forgotPassword (client): Gère la demande de réinitialisation de mot de passe
+- getRegistrationsByUserId (rh, self, admin): Récupère toutes les inscriptions d'un utilisateur
+- getPaymentsByUserId (rh, self, admin): Récupère tous les paiements d'un utilisateur
+
+paymentController.ts:
+- createSubscription (client): Crée un abonnement mensuel via Stripe
+- createDonation (client): Traite un don unique via Stripe
+- updatePaymentMethod (client): Met à jour la méthode de paiement dans Stripe
+- cancelSubscription (client): Annule un abonnement existant
+- handleWebhook (admin): Gère les webhooks Stripe
+
+itemController.ts:
+- getItemByStatus (repairer, client): Récupère les items selon leur statut
+- addCategoryToItem (employee): Ajoute une catégorie à un item
+- deleteCategoryOfItem (employee): Supprime une catégorie d'un item
+
+eventController.ts:
+- getAllEventRegistrations (employee): Récupère toutes les inscriptions pour un événement
+
+categoryController.ts:
+- createChildCategory (employee): Crée une sous-catégorie
+- getAllCategoriesOfCategory (public): Récupère toutes les sous-catégories d'une catégorie de manière récursive
+- getCategories (public): Fonction utilitaire récursive pour récupérer la hiérarchie des catégories
+
+authController.ts:
+- login (public): Gère l'authentification et envoie un OTP
+- register (public): Inscrit un nouvel utilisateur
+- verifyOTP (public): Vérifie le code OTP et génère un JWT
+- getCurrentUser (client, employee): Récupère l'utilisateur actuellement connecté
+- revokeAllTokens (admin): Révoque tous les tokens JWT
+- revokeUserTokens (self, admin): Révoque les tokens d'un utilisateur spécifique

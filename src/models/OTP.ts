@@ -1,9 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 
-class OTP extends Model {}
+class SOTP extends Model {}
 
-OTP.init(
+SOTP.init(
     {
         id: {
             type: DataTypes.INTEGER,
@@ -26,4 +26,4 @@ OTP.init(
     },
 );
 
-export default OTP;
+export default SOTP;

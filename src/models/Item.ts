@@ -1,6 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
+import { ZCategory } from "./Category.js";
 
 enum ItemStatus {
     SALABLE = 0,
@@ -34,14 +35,11 @@ SItem.init(
             type: DataTypes.STRING(256),
             allowNull: false,
         },
-        date: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
     },
     {
         tableName: "Items",
         sequelize,
+        timestamps: true,
     },
 );
 
@@ -51,11 +49,27 @@ export const ZItem = z.object({
     status: z.nativeEnum(ItemStatus),
     material: z.string(),
     image: z.string(),
-    date: z.coerce.date(),
 });
 
-export const ZPartialItem = ZItem.partial(); // tous les champs sont devenus optionels
+export const ZPartialItem = ZItem.partial().omit({ id: true }); // tous les champs sont devenus optionels
 export const ZInputItem = ZItem.omit({ id: true }); // le même objet sans l'id
+
+export const ZItemOutput = ZItem.extend({
+    createdAt: z.date(),
+    updatedAt: z.date(),
+});
+
+export const ZItemAndCategoriesOutput = ZItem.extend({
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    categories: z.array(z.lazy(() => ZCategory)),
+});
+
+export const ZItemListOutput = z.array(ZItemOutput);
+export const ZItemAndCategoriesListOutput = z.array(ZItemAndCategoriesOutput);
+
+export type ItemOutput = z.infer<typeof ZItemOutput>;
+export type ItemListOutput = z.infer<typeof ZItemListOutput>;
 
 export type Item = z.infer<typeof ZItem>; // Le type typescript qui correspond à l'objet
 export type PartialItem = z.infer<typeof ZPartialItem>; // Le type typescript avec toutes les props optionelles

@@ -17,26 +17,16 @@ const setupAssociations = () => {
         foreignKey: "roleId",
         through: SUserRole,
     });
-
-    // SEvent.hasMany(SRegistration, {
-    //     as: "registrations",
-    // });
-
-    // SRegistration.belongsTo(SEvent, {
-    //     foreignKey: "eventId",
-    //     onDelete: "CASCADE",
-    //     onUpdate: "CASCADE",
-    // });
-
-    // SUser.hasMany(SRegistration, {
-    //     as: "registrations",
-    // });
-
-    // SRegistration.belongsTo(SUser, {
-    //     foreignKey: "userId",
-    //     onDelete: "CASCADE",
-    //     onUpdate: "CASCADE",
-    // });
 };
+
+SUser.beforeDestroy(async (user) => {
+    await SUserRole.destroy({ where: { userId: user.getDataValue("id") } });
+});
+
+SRole.beforeDestroy(async (role) => {
+    await SUserRole.destroy({
+        where: { roleId: role.getDataValue("id") },
+    });
+});
 
 export default setupAssociations;

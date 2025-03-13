@@ -29,7 +29,7 @@ export class MailService {
         text: string,
     ): Promise<void> {
         try {
-            const info = await this.transporter.sendMail({
+            await this.transporter.sendMail({
                 from: this.email,
                 to,
                 subject,

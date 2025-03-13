@@ -14,7 +14,6 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import { stringToInt } from "../service/stringToInt.js";
-import { userInfo } from "os";
 import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
 import { MailService } from "../service/emailSender.js";
@@ -45,7 +44,7 @@ export const createUser = async (
             ...userData,
         });
 
-        for (let role of request.body.roles) {
+        for (const role of request.body.roles) {
             if (role === 6)
                 // 6 = client and employee =/= client
                 throw new RecyclotronApiErr("User", "InvalidInput", 400);
@@ -223,8 +222,8 @@ export const addUserRoles = async (
         if (roles.length === 0)
             throw new RecyclotronApiErr("RoleInUser", "NotFound", 404);
 
-        for (let role of roles) {
-            let userRole = await SUserRole.findOne({
+        for (const role of roles) {
+            const userRole = await SUserRole.findOne({
                 where: {
                     roleId: role.getDataValue("id"),
                     userId: user.getDataValue("id"),
@@ -386,7 +385,7 @@ export const forgotPassword: RouteHandler<{
         if (!EMAIL_SENDER || !EMAIL_PASSWORD) {
             throw new RecyclotronApiErr("User", "EnvKeyMissing", 500);
         }
-        let mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
+        const mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
         await mailService.sendPasswordResetEmail(email, resetLink);
 
         return reply.status(200).send({

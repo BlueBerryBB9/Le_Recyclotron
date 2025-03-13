@@ -7,8 +7,6 @@ import {
 } from "../error/recyclotronApiErr.js";
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
-import SUser from "../models/User.js";
-import z from "zod";
 
 export const createEvent = async (
     req: FastifyRequest<{ Body: e.InputEvent }>,

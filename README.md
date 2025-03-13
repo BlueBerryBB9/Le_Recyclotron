@@ -9,8 +9,10 @@
 - MAYBE USELESS, why dont use update instead of add category to item?
 - ITEMS SHOULD HAVE ONLY ONE CATEGORY
 - add a route so from an category you can get all the tree for it so parent and child categories
-- Why relation many to many between items and categories ?
-- why not just have the last category of the "tree" of categories instead of all ? deserves to be debate depending on front implementation. what happens to item bound to a category when a children category of it is created ?
+
+# OPTIONAL TASKS
+
+- Ajouter des réservations sur les items (temps dispo max ? avant que réservation se termine si la personne ne vient pas le récupérer)
 
 ### Authors :
 
@@ -52,7 +54,6 @@ To launch with a watcher : yarn nodemon
   - ╚-> Create a script that enters sound data in the database, in particular fake users.
   - Add a forgot password feature that sends email for people to reset their password
   - Add another layer of verification on sign up --> send a mail with a link to authenticate for example
-  - scripts that deletes objects in jwt revoked table after a week (common validity date to set in the .env)
   - Find a web host + db host ( we could use freesqldatabase for the moment )
 
 - En Français :
@@ -69,7 +70,6 @@ To launch with a watcher : yarn nodemon
   - ╚-> Créer un script qui saisit les données sonores dans la base de données, notamment les faux utilisateurs.
   - Ajoutez une fonctionnalité de mot de passe oublié qui envoie un e-mail aux personnes souhaitant réinitialiser leur mot de passe.
   - Ajouter une autre couche de vérification lors de l'inscription --> envoyer un mail avec un lien pour s'authentifier par exemple
-  - des scripts qui suppriment les objets de la table jwt révoqué au bout d'une semaine (date de validité commune à définir dans le .env)
   - Trouver un hébergeur + un hébergeur de base de données (nous pourrions utiliser freesqldatabase pour le moment)
 
 - Security tasks ! - (non-checked tasks in the lower list)

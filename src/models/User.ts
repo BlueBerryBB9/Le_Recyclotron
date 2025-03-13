@@ -1,9 +1,8 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
 import z from "zod";
-import SRole, { ZRole } from "./Role.js";
-import SUserRole from "./UserRoles.js";
 import { getRole, getRoleString } from "../service/getRole.js";
+import { ZRole } from "./Role.js";
 
 class SUser extends Model {
     async getRole() {

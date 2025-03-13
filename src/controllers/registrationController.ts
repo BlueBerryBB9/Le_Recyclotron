@@ -4,8 +4,8 @@ import {
     RecyclotronApiErr,
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
-import { BaseError, where } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
+import { BaseError } from "sequelize";
 
 // Wrap each controller method with try/catch for error handling
 export const createRegistration = async (

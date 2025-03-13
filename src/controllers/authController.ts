@@ -14,7 +14,6 @@ import {
 } from "../error/recyclotronApiErr.js";
 import SRole from "../models/Role.js";
 import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
-import OTP from "../models/OTP.js";
 import { BaseError } from "sequelize";
 import { getUserWithRoles } from "../service/userService.js";
 
@@ -120,13 +119,13 @@ export const verifyOTP = async (
     reply: FastifyReply,
 ) => {
     try {
-        let isValid = await verifyOTPservice(
+        const isValid = await verifyOTPservice(
             stringToInt(request.body.id, "Auth"),
             request.body.otp,
         );
         if (!isValid) throw new RecyclotronApiErr("Auth", "InvalidInput", 400);
 
-        let user = await SUser.findByPk(request.body.id);
+        const user = await SUser.findByPk(request.body.id);
         if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
 
         return reply.status(200).send({

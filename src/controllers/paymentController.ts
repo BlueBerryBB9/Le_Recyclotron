@@ -133,8 +133,6 @@ export class PaymentController {
         try {
             const { subscriptionId } = request.params;
 
-            const subscription =
-                await stripe.subscriptions.cancel(subscriptionId);
 
             await SPayment.update(
                 { status: "cancelled" },

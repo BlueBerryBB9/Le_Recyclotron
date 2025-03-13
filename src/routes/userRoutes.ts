@@ -1,16 +1,11 @@
 import {
     FastifyInstance,
-    FastifyRequest,
-    RawServerDefault,
-    RouteHandlerMethod,
 } from "fastify";
 import * as userController from "../controllers/userController.js";
 import * as u from "../models/User.js";
 import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import * as z from "zod";
-import { IncomingMessage, request, ServerResponse } from "http";
-import { where } from "sequelize";
-import { ZPayment, ZPaymentOutput } from "../models/Payment.js";
+import { ZPaymentOutput } from "../models/Payment.js";
 import { ZRegistrationOutput } from "../models/Registration.js";
 
 export default async (fastify: FastifyInstance) => {

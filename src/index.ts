@@ -85,17 +85,14 @@ export const startServer = async () => {
         app.register(userRoutes, { prefix: "/api" });
         app.register(authRoutes, { prefix: "/api" });
 
-        app.addHook(
-            "onRequest",
-            async (request: FastifyRequest, reply: FastifyReply) => {
-                try {
-                    console.log(request.url);
-                } catch (error) {
-                    console.error("Error in onRequest hook:", error);
-                    throw error;
-                }
-            },
-        );
+        app.addHook("onRequest", async (request: FastifyRequest) => {
+            try {
+                console.log(request.url);
+            } catch (error) {
+                console.error("Error in onRequest hook:", error);
+                throw error;
+            }
+        });
         app.addHook(
             "onResponse",
             async (request: FastifyRequest, reply: FastifyReply) => {

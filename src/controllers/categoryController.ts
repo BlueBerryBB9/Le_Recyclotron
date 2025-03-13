@@ -71,7 +71,7 @@ export const getAllCategories = async (
         if (categories.length === 0)
             throw new RecyclotronApiErr("Category", "NotFound", 404);
 
-        let allCategories: any[] = [];
+        const allCategories: any[] = [];
 
         for (const cate of categories) {
             const categoriesWithChildren = await getCategories(
@@ -114,7 +114,7 @@ export const getCategoryById = async (
         };
 
         reply.code(200).send({
-            data: category.dataValues,
+            data: updatedCategories,
             message: "category fetched by id successfully",
         });
     } catch (error) {

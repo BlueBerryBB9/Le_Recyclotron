@@ -24,7 +24,6 @@
         "http": "^0.0.1-security",
         "jsonwebtoken": "^9.0.2",
         "lolcatjs": "^2.4.3",
-        "mysql2": "^3.11.3",
         "nodemailer": "^6.9.16",
         "raw-body": "^3.0.0",
         "reflect-metadata": "^0.2.2",

@@ -16,10 +16,7 @@ COPY . .
 
 # Configure MySQL
 RUN service mysql start && \
-    mysql -e "CREATE DATABASE my_database;" && \
-    mysql -e "CREATE USER 'user'@'%' IDENTIFIED BY 'password';" && \
-    mysql -e "GRANT ALL PRIVILEGES ON my_database.* TO 'user'@'%';" && \
-    mysql -e "FLUSH PRIVILEGES;"
+    mysql -e "CREATE DATABASE le_recyclotron;"
 
 # Expose the ports for the app and MySQL
 EXPOSE 3000 3306

@@ -68,11 +68,10 @@ export const getAllItems = async (
                 ],
             });
         }
-        console.log(items);
         if (!items) return new RecyclotronApiErr("Item", "NotFound", 404);
 
         reply.code(200).send({
-            data: items.map((item) => item.dataValues),
+            data: items.map((item) => item.toJSON()), // Extract plain objects
             message: "All items fetched successfully",
         });
     } catch (error) {
@@ -169,7 +168,7 @@ export const getItemByStatus = async (
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
         reply.code(200).send({
-            data: { items: items.map((item) => item.dataValues) },
+            data: items.map((item) => item.toJSON()), // Extract plain objects
             message: "Items fetched by status successfully",
         });
     } catch (error) {

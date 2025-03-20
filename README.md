@@ -7,6 +7,11 @@
 - Test all routes
 - Align back to front needs
 
+# POUR LANCER
+
+- Prerequisites :
+  - 
+
 # OPTIONAL TASKS
 
 - Ajouter des réservations sur les items (temps dispo max ? avant que réservation se termine si la personne ne vient pas le récupérer)

@@ -8,7 +8,7 @@ import {
 import SCategory from "../models/Category.js";
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
-import { getWithCategories } from "../service/itemService.js";
+import { getItemWithCategories } from "../service/itemService.js";
 
 // Create new item
 export const createItem = async (
@@ -67,8 +67,28 @@ export const getItemById = async (
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Item");
-        const item = await getWithCategories(id);
+        const item = await getItemWithCategories(id);
         if (!item) return new RecyclotronApiErr("Item", "NotFound", 404);
+
+        let is_visitor = false;
+        try {
+            await request.jwtVerify();
+        } catch (_) {
+            is_visitor = true;
+        }
+        if (
+            (is_visitor ||
+                (request.user.roles.includes("client") &&
+                    !request.user.roles.includes("admin"))) &&
+            item.getDataValue("status") !== 1
+        ) {
+            throw new RecyclotronApiErr(
+                "Auth",
+                "PermissionDenied",
+                401,
+                "You can only access salable items data",
+            );
+        }
 
         reply.code(200).send({
             data: item.dataValues,
@@ -89,7 +109,28 @@ export const getItemByStatus = async (
     reply: FastifyReply,
 ) => {
     try {
-        const status = request.params.status;
+        const status = stringToInt(request.params.status, "Item");
+
+        let is_visitor = false;
+        try {
+            await request.jwtVerify();
+        } catch (_) {
+            is_visitor = true;
+        }
+        if (
+            (is_visitor ||
+                (request.user.roles.includes("client") &&
+                    !request.user.roles.includes("admin"))) &&
+            status !== 1
+        ) {
+            throw new RecyclotronApiErr(
+                "Auth",
+                "PermissionDenied",
+                401,
+                "You can only access salable items data",
+            );
+        }
+
         const items = await i.default.findAll({
             where: { status },
             include: [
@@ -108,6 +149,7 @@ export const getItemByStatus = async (
             message: "Items fetched by status successfully",
         });
     } catch (error) {
+        console.log(error);
         if (error instanceof RecyclotronApiErr) {
             throw error;
         } else if (error instanceof BaseError) {
@@ -130,7 +172,7 @@ export const updateItemById = async (
 
         await item.update(request.body);
 
-        const updatedItem = await getWithCategories(id);
+        const updatedItem = await getItemWithCategories(id);
 
         reply.code(200).send({
             data: updatedItem?.dataValues,

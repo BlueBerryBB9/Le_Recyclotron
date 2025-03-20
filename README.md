@@ -4,11 +4,8 @@
 
 # NOTES
 
-- les items de status vendable doivent être affichable pour les client !!
-- All categories of an Category maybe useless
-- MAYBE USELESS, why dont use update instead of add category to item?
-- ITEMS SHOULD HAVE ONLY ONE CATEGORY
-- add a route so from an category you can get all the tree for it so parent and child categories
+- Test all routes
+- Align back to front needs
 
 # OPTIONAL TASKS
 
@@ -117,39 +114,26 @@ To launch with a watcher : yarn nodemon
 
 Below is a list of the packages used in this project, their purpose, and whether they require external dependencies:
 
+- On Linux: `build-essential`, `gcc`, `g++`, and `make`.
+
 ### Dependencies
 
 - **@babel/core**: Used for transpiling modern JavaScript to older versions for compatibility. No external dependencies required.
 - **@babel/preset-env**: Babel preset for compiling ES6+ syntax. No external dependencies required.
 - **@fastify/cors**: Enables CORS (Cross-Origin Resource Sharing) in Fastify. No external dependencies required.
 - **@fastify/jwt**: Provides JWT (JSON Web Token) authentication for Fastify. No external dependencies required.
-- **@fastify/type-provider-typebox**: Type provider for Fastify using TypeBox. No external dependencies required.
-- **@sinclair/typebox**: Schema validation and type definitions. No external dependencies required.
-- **ajv**: JSON schema validator. No external dependencies required.
-- **ajv-formats**: Adds support for additional formats to AJV. No external dependencies required.
 - **argon2**: Library for hashing passwords securely. Requires `build-essential` or equivalent for native compilation.
-- **argon2id**: Provides Argon2id hashing. Requires `build-essential` or equivalent for native compilation.
-- **axios**: HTTP client for making API requests. No external dependencies required.
-- **cors**: Middleware for enabling CORS in Express-like frameworks. No external dependencies required.
 - **dotenv**: Loads environment variables from a `.env` file. No external dependencies required.
-- **fast-json-stringify**: High-performance JSON serialization. No external dependencies required.
 - **fastify**: Web framework for building APIs. No external dependencies required.
-- **fastify-jwt**: JWT authentication plugin for Fastify. No external dependencies required.
 - **fastify-raw-body**: Provides raw body parsing for Fastify. No external dependencies required.
 - **fastify-type-provider-zod**: Type provider for Fastify using Zod. No external dependencies required.
-- **http**: Node.js HTTP module. No external dependencies required.
 - **jsonwebtoken**: Library for creating and verifying JWTs. No external dependencies required.
-- **lolcatjs**: Adds colorful output to the terminal. No external dependencies required.
 - **mysql2**: MySQL client for Node.js. Requires a MySQL server.
 - **nodemailer**: Library for sending emails. Requires an SMTP server.
 - **raw-body**: Parses HTTP request bodies. No external dependencies required.
-- **reflect-metadata**: Adds metadata reflection capabilities. No external dependencies required.
 - **sequelize**: ORM for SQL databases. Requires a compatible SQL database (e.g., MySQL, PostgreSQL).
-- **sequelize-typescript**: Adds TypeScript support to Sequelize. Requires Sequelize.
 - **stripe**: Stripe API client for payment processing. Requires a Stripe account.
-- **uuid**: Generates unique identifiers. No external dependencies required.
 - **zod**: TypeScript-first schema validation library. No external dependencies required.
-- **zod-to-json-schema**: Converts Zod schemas to JSON schemas. No external dependencies required.
 - **zod-validation-error**: Enhances Zod validation error handling. No external dependencies required.
 
 ### DevDependencies

@@ -133,7 +133,7 @@ export const getItemByStatus = async (
     reply: FastifyReply,
 ) => {
     try {
-        const status = stringToInt(request.params.status, "Item");
+        const status: number = stringToInt(request.params.status, "Item");
 
         let is_visitor = false;
         try {
@@ -169,7 +169,7 @@ export const getItemByStatus = async (
             return new RecyclotronApiErr("Item", "NotFound", 404);
 
         reply.code(200).send({
-            data: items.map((item) => item.dataValues),
+            data: { items: items.map((item) => item.dataValues) },
             message: "Items fetched by status successfully",
         });
     } catch (error) {

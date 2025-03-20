@@ -233,13 +233,13 @@ export async function seedDatabase(sequelize: Sequelize) {
     await SItem.bulkCreate([
         {
             name: "t-shirt supreme",
-            status: 0,
+            status: 1,
             material: "coton",
             image: "image.com",
         },
         {
             name: "câble hdmi",
-            status: 0,
+            status: 1,
             material: "metal",
             image: "image.com",
         },

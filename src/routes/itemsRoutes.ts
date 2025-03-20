@@ -72,7 +72,7 @@ export default async (fastify: FastifyInstance) => {
                 response: {
                     200: {
                         zodSchema: z.object({
-                            data: m.ZItemAndCategoriesOutput,
+                            data: z.array(m.ZItemAndCategoriesOutput),
                             message: z.string(),
                         }),
                     },

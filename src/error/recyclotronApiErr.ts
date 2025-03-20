@@ -1,6 +1,5 @@
 import {
     BaseError,
-    Sequelize,
     ValidationError as SequelizeValidationError,
     UniqueConstraintError as SequelizeUniqueConstraintError,
 } from "sequelize";
@@ -99,7 +98,7 @@ export class RecyclotronApiErr extends Error {
         statusCode?: number,
         detailMessage?: string,
     ) {
-        let functionLine = getFunctionLine(Error());
+        const functionLine = getFunctionLine(Error());
         if (detailMessage) {
             super(
                 subject +

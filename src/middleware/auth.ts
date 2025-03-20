@@ -1,6 +1,5 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyRequest } from "fastify";
 import "@fastify/jwt";
-import SRole from "../models/Role.js";
 import SRegistration from "../models/Registration.js";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 import SUser from "../models/User.js";
@@ -12,7 +11,7 @@ interface MyCustomPayload {
 }
 
 export function authorize(allowedRoles: string[]) {
-    return async (request: FastifyRequest, reply: FastifyReply) => {
+    return async (request: FastifyRequest) => {
         try {
             await request.jwtVerify();
             const decodedToken = await request.jwtDecode<MyCustomPayload>();
@@ -47,10 +46,7 @@ export async function isSelfOrAdminOr(
     roles: string[] | null = null,
     entity: string = "user",
 ) {
-    return async (
-        request: FastifyRequest<{ Params: { id: string } }>,
-        reply: FastifyReply,
-    ) => {
+    return async (request: FastifyRequest<{ Params: { id: string } }>) => {
         await request.jwtVerify();
 
         const decodedToken = await request.jwtDecode<MyCustomPayload>();

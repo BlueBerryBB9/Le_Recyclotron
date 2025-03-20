@@ -1,8 +1,6 @@
 import SUser from "./User.js";
 import SRole from "./Role.js";
 import SUserRole from "./UserRoles.js";
-import SEvent from "./Event.js";
-import SRegistration from "./Registration.js";
 
 // Define associations
 const setupAssociations = () => {

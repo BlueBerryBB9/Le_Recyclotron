@@ -9,8 +9,9 @@ import SItem from "../models/Item.js";
 import SItemCategory from "../models/ItemCategories.js";
 import SPayment from "../models/Payment.js";
 import SRegistration from "../models/Registration.js";
+import { Sequelize } from "sequelize";
 
-export async function seedDatabase(sequelize: any) {
+export async function seedDatabase(sequelize: Sequelize) {
     // const userCount = await SUser.count();
     // const userRoleCount = await UserRole.count();
     // const roleCount = await SRole.count();

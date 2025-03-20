@@ -1,7 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import User from "./User.js";
-import Role from "./Role.js";
 
 class SUserRole extends Model {}
 

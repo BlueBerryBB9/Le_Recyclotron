@@ -1,5 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { z } from "zod";
+import { FastifyRequest, FastifyReply } from "fastify";
 import stripe from "../config/stripe.js";
 import SPayment from "../models/Payment.js";
 import { request } from "http";
@@ -45,12 +44,10 @@ export class PaymentController {
                 id_stripe_payment: subscription.id,
             });
 
-            return reply
-                .status(200)
-                .send({
-                    subscriptionId: subscription.id,
-                    message: "Abonnement créé",
-                });
+            return reply.status(200).send({
+                subscriptionId: subscription.id,
+                message: "Abonnement créé",
+            });
         } catch (error) {
             if (error instanceof BaseError) {
                 throw new SequelizeApiErr("Payment", error);
@@ -84,12 +81,10 @@ export class PaymentController {
                 id_user: userId,
                 id_stripe_payment: paymentIntent.id,
             });
-            return reply
-                .status(200)
-                .send({
-                    clientSecret: paymentIntent.client_secret,
-                    message: "Don créé",
-                });
+            return reply.status(200).send({
+                clientSecret: paymentIntent.client_secret,
+                message: "Don créé",
+            });
         } catch (error) {
             if (error instanceof BaseError) {
                 throw new SequelizeApiErr("Payment", error);
@@ -132,7 +127,6 @@ export class PaymentController {
     ) {
         try {
             const { subscriptionId } = request.params;
-
 
             await SPayment.update(
                 { status: "cancelled" },

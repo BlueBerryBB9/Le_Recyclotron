@@ -20,7 +20,7 @@ export function stringToInt(
         | "Mail"
         | "RegistrationInEvent",
 ): number {
-    let j = parseInt(i);
+    const j = parseInt(i);
     if (Number.isNaN(j))
         throw new RecyclotronApiErr(error_subject, "InvalidInput", 400);
     return j;

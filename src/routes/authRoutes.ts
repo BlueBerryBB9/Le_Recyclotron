@@ -2,7 +2,7 @@ import { authorize, isSelfOrAdminOr } from "../middleware/auth.js";
 import { ZUserWithRole } from "../models/User.js";
 import * as authController from "../controllers/authController.js";
 import { ZCreateUser } from "../models/User.js";
-import { FastifyInstance, RawServerDefault, RouteHandlerMethod } from "fastify";
+import { FastifyInstance } from "fastify";
 import * as z from "zod";
 
 export default async function authRoutes(fastify: FastifyInstance) {

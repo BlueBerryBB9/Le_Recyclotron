@@ -1,7 +1,6 @@
 // src/models/Payment.ts
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database.js";
-import SUser from "../models/User.js";
 import { z } from "zod";
 
 class SPayment extends Model {}

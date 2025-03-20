@@ -59,6 +59,7 @@ export const login = async (
 
         return reply.status(200).send({
             message: "Check your email for the OTP code",
+            id: user.getDataValue("id"),
         });
     } catch (error) {
         console.log(error);

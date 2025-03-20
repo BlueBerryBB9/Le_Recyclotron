@@ -19,6 +19,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
                     200: {
                         zodSchema: z.object({
                             message: z.string(),
+                            id: z.number(),
                         }),
                     },
                 },

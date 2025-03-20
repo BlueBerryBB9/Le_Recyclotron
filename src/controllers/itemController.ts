@@ -33,17 +33,41 @@ export const createItem = async (
 };
 
 // Get all items
-export const getAllItems = async (_: FastifyRequest, reply: FastifyReply) => {
+export const getAllItems = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+) => {
     try {
-        const items = await i.default.findAll({
-            include: [
-                {
-                    model: SCategory,
-                    as: "categories",
-                    through: { attributes: [] },
-                },
-            ],
-        });
+        let is_visitor = false;
+        try {
+            await request.jwtVerify();
+        } catch (_) {
+            is_visitor = true;
+        }
+
+        let items;
+        if (!is_visitor) {
+            items = await i.default.findAll({
+                include: [
+                    {
+                        model: SCategory,
+                        as: "categories",
+                        through: { attributes: [] },
+                    },
+                ],
+            });
+        } else {
+            items = await i.default.findAll({
+                where: { status: 0 },
+                include: [
+                    {
+                        model: SCategory,
+                        as: "categories",
+                        through: { attributes: [] },
+                    },
+                ],
+            });
+        }
         console.log(items);
         if (!items) return new RecyclotronApiErr("Item", "NotFound", 404);
 
@@ -80,7 +104,7 @@ export const getItemById = async (
             (is_visitor ||
                 (request.user.roles.includes("client") &&
                     !request.user.roles.includes("admin"))) &&
-            item.getDataValue("status") !== 1
+            item.getDataValue("status") !== 0
         ) {
             throw new RecyclotronApiErr(
                 "Auth",
@@ -121,7 +145,7 @@ export const getItemByStatus = async (
             (is_visitor ||
                 (request.user.roles.includes("client") &&
                     !request.user.roles.includes("admin"))) &&
-            status !== 1
+            status !== 0
         ) {
             throw new RecyclotronApiErr(
                 "Auth",

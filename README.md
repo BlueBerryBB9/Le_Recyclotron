@@ -9,8 +9,13 @@
 
 # POUR LANCER
 
-- Prerequisites :
-  - 
+- avoir une db mysql
+- avoir le .env
+- modifier les credentials du .env de la DB pour être synchro avec votre DB
+- npm i
+- npm run exe
+- si ça fonctionne :
+  - modifier le .env de NODE_ENV de "dev" à "prod" pour éviter de reset la db à chaque fois
 
 # OPTIONAL TASKS
 

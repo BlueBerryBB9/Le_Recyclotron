@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import SCategory, * as i from "../models/Category.js";
+import SCategory, * as c from "../models/Category.js";
 import {
     RecyclotronApiErr,
     SequelizeApiErr,
@@ -7,15 +7,16 @@ import {
 import { BaseError } from "sequelize";
 import { stringToInt } from "../service/stringToInt.js";
 import { getCategories } from "../service/categoryService.js";
+import SItem from "../models/Item.js";
 
 export const createCategory = async (
-    request: FastifyRequest<{ Body: i.InputCategory }>,
+    request: FastifyRequest<{ Body: c.InputCategory }>,
     reply: FastifyReply,
 ) => {
     try {
-        const newCategory = await i.default.create(request.body);
+        const newCategory = await c.default.create(request.body);
         reply.code(201).send({
-            data: newCategory.dataValues,
+            data: newCategory.toJSON(),
             message: "New Category created successfully",
         });
     } catch (error) {
@@ -26,7 +27,7 @@ export const createCategory = async (
 };
 
 export const createChildCategory = async (
-    request: FastifyRequest<{ Params: { id: string }; Body: i.InputCategory }>,
+    request: FastifyRequest<{ Params: { id: string }; Body: c.InputCategory }>,
     reply: FastifyReply,
 ) => {
     try {
@@ -41,12 +42,12 @@ export const createChildCategory = async (
             throw new RecyclotronApiErr("Category", "NotFound", 404);
 
         const name = request.body.name;
-        const newCategory = await i.default.create({
+        const newCategory = await c.default.create({
             name,
             parent_category_id,
         });
         reply.code(201).send({
-            data: newCategory.dataValues,
+            data: newCategory.toJSON(),
             message: "New Child Category created successfully",
         });
     } catch (error) {
@@ -64,7 +65,7 @@ export const getAllCategories = async (
     reply: FastifyReply,
 ) => {
     try {
-        const categories = await i.default.findAll({
+        const categories = await c.default.findAll({
             where: { parentCategoryId: null },
         });
 
@@ -104,17 +105,17 @@ export const getCategoryById = async (
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Category");
-        const category = await i.default.findByPk(id);
+        const category = await c.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
-        const updatedCategories = {
-            ...category,
+        const allCategories = {
+            ...category.toJSON(),
             children: await getCategories(id),
         };
 
         reply.code(200).send({
-            data: updatedCategories,
+            data: allCategories,
             message: "category fetched by id successfully",
         });
     } catch (error) {
@@ -130,13 +131,13 @@ export const getCategoryById = async (
 export const updateCategoryById = async (
     request: FastifyRequest<{
         Params: { id: string };
-        Body: i.PartialCategory;
+        Body: c.PartialCategory;
     }>,
     reply: FastifyReply,
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Category");
-        const category = await i.default.findByPk(id);
+        const category = await c.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
@@ -166,7 +167,7 @@ export const deleteCategoryById = async (
 ) => {
     try {
         const id: number = stringToInt(request.params.id, "Category");
-        const category = await i.default.findByPk(id);
+        const category = await c.default.findByPk(id);
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
@@ -180,5 +181,66 @@ export const deleteCategoryById = async (
         } else if (error instanceof BaseError) {
             throw new SequelizeApiErr("Category", error);
         } else throw new RecyclotronApiErr("Category", "DeletionFailed");
+    }
+};
+
+// Get items of one category
+export const getItemsByCategoryId = async (
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+) => {
+    try {
+        const id: number = stringToInt(request.params.id, "Category");
+        const category = await c.default.findByPk(id);
+        if (!category) throw new RecyclotronApiErr("Category", "NotFound", 404);
+
+        let is_visitor = false;
+        try {
+            await request.jwtVerify();
+        } catch (_) {
+            is_visitor = true;
+        }
+        let items;
+        if (
+            is_visitor ||
+            (request.user.roles.includes("client") &&
+                !request.user.roles.includes("admin"))
+        ) {
+            items = await SItem.findAll({
+                where: { status: true },
+                include: [
+                    {
+                        model: SCategory,
+                        as: "categories",
+                        where: { id },
+                        through: { attributes: [] },
+                        attributes: ["id", "name", "parentCategoryId"],
+                    },
+                ],
+            });
+        } else {
+            items = await SItem.findAll({
+                include: [
+                    {
+                        model: SCategory,
+                        as: "categories",
+                        where: { id },
+                        through: { attributes: [] },
+                        attributes: ["id", "name", "parentCategoryId"],
+                    },
+                ],
+            });
+        }
+
+        reply.code(200).send({
+            data: items.map((item) => item.toJSON()),
+            message: "Items fetched successfully for the category",
+        });
+    } catch (error) {
+        if (error instanceof RecyclotronApiErr) {
+            throw error;
+        } else if (error instanceof BaseError) {
+            throw new SequelizeApiErr("Category", error);
+        } else throw new RecyclotronApiErr("Category", "FetchFailed");
     }
 };

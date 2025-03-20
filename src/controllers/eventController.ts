@@ -26,7 +26,7 @@ export const createEvent = async (
         const event = await e.default.create(req.body);
 
         return rep.status(201).send({
-            data: event.dataValues,
+            data: event.toJSON(),
             message: "Event Created",
         });
     } catch (error) {
@@ -43,9 +43,7 @@ export const getAllEvents = async (req: FastifyRequest, rep: FastifyReply) => {
             throw new RecyclotronApiErr("Event", "NotFound", 404);
 
         return rep.status(200).send({
-            data: events.map((event) => {
-                return event.dataValues;
-            }),
+            data: events.map((event) => event.toJSON()),
             message: "Fetched all events",
         });
     } catch (error) {
@@ -67,7 +65,7 @@ export const getEvent = async (
         if (!event) return new RecyclotronApiErr("Event", "NotFound", 404);
 
         return rep.status(200).send({
-            data: event.dataValues,
+            data: event.toJSON(),
             message: "Event fetched successfully",
         });
     } catch (error) {
@@ -101,7 +99,7 @@ export const updateEvent = async (
 
         await event.update(data);
         return rep.status(200).send({
-            data: event.dataValues,
+            data: event.toJSON(),
             message: "Event updated successfully",
         });
     } catch (error) {
@@ -152,7 +150,7 @@ export const getAllEventRegistrations = async (
             throw new RecyclotronApiErr("RegistrationInEvent", "NotFound", 404);
 
         return response.status(200).send({
-            data: { ...event?.dataValues, registrations: registrations },
+            data: { ...event?.toJSON(), registrations: registrations },
             message: "Fetched all event registrations.",
         });
     } catch (error) {

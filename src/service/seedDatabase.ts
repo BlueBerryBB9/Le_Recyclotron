@@ -251,7 +251,19 @@ export async function seedDatabase(sequelize: Sequelize) {
             itemId: 1,
         },
         {
+            categoryId: 1,
+            itemId: 1,
+        },
+        {
+            categoryId: 5,
+            itemId: 1,
+        },
+        {
             categoryId: 4,
+            itemId: 2,
+        },
+        {
+            categoryId: 3,
             itemId: 2,
         },
     ]);

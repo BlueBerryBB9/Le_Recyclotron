@@ -60,7 +60,7 @@ export const createUser = async (
         if (!userWithRoles) throw new RecyclotronApiErr("User", "NotFound");
 
         return reply.status(201).send({
-            data: userWithRoles.dataValues,
+            data: userWithRoles.toJSON(),
             message: "User created successfully",
         });
     } catch (error) {
@@ -90,7 +90,7 @@ export const getAllUsers = async (_: FastifyRequest, reply: FastifyReply) => {
         ).filter((user) => user !== null);
 
         return reply.status(200).send({
-            data: await Promise.all(users.map(async (user) => user.dataValues)),
+            data: await Promise.all(users.map(async (user) => user.toJSON())),
             message: "Users fetched successfully",
         });
     } catch (error) {
@@ -115,7 +115,7 @@ export const getUserById = async (
         if (!user) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         return reply.status(200).send({
-            data: user.dataValues,
+            data: user.toJSON(),
             message: "User fetched successfully",
         });
     } catch (error) {
@@ -165,7 +165,7 @@ export const updateUser = async (
         if (!updatedUser) throw new RecyclotronApiErr("User", "NotFound", 404);
 
         return reply.status(200).send({
-            data: updatedUser.dataValues,
+            data: updatedUser.toJSON(),
             message: `User No ${request.params.id} updated successfully`,
         });
     } catch (error) {
@@ -241,7 +241,7 @@ export const addUserRoles = async (
         );
 
         return reply.status(200).send({
-            data: updatedUser?.dataValues,
+            data: updatedUser?.toJSON(),
             message: "Roles added successfully",
         });
     } catch (error) {
@@ -283,7 +283,7 @@ export const removeUserRoles = async (
         );
 
         return reply.status(200).send({
-            data: updatedUser?.dataValues,
+            data: updatedUser?.toJSON(),
             message: "Role removed successfully",
         });
     } catch (error) {
@@ -316,7 +316,7 @@ export const getRegistrationsByUserId = async (
 
         return rep.status(200).send({
             data: registration.map((reg) => {
-                return reg.dataValues;
+                return reg.toJSON();
             }),
             message: `Registrations fetched successfully for user No ${req.params.id}`,
         });
@@ -344,7 +344,7 @@ export const getPaymentsByUserId = async (
 
         return rep.status(200).send({
             data: payments.map((pay) => {
-                return pay.dataValues;
+                return pay.toJSON();
             }),
             message: `Payments fetched successfully for user No ${req.params.id}`,
         });

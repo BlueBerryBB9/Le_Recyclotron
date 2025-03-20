@@ -58,7 +58,6 @@ export default async (fastify: FastifyInstance) => {
                     },
                 },
             },
-            onRequest: [authorize(["employee"])],
         },
         ctrl.getItemById,
     );

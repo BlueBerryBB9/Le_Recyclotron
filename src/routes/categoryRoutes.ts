@@ -1,3 +1,4 @@
+import { ZItemListOutput } from './../models/Item.js';
 import { FastifyInstance } from "fastify";
 import * as ctrl from "../controllers/categoryController.js";
 import * as m from "../models/Category.js";
@@ -72,7 +73,7 @@ export default async (fastify: FastifyInstance) => {
                 response: {
                     200: {
                         zodSchema: z.object({
-                            data: m.ZCategory,
+                            data: m.ZCategoryWithChildren,
                             message: z.string(),
                         }),
                     },
@@ -80,6 +81,25 @@ export default async (fastify: FastifyInstance) => {
             },
         },
         ctrl.getCategoryById,
+    );
+
+    // Get items of one category
+    fastify.get(
+        "/categories/:id/items",
+        {
+            schema: {
+                params: z.object({ id: z.string() }),
+                response: {
+                    200: {
+                        zodSchema: z.object({
+                            data: ZItemListOutput,
+                            message: z.string(),
+                        }),
+                    },
+                },
+            },
+        },
+        ctrl.getItemsByCategoryId,
     );
 
     // Update Category

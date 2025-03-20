@@ -162,7 +162,7 @@ export const getCurrentUser = async (
 
         return reply.status(200).send({
             message: "Authentication successful",
-            user: user.dataValues,
+            data: user.toJSON(),
         });
     } catch (error) {
         if (error instanceof BaseError) {
@@ -194,7 +194,7 @@ if (env.NODE_ENV === "dev") {
 
 //* revokeAllTokens
 export const revokeAllTokens = async (
-    request: FastifyRequest,
+    _: FastifyRequest,
     reply: FastifyReply,
 ) => {
     try {

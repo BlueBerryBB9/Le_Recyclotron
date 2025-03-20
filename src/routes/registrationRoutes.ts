@@ -76,7 +76,7 @@ export default async (fastify: f.FastifyInstance) => {
                     },
                 },
             },
-            onRequest: [await isSelfOrAdminOr([], "registration")],
+            onRequest: [await isSelfOrAdminOr([], "registration")], 
         },
         rc.deleteRegistration,
     );

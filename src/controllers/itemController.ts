@@ -22,7 +22,7 @@ export const createItem = async (
         const newItem = await i.default.create(request.body);
 
         reply.code(201).send({
-            data: newItem.dataValues,
+            data: newItem.toJSON(),
             message: "newItem created successfully",
         });
     } catch (error) {
@@ -114,7 +114,7 @@ export const getItemById = async (
         }
 
         reply.code(200).send({
-            data: item.dataValues,
+            data: item.toJSON(),
             message: "Item fetched by id successfully",
         });
     } catch (error) {
@@ -198,7 +198,7 @@ export const updateItemById = async (
         const updatedItem = await getItemWithCategories(id);
 
         reply.code(200).send({
-            data: updatedItem?.dataValues,
+            data: updatedItem?.toJSON(),
             message: "Item updated successfully",
         });
     } catch (error) {
@@ -246,7 +246,7 @@ export const addCategoryToItem = async (
         if (!category)
             return new RecyclotronApiErr("Category", "NotFound", 404);
 
-        // Check if all parent categories are linked to the item
+        // Automatically add the item to all parent categories if not already linked
         let currentCategory = category;
         while (currentCategory.getDataValue("parentCategoryId")) {
             const parentCategoryId =
@@ -260,12 +260,10 @@ export const addCategoryToItem = async (
                     },
                 });
                 if (!parentCategoryLink) {
-                    return new RecyclotronApiErr(
-                        "Category",
-                        "CreationFailed",
-                        400,
-                        "Parent category is not linked to the item",
-                    );
+                    await SItemCategory.create({
+                        itemId: itemId,
+                        categoryId: parentCategoryId,
+                    });
                 }
                 currentCategory = parentCategory;
             } else {

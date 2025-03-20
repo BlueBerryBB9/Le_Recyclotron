@@ -65,7 +65,7 @@ export default async (fastify: FastifyInstance) => {
 
     // Items by status
     fastify.get<{ Params: { status: string } }>(
-        "/item/status/:status/",
+        "/item/status/:status",
         {
             schema: {
                 params: z.object({ status: z.string() }),

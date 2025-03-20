@@ -4,7 +4,7 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-dist/*
+dist/
 .env.local
 
 # Swap the comments on the following lines if you wish to use zero-installs

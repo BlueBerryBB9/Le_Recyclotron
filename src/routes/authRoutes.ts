@@ -36,7 +36,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
                 response: {
                     201: {
                         zodSchema: z.object({
-                            data: z.object({ id: z.string() }),
                             message: z.string(),
                         }),
                     },

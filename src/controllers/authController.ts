@@ -100,9 +100,6 @@ export const register = async (
         });
 
         return reply.status(201).send({
-            data: {
-                id: newUser.getDataValue("id"),
-            },
             message: "User registered successfully. Please log in.",
         });
     } catch (error) {

@@ -1,25 +1,37 @@
-# Use the official Node.js image as the base image
-FROM node:22
+# Stage 1: Build
+FROM node:22 AS builder
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json to the working directory
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
-RUN apt-get update && apt-get install -y build-essential gcc g++ make mysql-server
 RUN npm install
 
-# Copy the rest of the application code to the working directory
+# Copy the rest of the application code
 COPY . .
 
-# Configure MySQL
-RUN service mysql start && \
-    mysql -e "CREATE DATABASE le_recyclotron;"
+# Build the application (if applicable, e.g., for TypeScript or bundling)
+RUN npm run build
 
-# Expose the ports for the app and MySQL
-EXPOSE 3000 3306
+# Stage 2: Production
+FROM node:22-alpine
 
-# Launch both MySQL and the Node.js app
-CMD service mysql start && npm start
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy only the necessary files from the build stage
+COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/dist ./dist
+# COPY --from=builder /usr/src/app/.env.local ./.env.local IN THE DOCKER COMPOSE
+
+# Install only production dependencies
+RUN npm install --only=production
+
+# Expose the application port
+EXPOSE 3000
+
+# Command to run the application
+CMD ["node", "dist/index.js"]

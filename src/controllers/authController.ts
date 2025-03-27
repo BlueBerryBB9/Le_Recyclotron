@@ -127,13 +127,11 @@ export const verifyOTP = async (
         if (!user) throw new RecyclotronApiErr("Auth", "NotFound", 404);
 
         return reply.status(200).send({
-            data: {
-                jwt: generateToken(
-                    stringToInt(request.body.id, "Auth"),
-                    user.getDataValue("email"),
-                    await user.getRoleString(),
-                ),
-            },
+            jwt: generateToken(
+                stringToInt(request.body.id, "Auth"),
+                user.getDataValue("email"),
+                await user.getRoleString(),
+            ),
             message: "Authentication successful",
         });
     } catch (error) {
@@ -221,7 +219,7 @@ export const revokeUserTokens = async (
             message: "User token was revoked successfully",
         });
     } catch (error) {
-        throw new RecyclotronApiErr("Auth", "OperationFailed");
+        throw new RecyclotronApiErr("Auth", "OperationFailed", 401);
     }
 };
 

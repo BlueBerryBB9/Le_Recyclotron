@@ -197,7 +197,7 @@ export const getItemsByCategoryId = async (
         let is_visitor = false;
         try {
             await request.jwtVerify();
-        } catch (_) {
+        } catch {
             is_visitor = true;
         }
         let items;

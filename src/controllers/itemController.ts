@@ -41,7 +41,7 @@ export const getAllItems = async (
         let is_visitor = false;
         try {
             await request.jwtVerify();
-        } catch (_) {
+        } catch {
             is_visitor = true;
         }
 
@@ -96,7 +96,7 @@ export const getItemById = async (
         let is_visitor = false;
         try {
             await request.jwtVerify();
-        } catch (_) {
+        } catch {
             is_visitor = true;
         }
         if (
@@ -137,7 +137,7 @@ export const getItemByStatus = async (
         let is_visitor = false;
         try {
             await request.jwtVerify();
-        } catch (_) {
+        } catch {
             is_visitor = true;
         }
         if (

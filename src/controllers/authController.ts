@@ -197,7 +197,7 @@ export const revokeAllTokens = async (
         return reply.send({
             message: "All Tokens were revoked",
         });
-    } catch (error) {
+    } catch {
         throw new RecyclotronApiErr("Auth", "OperationFailed");
     }
 };
@@ -218,7 +218,7 @@ export const revokeUserTokens = async (
         return reply.send({
             message: "User token was revoked successfully",
         });
-    } catch (error) {
+    } catch {
         throw new RecyclotronApiErr("Auth", "OperationFailed", 401);
     }
 };

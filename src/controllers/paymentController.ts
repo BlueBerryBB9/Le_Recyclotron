@@ -115,7 +115,7 @@ export class PaymentController {
             return reply
                 .status(200)
                 .send({ message: "Moyen de paiement mis à jour" });
-        } catch (error) {
+        } catch {
             throw new RecyclotronApiErr("Payment", "CreationFailed");
         }
     }
@@ -134,7 +134,7 @@ export class PaymentController {
             );
 
             return reply.status(200).send({ message: "Abonnement résilié" });
-        } catch (error) {
+        } catch {
             return reply.status(400).send({
                 error: "Erreur lors de la résiliation de l'abonnement",
             });
@@ -169,7 +169,7 @@ export class PaymentController {
             }
 
             return reply.send({ received: true });
-        } catch (error) {
+        } catch {
             return reply.status(400).send({ error: "Erreur webhook" });
         }
     }

@@ -70,7 +70,7 @@ export const createUser = async (
     }
 };
 
-// Get All Users
+// Récupérer tous les utilisateurs
 export const getAllUsers = async (_: FastifyRequest, reply: FastifyReply) => {
     try {
         let users = await getAllUserWithRoles();

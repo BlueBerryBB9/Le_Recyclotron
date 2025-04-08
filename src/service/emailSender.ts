@@ -1,20 +1,12 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
 
 export class MailService {
-    private transporter: nodemailer.Transporter;
-
     constructor(
+        private apiKey: string,
         private email: string,
-        private password: string,
     ) {
-        this.transporter = nodemailer.createTransport({
-            service: "Gmail",
-            auth: {
-                user: this.email,
-                pass: this.password,
-            },
-        });
+        sgMail.setApiKey(this.apiKey);
     }
 
     /**
@@ -29,14 +21,16 @@ export class MailService {
         text: string,
     ): Promise<void> {
         try {
-            await this.transporter.sendMail({
-                from: this.email,
+            const msg = {
                 to,
+                from: this.email,
                 subject,
                 text,
-            });
+            };
+
+            await sgMail.send(msg);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new RecyclotronApiErr("Mail", "OperationFailed");
         }
     }
@@ -65,16 +59,16 @@ export class MailService {
 
 // Exemple d'utilisation
 // async function sendMail() {
-//     const email = "votre-email@gmail.com";
-//     const password = "votre-mot-de-passe"; // Utilisez un mot de passe applicatif si nécessaire
+//     const apiKey = "votre-sendgrid-api-key";
+//     const email = "votre-email@example.com";
 
-//     const mailService = new MailService(email, password);
+//     const mailService = new MailService(apiKey, email);
 
 //     try {
 //         await mailService.sendEmail(
 //             "destinataire@example.com",
 //             "Sujet de test",
-//             "Bonjour, ceci est un test !",
+//             "Bonjour, ceci est un test avec SendGrid !",
 //         );
 //         console.log("Email envoyé avec succès !");
 //     } catch (error) {

@@ -18,7 +18,7 @@ import * as argon from "argon2";
 import * as hashConfig from "../config/hash.js";
 import { MailService } from "../service/emailSender.js";
 import SResetPassword from "../models/ResetPassword.js";
-import { EMAIL_PASSWORD, EMAIL_SENDER, FRONTEND_URL } from "../config/env.js";
+import { EMAIL_SENDER, FRONTEND_URL, SENDGRID_API_KEY } from "../config/env.js";
 import * as r from "../models/Registration.js";
 import SPayment from "../models/Payment.js";
 import { getUserWithRoles } from "../service/userService.js";
@@ -382,10 +382,10 @@ export const forgotPassword: RouteHandler<{
 
         // Envoyer l'email avec le code
         const resetLink = `${FRONTEND_URL}/reset-password?code=${tempCode}&email=${email}`;
-        if (!EMAIL_SENDER || !EMAIL_PASSWORD) {
+        if (!EMAIL_SENDER || !SENDGRID_API_KEY) {
             throw new RecyclotronApiErr("User", "EnvKeyMissing", 500);
         }
-        const mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
+        const mailService = new MailService(SENDGRID_API_KEY, EMAIL_SENDER);
         await mailService.sendPasswordResetEmail(email, resetLink);
 
         return reply.status(200).send({

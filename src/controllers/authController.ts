@@ -13,7 +13,7 @@ import {
     SequelizeApiErr,
 } from "../error/recyclotronApiErr.js";
 import SRole from "../models/Role.js";
-import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
+import { SENDGRID_API_KEY, EMAIL_SENDER } from "../config/env.js";
 import { BaseError } from "sequelize";
 import { getUserWithRoles } from "../service/userService.js";
 
@@ -47,9 +47,9 @@ export const login = async (
         ).toString(); // Generate a 6-digit OTP
         await createOTP(user.getDataValue("id"), otpPassword);
 
-        if (!EMAIL_SENDER || !EMAIL_PASSWORD) return;
+        if (!EMAIL_SENDER || !SENDGRID_API_KEY) return;
 
-        const mailService = new MailService(EMAIL_SENDER, EMAIL_PASSWORD);
+        const mailService = new MailService(SENDGRID_API_KEY, SENDGRID_API_KEY);
 
         await mailService.sendEmail(
             user.getDataValue("email"),

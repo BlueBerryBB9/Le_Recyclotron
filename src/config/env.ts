@@ -17,6 +17,9 @@ function getEnvVar(key: string): string {
     return value;
 }
 
+// PROD BOOLEAN
+export const NODE_ENV = getEnvVar("NODE_ENV");
+
 // DB
 export const DB_HOST = getEnvVar("DB_HOST");
 export const DB_PORT = getEnvVar("DB_PORT");
@@ -42,9 +45,7 @@ export const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY;
 // EMAIL
 export const EMAIL_SENDER = getEnvVar("EMAIL_SENDER");
 export const EMAIL_PASSWORD = getEnvVar("EMAIL_PASSWORD");
+export const SENDGRID_API_KEY = getEnvVar("SENDGRID_API_KEY");
 
 // URLS
-export const FRONTEND_URL = getEnvVar("FRONTEND_URL");
-
-// PROD BOOLEAN
-export const NODE_ENV = getEnvVar("NODE_ENV");
+export const FRONTEND_URL = getEnvVar(NODE_ENV === "dev" ? "FRONTEND_URL_DEV" : "FRONTEND_URL_PROD");

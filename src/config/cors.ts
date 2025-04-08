@@ -1,8 +1,16 @@
-export const corsConfig = {
-    origin: true, // Allow all origins in development
-    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+import { FRONTEND_URL } from "./env.js";
+
+export const corsConfigDev = {
+    origin: true,
+    allowedHeaders: ["Content-Type"],
     credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-  };
+    optionsSuccessStatus: 204,
+};
+
+export const corsConfigProd = {
+    origin: `${FRONTEND_URL}`,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true,
+    optionsSuccessStatus: 204,
+};

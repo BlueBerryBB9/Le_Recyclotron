@@ -16,7 +16,7 @@ import cors from "@fastify/cors";
 import { NODE_ENV, FRONTEND_URL, JWT_SECRET } from "./config/env.js";
 import sequelize from "./config/database.js";
 import setupAssociations from "./models/UserRolesAssociations.js";
-import { corsConfig } from "./config/cors.js";
+import { corsConfigDev, corsConfigProd } from "./config/cors.js";
 import authRoutes from "./routes/authRoutes.js";
 import fastifyJwt from "@fastify/jwt";
 import { seedDatabase } from "./service/seedDatabase.js";
@@ -49,7 +49,7 @@ export const startServer = async () => {
         console.log("Connected to the database.");
         console.log("NODE_ENV :" + NODE_ENV);
         if (NODE_ENV === "dev") {
-            await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though. // add node env check
+            await sequelize.sync({ force: true }); // Synchronization with the db, to use carefully though.
             await seedDatabase(sequelize);
         } else {
             await sequelize.sync();
@@ -64,18 +64,8 @@ export const startServer = async () => {
         }
 
         // Register CORS
-        if (NODE_ENV === "dev") {
-            await app.register(cors, corsConfig);
-        } else {
-            await app.register(cors, {
-                origin: `${FRONTEND_URL}`, // Adjust the origin as needed
-                methods: ["GET", "POST", "PUT", "DELETE"],
-                allowedHeaders: ["Content-Type", "Authorization"],
-                credentials: true,
-                preflightContinue: false,
-                optionsSuccessStatus: 204,
-            });
-        }
+        if (NODE_ENV === "dev") await app.register(cors, corsConfigDev);
+        else await app.register(cors, corsConfigProd);
 
         app.register(categoryRoutes, { prefix: "/api" });
         app.register(eventRoutes, { prefix: "/api" });
@@ -95,7 +85,7 @@ export const startServer = async () => {
         });
         app.addHook(
             "onResponse",
-            async (request: FastifyRequest, reply: FastifyReply) => {
+            async (_: FastifyRequest, reply: FastifyReply) => {
                 console.log("Reply code :");
                 console.log(reply.statusCode);
             },
@@ -135,8 +125,14 @@ export const startServer = async () => {
             }
         });
 
-        await app.listen({ port: 3000, host: '0.0.0.0' });
-        console.log("Server is running on port 3000");
+        if (NODE_ENV === "dev") {
+            console.log("Server is live in dev mode.");
+            // await app.listen({ port: 3000 });
+            await app.listen({ port: 3000, host: "0.0.0.0" }); // TEMPORARY TO KEEP SEED DATABASING WHEN NEW CONTAINER WHILE BEING IN DEV
+        } else {
+            await app.listen({ port: 3000, host: "0.0.0.0" });
+            console.log("Server is running on port 3000");
+        }
     } catch (error) {
         app.log.error(error);
         process.exit(1);
@@ -187,7 +183,7 @@ export const startServerTest = async () => {
         }
         // Register CORS
         if (NODE_ENV === "dev") {
-            app.register(cors, corsConfig);
+            app.register(cors, corsConfigDev);
         } else {
             app.register(cors, {
                 origin: `${FRONTEND_URL}`, // Adjust the origin as needed

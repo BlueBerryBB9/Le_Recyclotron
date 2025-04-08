@@ -13,20 +13,20 @@ import { Sequelize } from "sequelize";
 import { NODE_ENV } from "../config/env.js";
 
 export async function seedDatabase(sequelize: Sequelize) {
-    const userCount = await SUser.count();
-    const userRoleCount = await UserRole.count();
-    const roleCount = await SRole.count();
-    const eventCount = await SEvent.count();
-    const registrationCount = await SRegistration.count();
-    const categoryCount = await SCategory.count();
-    const itemCount = await SItem.count();
-    const itemCategoriesCount = await SItemCategory.count();
-    const paymentCount = await SPayment.count();
+    // const userCount = await SUser.count();
+    // const userRoleCount = await UserRole.count();
+    // const roleCount = await SRole.count();
+    // const eventCount = await SEvent.count();
+    // const registrationCount = await SRegistration.count();
+    // const categoryCount = await SCategory.count();
+    // const itemCount = await SItem.count();
+    // const itemCategoriesCount = await SItemCategory.count();
+    // const paymentCount = await SPayment.count();
 
     // Allows to truncate without checking foreign key constraints
     // on joint table with foreign keys like userRole.
 
-    if (NODE_ENV !== "dev") {
+    if (NODE_ENV === "dev") {
         await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
 
         await SUser.destroy({ truncate: true });
@@ -40,8 +40,7 @@ export async function seedDatabase(sequelize: Sequelize) {
         await SPayment.destroy({ truncate: true });
 
         await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
-    }
-    if (userCount === 0) {
+
         await SUser.bulkCreate([
             {
                 first_name: "Martin",
@@ -75,9 +74,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default users inserted successfully!");
-    }
 
-    if (roleCount === 0) {
         await SRole.bulkCreate([
             {
                 id: 1,
@@ -105,9 +102,6 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default roles inserted successfully!");
-    }
-
-    if (userRoleCount === 0) {
         await UserRole.bulkCreate([
             // Martin Admin
             {
@@ -196,9 +190,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default userRoles inserted successfully!");
-    }
 
-    if (eventCount === 0) {
         await SEvent.bulkCreate([
             {
                 title: "title 1",
@@ -214,9 +206,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default events inserted successfully!");
-    }
 
-    if (registrationCount === 0) {
         await SRegistration.bulkCreate([
             {
                 seats: 2,
@@ -225,9 +215,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default registrations inserted successfully!");
-    }
 
-    if (categoryCount === 0) {
         await SCategory.bulkCreate([
             {
                 name: "Vêtements",
@@ -249,9 +237,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default categories inserted successfully!");
-    }
 
-    if (itemCount === 0) {
         await SItem.bulkCreate([
             {
                 name: "t-shirt supreme",
@@ -267,9 +253,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default items inserted successfully!");
-    }
 
-    if (itemCategoriesCount === 0) {
         await SItemCategory.bulkCreate([
             {
                 categoryId: 2,
@@ -293,9 +277,7 @@ export async function seedDatabase(sequelize: Sequelize) {
             },
         ]);
         console.log("Default item categories inserted successfully!");
-    }
 
-    if (paymentCount === 0) {
         await SPayment.bulkCreate([
             {
                 userId: 4,

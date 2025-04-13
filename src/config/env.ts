@@ -45,7 +45,8 @@ export const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY;
 // EMAIL
 export const EMAIL_SENDER = getEnvVar("EMAIL_SENDER");
 export const EMAIL_PASSWORD = getEnvVar("EMAIL_PASSWORD");
-export const SENDGRID_API_KEY = getEnvVar("SENDGRID_API_KEY");
+// export const MAILERSEND_SENDER_EMAIL = getEnvVar("MAILERSEND_SENDER_EMAIL");
+// export const MAILERSEND_API_KEY = getEnvVar("MAILERSEND_API_KEY");µ
 
 // URLS
 export const FRONTEND_URL = getEnvVar(NODE_ENV === "dev" ? "FRONTEND_URL_DEV" : "FRONTEND_URL_PROD");

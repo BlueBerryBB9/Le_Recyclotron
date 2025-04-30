@@ -1,66 +1,54 @@
-// import request from "supertest";
-// import { describe, expect, it, beforeAll, afterAll } from "@jest/globals";
-// import { startServerTest } from "../src/index"; // Adjust the path to your app file
-// import sequelize from "../src/config/database";
-// import SCategory, { ZCategory } from "../src/models/Category";
-// import Category from "../src/models/Category";
+import { SCategory } from '../src/models/Category'; // Adjust the path to your models
+import { createCategory } from '../src/controllers/categoryController'; // Adjust the path to your service or function
 
-// const app = await startServerTest();
+jest.mock('../src/models', () => ({
+    default: {
+        create: jest.fn(),
+    },
+}));
 
-// beforeAll(async () => {
-//     await sequelize.sync({ force: true });
-// });
+describe('Category Service Tests', () => {
+    describe('createCategory', () => {
+        it('should create a new category successfully', async () => {
+            const mockCategory = {
+                id: 1,
+                name: 'Recyclables',
+                description: 'Items that can be recycled',
+            };
 
-// afterAll(async () => {
-//     await sequelize.close();
-// });
+            (c.default.create as jest.Mock).mockResolvedValue(mockCategory);
 
-// describe("Category Routes", () => {
-//     let categoryId: number;
+            const result = await createCategory({
+                name: 'Recyclables',
+                description: 'Items that can be recycled',
+            });
 
-//     it("should create a new category", async () => {
-//         const response = await request(app)
-//             .post("/categories")
-//             .send({ name: "Electronics" });
+            expect(result).toEqual(mockCategory);
+            expect(c.default.create).toHaveBeenCalledWith({
+                name: 'Recyclables',
+                description: 'Items that can be recycled',
+            });
+        });
 
-//         expect(response.status).toBe(201);
-//         expect(response.body.name).toBe("Electronics");
-//         expect(ZCategory.parse(response.body)).toBeInstanceOf(Category);
-//         categoryId = response.body.id;
-//     });
+        it('should handle validation errors', async () => {
+            try {
+                await createCategory({}); // Passing invalid data
+            } catch (error) {
+                expect(error).toHaveProperty('message', 'Validation error');
+            }
+        });
 
-//     it("should get all categories", async () => {
-//         const response = await request(app).get("/categories");
+        it('should handle database errors', async () => {
+            (c.default.create as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-//         expect(response.status).toBe(200);
-//         expect(response.body.length).toBeGreaterThan(0);
-//     });
-
-//     it("should get a category by ID", async () => {
-//         const response = await request(app).get(`/categories/${categoryId}`);
-
-//         expect(response.status).toBe(200);
-//         expect(response.body.id).toBe(categoryId);
-//     });
-
-//     it("should update a category", async () => {
-//         const response = await request(app)
-//             .put(`/categories/${categoryId}`)
-//             .send({ name: "Updated Electronics" });
-
-//         expect(response.status).toBe(200);
-//         expect(response.body.name).toBe("Updated Electronics");
-//     });
-
-//     it("should delete a category", async () => {
-//         const response = await request(app).delete(`/categories/${categoryId}`);
-
-//         expect(response.status).toBe(204);
-//     });
-
-//     it("should return 404 for a non-existing category", async () => {
-//         const response = await request(app).get(`/categories/9999`);
-
-//         expect(response.status).toBe(404);
-//     });
-// });
+            try {
+                await createCategory({
+                    name: 'Recyclables',
+                    description: 'Items that can be recycled',
+                });
+            } catch (error) {
+                expect(error).toHaveProperty('message', 'Database error');
+            }
+        });
+    });
+});

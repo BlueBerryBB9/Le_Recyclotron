@@ -1,8 +1,9 @@
 import { FRONTEND_URL } from "./env.js";
 
 export const corsConfigDev = {
-    origin: true,
-    allowedHeaders: ["Content-Type"],
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["*"],
     credentials: true,
     optionsSuccessStatus: 204,
 };

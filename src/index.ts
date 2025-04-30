@@ -141,7 +141,7 @@ export const startServer = async () => {
 
 startServer();
 
-//! TEST (C'est des tests Noah, Alban dit que t'es con et que tu devrais réfléchir)
+//! TEST (C'est des tests Noah)
 
 export const startServerTest = async () => {
     const app = Fastify({

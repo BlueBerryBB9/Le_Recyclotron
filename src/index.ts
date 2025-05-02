@@ -13,13 +13,15 @@ import * as z from "zod";
 import { fromError } from "zod-validation-error";
 import { validatorCompiler, ZodTypeProvider } from "fastify-type-provider-zod";
 import cors from "@fastify/cors";
-import { NODE_ENV, FRONTEND_URL, JWT_SECRET } from "./config/env.js";
+import { NODE_ENV, FRONTEND_URL, JWT_SECRET, PORT } from "./config/env.js";
 import sequelize from "./config/database.js";
 import setupAssociations from "./models/UserRolesAssociations.js";
 import { corsConfigDev, corsConfigProd } from "./config/cors.js";
 import authRoutes from "./routes/authRoutes.js";
 import fastifyJwt from "@fastify/jwt";
 import { seedDatabase } from "./service/seedDatabase.js";
+import { stringToInt } from "./service/stringToInt.js";
+import { env } from "process";
 
 export const startServer = async () => {
     const app = Fastify({
@@ -127,10 +129,16 @@ export const startServer = async () => {
 
         if (NODE_ENV === "dev") {
             console.log("Server is live in dev mode.");
-            // await app.listen({ port: 3000 });
-            await app.listen({ port: 3000, host: "0.0.0.0" }); // TEMPORARY TO KEEP SEED DATABASING WHEN NEW CONTAINER WHILE BEING IN DEV
+            // await app.listen({ port: port: stringToInt(PORT, "Env") });
+            await app.listen({
+                port: stringToInt(PORT, "Env"),
+                host: "0.0.0.0",
+            }); // TEMPORARY TO KEEP SEED DATABASING WHEN NEW CONTAINER WHILE BEING IN DEV
         } else {
-            await app.listen({ port: 3000, host: "0.0.0.0" });
+            await app.listen({
+                port: stringToInt(PORT, "Env"),
+                host: "0.0.0.0",
+            });
             console.log("Server is running on port 3000");
         }
     } catch (error) {

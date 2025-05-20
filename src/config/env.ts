@@ -49,4 +49,7 @@ export const EMAIL_PASSWORD = getEnvVar("EMAIL_PASSWORD");
 // export const MAILERSEND_API_KEY = getEnvVar("MAILERSEND_API_KEY");µ
 
 // URLS
-export const FRONTEND_URL = getEnvVar(NODE_ENV === "dev" ? "FRONTEND_URL_DEV" : "FRONTEND_URL_PROD");
+export const FRONTEND_URL = getEnvVar(
+    NODE_ENV === "dev" ? "FRONTEND_URL_DEV" : "FRONTEND_URL_PROD",
+);
+export const PORT = getEnvVar("PORT");

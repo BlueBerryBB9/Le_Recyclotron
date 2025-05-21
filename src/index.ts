@@ -69,13 +69,13 @@ export const startServer = async () => {
         if (NODE_ENV === "dev") await app.register(cors, corsConfigDev);
         else await app.register(cors, corsConfigProd);
 
-        app.register(categoryRoutes, { prefix: "/api" });
-        app.register(eventRoutes, { prefix: "/api" });
-        app.register(itemsRoutes, { prefix: "/api" });
-        app.register(paymentRoutes, { prefix: "/api" });
-        app.register(registrationRoutes, { prefix: "/api" });
-        app.register(userRoutes, { prefix: "/api" });
-        app.register(authRoutes, { prefix: "/api" });
+        app.register(categoryRoutes);
+        app.register(eventRoutes);
+        app.register(itemsRoutes);
+        app.register(paymentRoutes);
+        app.register(registrationRoutes);
+        app.register(userRoutes);
+        app.register(authRoutes);
 
         app.addHook("onRequest", async (request: FastifyRequest) => {
             try {

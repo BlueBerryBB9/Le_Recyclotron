@@ -1,19 +1,32 @@
 import nodemailer from "nodemailer";
 import { RecyclotronApiErr } from "../error/recyclotronApiErr.js";
-import { EMAIL_PASSWORD, EMAIL_SENDER } from "../config/env.js";
+import { EMAIL_PASSWORD, EMAIL_SENDER, NODE_ENV } from "../config/env.js";
 
 export class MailService {
     private transporter: nodemailer.Transporter;
 
-    constructor(
-    ) {
-        this.transporter = nodemailer.createTransport({
-            service: "Gmail",
-            auth: {
-                user: EMAIL_SENDER,
-                pass: EMAIL_PASSWORD,
-            },
-        });
+    constructor() {
+        if (NODE_ENV !== "prod") {
+            this.transporter = nodemailer.createTransport({
+                service: "Gmail",
+                auth: {
+                    user: EMAIL_SENDER,
+                    pass: EMAIL_PASSWORD,
+                },
+                tls: {
+                    rejectUnauthorized: false, // <-- ignorer les certificats non valides
+                },
+            });
+        } else {
+            // En production, besoin de la validation ssl
+            this.transporter = nodemailer.createTransport({
+                service: "Gmail",
+                auth: {
+                    user: EMAIL_SENDER,
+                    pass: EMAIL_PASSWORD,
+                },
+            });
+        }
     }
 
     /**
@@ -79,7 +92,6 @@ export class MailService {
 //         console.error("Erreur lors de l'envoi de l'email :", error);
 //     }
 // }
-
 
 // import "dotenv/config";
 // import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";

@@ -27,6 +27,7 @@
 
 
 // describe("event Routes", async () => {
+//     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 //     let eventId: number;
 
 //     it("should create a new event", async () => {
@@ -36,7 +37,7 @@
 //                 title: "Perils of Pauline",
 //                 description: "perils",
 //                 date: new Date("2025-12-12T10:00:00Z"),
-//             } as InputEvent);
+//             } as unknown as InputEvent);
 
 //         expect(response.status).toBe(201);
 //         expect(response.body).toStrictEqual({
@@ -47,40 +48,40 @@
 //         eventId = response.body.id;
 //     });
 
-//     // it("should get all categories", async () => {
-//     //     const response = await request(app).get("/event");
+//     it("should get all categories", async () => {
+//         const response = await request(app).get("/event");
 
-//     //     expect(response.status).toBe(200);
-//     //     expect(response.body.length).toBeGreaterThan(0);
-//     // });
+//         expect(response.status).toBe(200);
+//         expect(response.body.length).toBeGreaterThan(0);
+//     });
 
-//     // it("should get a event by ID", async () => {
-//     //     const response = await request(app).get(`/event/${eventId}`);
+//     it("should get a event by ID", async () => {
+//         const response = await request(app).get(`/event/${eventId}`);
 
-//     //     expect(response.status).toBe(200);
-//     //     expect(response.body.id).toBe(eventId);
-//     // });
+//         expect(response.status).toBe(200);
+//         expect(response.body.id).toBe(eventId);
+//     });
 
-//     // it("should update a event", async () => {
-//     //     const response = await request(app)
-//     //         .put(`/event/${eventId}`)
-//     //         .send({ name: "Updated Electronics" });
+//     it("should update a event", async () => {
+//         const response = await request(app)
+//             .put(`/event/${eventId}`)
+//             .send({ name: "Updated Electronics" });
 
-//     //     expect(response.status).toBe(200);
-//     //     expect(response.body.name).toBe("Updated Electronics");
-//     // });
+//         expect(response.status).toBe(200);
+//         expect(response.body.name).toBe("Updated Electronics");
+//     });
 
-//     // it("should delete a event", async () => {
-//     //     const response = await request(app).delete(`/event/${eventId}`);
+//     it("should delete a event", async () => {
+//         const response = await request(app).delete(`/event/${eventId}`);
 
-//     //     expect(response.status).toBe(204);
-//     // });
+//         expect(response.status).toBe(204);
+//     });
 
-//     // it("should return 404 for a non-existing event", async () => {
-//     //     const response = await request(app).get(`/event/9999`);
+//     it("should return 404 for a non-existing event", async () => {
+//         const response = await request(app).get(`/event/9999`);
 
-//     //     expect(response.status).toBe(404);
-//     // });
+//         expect(response.status).toBe(404);
+//     });
 //     app.close();
 // });
 

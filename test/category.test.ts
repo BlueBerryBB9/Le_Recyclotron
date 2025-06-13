@@ -1,66 +1,77 @@
-// import request from "supertest";
-// import { describe, expect, it, beforeAll, afterAll } from "@jest/globals";
-// import { startServerTest } from "../src/index"; // Adjust the path to your app file
-// import sequelize from "../src/config/database";
-// import SCategory, { ZCategory } from "../src/models/Category";
-// import Category from "../src/models/Category";
+// import { getCategories } from '../src/controllers/categoryController';
+// import { SCategory } from '../src/models/SCategory';
 
-// const app = await startServerTest();
 
-// beforeAll(async () => {
-//     await sequelize.sync({ force: true });
-// });
+// describe('categoryController', () => {
+//     jest.mock('../src/models/SCategory');
 
-// afterAll(async () => {
-//     await sequelize.close();
-// });
+//     describe('categoryController', () => {
+//         afterEach(() => {
+//             jest.clearAllMocks();
+//         });
 
-// describe("Category Routes", () => {
-//     let categoryId: number;
+//         it('should return an empty array if no subcategories are found', async () => {
+//             (SCategory.findAll as jest.Mock).mockResolvedValueOnce([]);
+//             const result = await getCategories(1);
+//             expect(result).toEqual([]);
+//             expect(SCategory.findAll).toHaveBeenCalledWith({ where: { parentCategoryId: 1 } });
+//         });
 
-//     it("should create a new category", async () => {
-//         const response = await request(app)
-//             .post("/categories")
-//             .send({ name: "Electronics" });
+//         it('should return categories with children recursively', async () => {
+//             // Mock data
+//             const mockCategory = {
+//                 dataValues: { id: 2, name: 'SubCat', parentCategoryId: 1 },
+//                 getDataValue: (key: string) => 2,
+//             };
+//             const mockChildCategory = {
+//                 dataValues: { id: 3, name: 'SubSubCat', parentCategoryId: 2 },
+//                 getDataValue: (key: string) => 3,
+//             };
 
-//         expect(response.status).toBe(201);
-//         expect(response.body.name).toBe("Electronics");
-//         expect(ZCategory.parse(response.body)).toBeInstanceOf(Category);
-//         categoryId = response.body.id;
-//     });
+//             // First call returns one subcategory
+//             (SCategory.findAll as jest.Mock)
+//                 .mockResolvedValueOnce([mockCategory]) // for parentId: 1
+//                 .mockResolvedValueOnce([mockChildCategory]) // for parentId: 2
+//                 .mockResolvedValueOnce([]); // for parentId: 3
 
-//     it("should get all categories", async () => {
-//         const response = await request(app).get("/categories");
+//             const result = await getCategories(1);
 
-//         expect(response.status).toBe(200);
-//         expect(response.body.length).toBeGreaterThan(0);
-//     });
+//             expect(result).toEqual([
+//                 {
+//                     ...mockCategory.dataValues,
+//                     children: [
+//                         {
+//                             ...mockChildCategory.dataValues,
+//                             children: [],
+//                         },
+//                     ],
+//                 },
+//             ]);
+//             expect(SCategory.findAll).toHaveBeenCalledTimes(3);
+//         });
 
-//     it("should get a category by ID", async () => {
-//         const response = await request(app).get(`/categories/${categoryId}`);
+//         it('should handle multiple subcategories', async () => {
+//             const mockCategory1 = {
+//                 dataValues: { id: 2, name: 'SubCat1', parentCategoryId: 1 },
+//                 getDataValue: (key: string) => 2,
+//             };
+//             const mockCategory2 = {
+//                 dataValues: { id: 3, name: 'SubCat2', parentCategoryId: 1 },
+//                 getDataValue: (key: string) => 3,
+//             };
 
-//         expect(response.status).toBe(200);
-//         expect(response.body.id).toBe(categoryId);
-//     });
+//             (SCategory.findAll as jest.Mock)
+//                 .mockResolvedValueOnce([mockCategory1, mockCategory2]) // for parentId: 1
+//                 .mockResolvedValueOnce([]) // for parentId: 2
+//                 .mockResolvedValueOnce([]); // for parentId: 3
 
-//     it("should update a category", async () => {
-//         const response = await request(app)
-//             .put(`/categories/${categoryId}`)
-//             .send({ name: "Updated Electronics" });
+//             const result = await getCategories(1);
 
-//         expect(response.status).toBe(200);
-//         expect(response.body.name).toBe("Updated Electronics");
-//     });
-
-//     it("should delete a category", async () => {
-//         const response = await request(app).delete(`/categories/${categoryId}`);
-
-//         expect(response.status).toBe(204);
-//     });
-
-//     it("should return 404 for a non-existing category", async () => {
-//         const response = await request(app).get(`/categories/9999`);
-
-//         expect(response.status).toBe(404);
+//             expect(result).toEqual([
+//                 { ...mockCategory1.dataValues, children: [] },
+//                 { ...mockCategory2.dataValues, children: [] },
+//             ]);
+//             expect(SCategory.findAll).toHaveBeenCalledTimes(3);
+//         });
 //     });
 // });

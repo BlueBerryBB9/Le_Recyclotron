@@ -21,7 +21,6 @@ import authRoutes from "./routes/authRoutes.js";
 import fastifyJwt from "@fastify/jwt";
 import { seedDatabase } from "./service/seedDatabase.js";
 import { stringToInt } from "./service/stringToInt.js";
-import { env } from "process";
 
 export const startServer = async () => {
     const app = Fastify({

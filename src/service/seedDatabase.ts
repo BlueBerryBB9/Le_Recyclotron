@@ -191,20 +191,20 @@ export async function seedDatabase(sequelize: Sequelize) {
         ]);
         console.log("Default userRoles inserted successfully!");
 
-        const oneYearFromNow = new Date();
-        oneYearFromNow.setFullYear(oneYearFromNow.getDay() + 1);
+        const oneWeekFromNow = new Date();
+        oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
 
         await SEvent.bulkCreate([
             {
             title: "title 1",
             description: "title 1 description",
-            date: oneYearFromNow,
+            date: oneWeekFromNow,
             image: "image.com",
             },
             {
             title: "title 2",
             description: "title 2 description",
-            date: oneYearFromNow,
+            date: oneWeekFromNow,
             image: "image.com",
             },
         ]);

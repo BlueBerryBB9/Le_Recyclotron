@@ -17,8 +17,8 @@ export const createRegistration = async (
         if (
             await SRegistration.findOne({
                 where: {
-                    userId: "" + req.body.userId,
-                    eventId: "" + req.body.eventId,
+                    userId: req.body.userId,
+                    eventId: req.body.eventId,
                 },
             })
         )
@@ -28,7 +28,7 @@ export const createRegistration = async (
 
         const createdRegistration = await r.default.create(req.body);
 
-        return rep.status(201).send({
+        return rep.code(201).send({
             data: createdRegistration.toJSON(),
             message: "Registration Created",
         });
@@ -51,7 +51,7 @@ export const getRegistration = async (
         if (!registration)
             throw new RecyclotronApiErr("Registration", "NotFound", 404);
 
-        return rep.status(200).send({
+        return rep.code(200).send({
             data: registration.toJSON(),
             message: "Registration fetched successfully",
         });
@@ -89,7 +89,7 @@ export const updateRegistration = async (
             include: r.default.associations.event,
         });
 
-        return rep.status(200).send({
+        return rep.code(200).send({
             data: updatedRegistration?.toJSON(),
             message: "Registration updated successfully",
         });
@@ -114,7 +114,7 @@ export const deleteRegistration = async (
 
         await registration.destroy();
 
-        return rep.status(200).send({
+        return rep.code(200).send({
             message: "Registration deleted successfully",
         });
     } catch (error) {
